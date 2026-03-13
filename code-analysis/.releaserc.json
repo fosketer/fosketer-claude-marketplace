@@ -1,0 +1,34 @@
+{
+  "branches": ["main"],
+  "tagFormat": "code-analysis/v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "node -e \"const fs=require('fs'); const f='.claude-plugin/plugin.json'; const p=JSON.parse(fs.readFileSync(f,'utf8')); p.version='${nextRelease.version}'; fs.writeFileSync(f, JSON.stringify(p,null,2)+'\\n')\""
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["CHANGELOG.md", "package.json", ".claude-plugin/plugin.json"],
+        "message": "chore(release): code-analysis v${nextRelease.version} [skip ci]"
+      }
+    ],
+    "@semantic-release/gitlab"
+  ]
+}

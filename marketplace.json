@@ -1,6 +1,6 @@
 {
   "name": "fosketer-claude-marketplace",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local Claude Code plugin marketplace",
   "plugins": [
     {
@@ -10,6 +10,14 @@
       "author": "fosketer",
       "tags": ["research", "brainstorm", "writing", "analysis"],
       "path": "plugins/multi-angle-research"
+    },
+    {
+      "name": "code-analysis",
+      "version": "0.1.0",
+      "description": "Multi-dimensional codebase analysis — architecture, dependencies, patterns, performance, quality, security, tech debt, and testing scans with refactoring plan generation",
+      "author": "fosketer",
+      "tags": ["code-analysis", "architecture", "security", "quality", "refactoring"],
+      "path": "code-analysis"
     }
   ]
 }
