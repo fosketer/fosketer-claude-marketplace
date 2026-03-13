@@ -6,8 +6,8 @@ This is a local marketplace for Claude Code plugins. It serves as a registry for
 
 ## Structure
 
-- `plugins/` — One directory per plugin, each containing a `manifest.json` and `README.md`
-- `marketplace.json` — Auto-generated central index of all plugins
+- `<plugin-name>/` — One directory per plugin at the repo root, each containing `.claude-plugin/plugin.json` and `README.md`
+- `.claude-plugin/marketplace.json` — Central marketplace index of all plugins
 
 ## Conventions
 

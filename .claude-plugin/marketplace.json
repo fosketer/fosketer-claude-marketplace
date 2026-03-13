@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "fosketer-claude-marketplace",
+  "owner": {
+    "name": "fosketer",
+    "email": "marketplace@fosketer.dev"
+  },
+  "plugins": [
+    {
+      "name": "multi-angle-research",
+      "source": "./multi-angle-research",
+      "description": "Structured multi-angle research pipeline — intake, parallel brainstorm, plan, execute, and document research on any topic"
+    },
+    {
+      "name": "code-analysis",
+      "source": "./code-analysis",
+      "description": "Multi-dimensional codebase analysis — architecture, dependencies, patterns, performance, quality, security, tech debt, and testing scans with refactoring plan generation"
+    }
+  ]
+}

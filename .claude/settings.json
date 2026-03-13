@@ -1,6 +1,6 @@
 {
   "enabledPlugins": {
-    "multi-angle-research@github:fosketer/fosketer-claude-marketplace/plugins/multi-angle-research": true,
-    "code-analysis@github:fosketer/fosketer-claude-marketplace/plugins/code-analysis": true
+    "multi-angle-research@github:fosketer/fosketer-claude-marketplace/multi-angle-research": true,
+    "code-analysis@github:fosketer/fosketer-claude-marketplace/code-analysis": true
   }
 }
