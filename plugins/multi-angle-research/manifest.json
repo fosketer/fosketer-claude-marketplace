@@ -1,0 +1,9 @@
+{
+  "name": "multi-angle-research",
+  "version": "1.0.0",
+  "description": "Structured multi-angle research pipeline — intake, parallel brainstorm, plan, execute, and document research on any topic",
+  "author": "fosketer",
+  "tags": ["research", "brainstorm", "writing", "analysis"],
+  "source": "https://github.com/fosketer/fosketer-claude-marketplace",
+  "minClaudeCodeVersion": "1.0.0"
+}
