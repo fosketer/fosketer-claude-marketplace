@@ -17,7 +17,7 @@
       "description": "Multi-dimensional codebase analysis — architecture, dependencies, patterns, performance, quality, security, tech debt, and testing scans with refactoring plan generation",
       "author": "fosketer",
       "tags": ["code-analysis", "architecture", "security", "quality", "refactoring"],
-      "path": "code-analysis"
+      "path": "plugins/code-analysis"
     }
   ]
 }
