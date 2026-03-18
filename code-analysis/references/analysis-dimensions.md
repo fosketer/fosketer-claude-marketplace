@@ -117,3 +117,16 @@ Reference for the 8 scan dimensions used by the code-analysis plugin. Each dimen
 | medium | Improvement opportunity | Plan for near-term |
 | low | Nice-to-have | Backlog |
 | info | Observation, no action needed | Informational only |
+
+## Priority Tier Assignment
+
+Every finding MUST be assigned a `priority_tier` during reconciliation using these rules:
+
+| Tier | Assignment Rule |
+|------|-----------------|
+| `immediate` | Security critical (any), injection/auth-bypass/hardcoded-secrets findings |
+| `sprint-1` | All other critical findings, security high, architecture critical |
+| `sprint-2` | High severity (non-security), medium severity (architectural/structural) |
+| `backlog` | Medium severity (style/naming), low, info |
+
+**Application order**: Apply the first matching rule top-to-bottom. Security dimension findings use the top two tiers preferentially.

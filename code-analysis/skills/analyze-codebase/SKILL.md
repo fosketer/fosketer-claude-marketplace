@@ -75,6 +75,20 @@ The orchestrator handles: flag parsing, stack detection, agent dispatch, feedbac
 
 ## Execution Protocol
 
+### Stage 0 — Load Prior State
+
+Before detecting the stack, check for previous scan data and user overrides:
+
+1. **Previous scores** (delta analysis): Check if `.code-analysis/reports/*-scores.json` exists with an older date
+   - If found: Load the most recent `scores.json` as `PREVIOUS_SCORES`
+   - Pass `PREVIOUS_SCORES` to the reconciler in Stage 3 — it will generate the Run Delta section
+   - If not found: `PREVIOUS_SCORES = null`
+
+2. **Override file** (false positive suppression): Check if `.code-analysis/overrides.json` exists
+   - If found: Load and pass as `OVERRIDES` to the reconciler in Stage 3
+   - If not found: `OVERRIDES = null`
+   - Create the file with empty arrays if the user wants to add overrides later — do NOT create it automatically
+
 ### Stage 1 — Detect Stack
 
 Identify languages and frameworks by reading the project root for manifest files:
@@ -120,6 +134,8 @@ Dispatch the `report-reconciler` agent with:
 - Stack information
 - Project path
 - Weights from `--weights` flag (or default)
+- `PREVIOUS_SCORES` from Stage 0 (null if first scan)
+- `OVERRIDES` from Stage 0 (null if no override file)
 
 The agent will:
 1. Deduplicate cross-dimension findings
@@ -246,6 +262,8 @@ Reports and scores were already persisted at Stage 3/5 — do NOT overwrite.
 | User skips all at Stage 5 | Finalize reports, end |
 | Very large project (>5000 files) | Warn, suggest `--dimensions` to focus |
 | Stage 3/5 directory has today's reports | Ask: overwrite or append timestamp suffix |
+| `.code-analysis/overrides.json` references non-existent finding ID | Log warning in report: "Override ID X not found in current findings"; proceed normally |
+| Previous scores.json found but dimensions don't match | Generate partial delta (compare matching dimensions only), note discrepancy |
 | Critic loop exhausted | Present all issues to user, ask proceed or abort |
 | Platform limits concurrent agents | Fall back to batches of 4 |
 | report-reconciler fails | Retry once, then surface error to user |

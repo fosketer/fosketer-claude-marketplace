@@ -102,6 +102,8 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 }
 ```
 
+Always populate `snippet` with the relevant code lines when `line_start` is provided.
+
 Return the findings array to the orchestrator.
 
 ## Error Handling

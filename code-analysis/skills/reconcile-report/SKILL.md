@@ -20,43 +20,64 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 - `PROJECT_PATH`: Root directory of the project
 - `WEIGHTS`: Optional object mapping dimension names to weight values (default: all 1.0)
 - `CRITIC_FEEDBACK`: Optional CriticFeedback from a prior iteration (null on first run)
+- `PREVIOUS_SCORES`: Optional ScoresReport from a prior run (null if first scan) — enables delta analysis
+- `OVERRIDES`: Optional content of `.code-analysis/overrides.json` (null if file does not exist)
 
 ## Reconciliation Workflow
 
+### Step 0 — Apply Overrides (if OVERRIDES provided)
+
+If `OVERRIDES` is not null:
+
+1. Parse the override file for `false_positives` and `wont_fix` arrays
+2. **`false_positives`**: Remove matching finding IDs entirely from all dimension findings arrays before any processing. These findings are excluded from dedup, scoring, and the report.
+3. **`wont_fix`**: Keep the finding in the report but tag it `[WONT-FIX]`; exclude it from score calculation (treat as if it were `info` severity for scoring purposes)
+4. Log counts: `"X findings suppressed as false_positives, Y findings marked as wont_fix"` — include this line in the report's executive summary
+
 ### Step 1 — Cross-Dimension Deduplication
 
-For each pair of findings across different dimensions:
+Apply hard deduplication rules (do NOT use LLM-based title similarity judgment):
 
-1. **Check file overlap**: Do they reference the same `file_path`?
-2. **Check line overlap**: Do their `[line_start, line_end]` ranges overlap (within 5-line tolerance)?
-3. **If both match**: Merge into a single finding:
-   - Keep the higher severity
-   - Combine dimension tags: `"dimensions": ["architecture", "patterns"]`
-   - Merge recommendations (deduplicate identical ones)
-   - Use the more specific description
-   - Assign the merged finding to the dimension with the highest weight
+**Hard rules (always merge):**
+- **Rule 1**: Same `file_path` + overlapping line ranges (within 5 lines of each other) → merge
+- **Rule 2**: Same `file_path` + null lines on both findings + exact `title` match → merge
 
-**Conservative dedup rule**: Only merge when file AND line range overlap. Do NOT merge based on title similarity alone — false positives are worse than duplicates.
+**Do NOT merge based on:**
+- Title similarity alone (too subjective, causes non-determinism)
+- Same description without file match
+- Cross-file findings even if "related"
+
+**When merging:**
+- Keep the higher severity
+- Combine dimension tags: `"dimensions": ["architecture", "patterns"]`
+- Keep the finding with the most specific line numbers
+- Merge recommendations (deduplicate identical ones)
+- Assign the merged finding to the dimension with the highest weight
+- **Merge key format**: `{dimension}:{file_path}:{line_start // 10 * 10}` (document for transparency)
+
+**Dedup summary table**: After dedup, produce a table for inclusion in the report:
+
+| Finding ID | Absorbed By | Reason |
+|-----------|-------------|--------|
+| arch-003  | qual-007    | Same file + overlapping lines (Rule 1) |
 
 ### Step 2 — Compute Dimension Scores
 
 For each dimension, after dedup:
 
-1. Count findings assigned to this dimension (including merged findings assigned here)
+1. Count findings assigned to this dimension (including merged findings assigned here). Exclude `wont_fix` findings from score calculation.
 2. Apply deduction formula:
    ```
-   score = max(0, 10 - sum(deductions))
-
-   deductions per finding:
-     critical = 3
-     high     = 2
-     medium   = 1
-     low      = 0.5
-     info     = 0
+   raw = (3 × criticals) + (2 × highs) + (1 × mediums) + (0.5 × lows)
+   score = max(1.0, 10 - min(raw, 9))    # floor = 1.0, cap deductions at 9
    ```
 3. Round to 1 decimal place
 
-**Edge case**: A dimension with zero findings (all clean) scores 10.0. A dimension with only `info` findings also scores 10.0. This is intended — info findings are observations, not problems.
+**Rationale**: Floor of 1.0 means "scanner ran and found real issues" — not zero. Capping deductions at 9 ensures a project with 20 criticals (very bad) still differs from one with 3 criticals (concerning). Projects with scores near 1.0 need urgent attention.
+
+**Edge cases**:
+- A dimension with zero findings (all clean) scores **10.0**. A dimension with only `info` findings also scores 10.0 — info findings are observations, not problems.
+- A dimension where **all findings were deduplicated into other dimensions** scores **8.0** (not 10.0 — the scanner found issues, they just belong elsewhere). This prevents false inflation of dimensions that happened to lose all their findings to dedup.
 
 ### Step 3 — Compute Overall Score
 
@@ -77,6 +98,85 @@ Scan the deduplicated findings for patterns:
 - Significant score gaps between related dimensions (e.g., architecture 3/10 but patterns 9/10) → note inconsistency
 
 Write 3-5 bullet points summarizing these observations.
+
+### Step 4b — Root Cause Clustering
+
+After cross-cutting observations, identify hot modules:
+
+1. Group all findings by `file_path` (exclude null file_path findings)
+2. A file appearing in ≥ 3 findings across ≥ 2 dimensions is a **hot module**
+3. For each hot module, compute:
+   - Total finding count
+   - Distinct dimensions affected
+   - Aggregate effort (largest individual effort in the cluster)
+   - A one-sentence remediation recommendation
+4. Sort clusters by (finding_count DESC, dimension_count DESC)
+
+Produce a "Root Cause Analysis" section in the report:
+
+```
+## Root Cause Analysis
+
+| Cluster | Module | Findings | Dimensions | Effort | Recommendation |
+|---------|--------|----------|------------|--------|----------------|
+| C1 | src/commands.rs | 8 | arch, quality, testing, perf | large | Refactor into dispatcher + handlers |
+| C2 | storage/redis_store.rs | 5 | perf, security, quality | medium | Extract storage trait, fix KEYS usage |
+```
+
+If no hot modules exist, omit this section.
+
+Produce `RootCauseCluster` objects matching the schema in `output-schemas.md`.
+
+### Step 4c — Priority Tiers
+
+After scoring, assign `priority_tier` to every finding (excluding `wont_fix`) using the rules in `analysis-dimensions.md`:
+
+- `immediate`: security critical, injection/auth-bypass/hardcoded-secrets
+- `sprint-1`: all other criticals, security high, architecture critical
+- `sprint-2`: high severity (non-security), medium severity (architectural/structural)
+- `backlog`: medium severity (style/naming), low, info
+
+Then produce an "Action Plan" section in the report:
+
+```
+## Action Plan
+
+### 🔴 Immediate (fix before next deploy)
+- SEC-001: Hardcoded API key in config.py — trivial
+- SEC-003: SSRF in fetch_url() — small
+
+### 🟠 Sprint 1
+- ARCH-001: Circular dependency core ↔ workpackage — medium
+
+### 🟡 Sprint 2
+- QUAL-004: Duplicated validation logic — small
+
+### ⚪ Backlog
+- DEBT-002: 12 TODO markers in auth module — medium
+```
+
+### Step 4d — Delta Analysis (if PREVIOUS_SCORES provided)
+
+If `PREVIOUS_SCORES` is not null:
+
+1. Compare finding IDs between current and previous run:
+   - **New**: present in current, absent in previous
+   - **Resolved**: present in previous, absent in current
+   - **Unchanged**: present in both
+2. Compare per-dimension scores and overall score: `prev → curr (delta)`
+3. Add a "Run Delta" section to the report:
+
+```
+## Run Delta (vs YYYY-MM-DD)
+
+Findings: +12 new, -8 resolved, 94 unchanged
+Scores: Architecture 0.0→3.5 (+3.5) | Quality 0.0→4.5 (+4.5) | Overall 0.0→2.4 (+2.4)
+
+New findings: ARCH-005, QUAL-011, ...
+Resolved:     ARCH-002, SEC-007, ...
+```
+
+Produce a `RunDelta` object matching the schema in `output-schemas.md`.
 
 ### Step 5 — Assemble Report
 
@@ -146,10 +246,17 @@ Produce output matching the CrossAnalysis schema. Do NOT persist — return to o
 
 ## Success Checklist
 
-- [ ] All findings deduplicated across dimensions
-- [ ] Per-dimension scores computed and valid (0-10)
+- [ ] Overrides applied: false_positives removed, wont_fix tagged (if OVERRIDES provided)
+- [ ] All findings deduplicated using hard rules only (no LLM title similarity)
+- [ ] Dedup summary table produced (Finding ID, Absorbed By, Reason)
+- [ ] Per-dimension scores computed using new formula (floor 1.0, cap 9)
+- [ ] Empty-after-dedup dimensions scored 8.0, truly-clean dimensions scored 10.0
 - [ ] Overall score computed with correct weights
+- [ ] Root Cause Analysis section produced (if hot modules exist)
+- [ ] priority_tier assigned to every finding
+- [ ] Action Plan section produced with tier groupings
 - [ ] Cross-cutting observations include 3-5 bullet points
+- [ ] Run Delta section produced (if PREVIOUS_SCORES provided)
 - [ ] Draft report written using template
 - [ ] scores.json matches ScoresReport schema
 - [ ] Critic feedback addressed (if provided)

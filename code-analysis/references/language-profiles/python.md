@@ -74,6 +74,23 @@
 - **Mocking**: `unittest.mock.patch`, `pytest-mock`
 - **Coverage**: `pytest-cov`, target >80% for critical paths
 
+## Coverage Measurement
+
+**Command**: `python -m pytest --cov --cov-report=json -q --tb=no 2>/dev/null`
+
+**Parse**: Read `coverage.json` → `totals.percent_covered` (0–100 float)
+
+**Coverage target**: ≥ 70%
+
+**Severity mapping**:
+- < 40% → critical, effort: large
+- 40–60% → high, effort: medium
+- 60–75% → medium, effort: small
+- 75–90% → low, effort: trivial
+- ≥ 90% → info only
+
+**If tool fails or is not installed**: Create a medium finding `"Coverage measurement unavailable — install pytest-cov (pip install pytest-cov)"` instead of silently skipping.
+
 ## Context7 Library IDs
 
 - `fastapi/fastapi` -- FastAPI web framework

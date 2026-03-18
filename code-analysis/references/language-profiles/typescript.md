@@ -79,6 +79,25 @@
 - **Coverage**: Istanbul/c8, target >80% for business logic
 - **E2E**: Playwright or Cypress for frontend, Supertest for API
 
+## Coverage Measurement
+
+**Primary command (Jest)**: `npx jest --coverage --json --silent 2>/dev/null`
+
+**Parse**: Read `coverage-summary.json` → `total.lines.pct` (0–100 float)
+
+**Fallback command (Vitest)**: `npx vitest run --coverage --reporter=json 2>/dev/null`
+
+**Coverage target**: ≥ 75%
+
+**Severity mapping**:
+- < 40% → critical, effort: large
+- 40–60% → high, effort: medium
+- 60–75% → medium, effort: small
+- 75–90% → low, effort: trivial
+- ≥ 90% → info only
+
+**If tool fails or is not installed**: Create a medium finding `"Coverage measurement unavailable — configure jest --coverage or vitest --coverage"` instead of silently skipping.
+
 ## Context7 Library IDs
 
 - `microsoft/TypeScript` -- TypeScript compiler

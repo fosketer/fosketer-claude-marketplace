@@ -79,6 +79,23 @@
 - **Coverage**: `cargo-tarpaulin`, `cargo-llvm-cov`
 - **Benchmarks**: `criterion` crate, `#[bench]` (nightly)
 
+## Coverage Measurement
+
+**Command**: `cargo tarpaulin --out Json --timeout 120 --skip-clean 2>/dev/null`
+
+**Parse**: Read `tarpaulin-report.json` → top-level `coverage` field (0.0–100.0 float)
+
+**Coverage target**: ≥ 70%
+
+**Severity mapping**:
+- < 40% → critical, effort: large
+- 40–60% → high, effort: medium
+- 60–75% → medium, effort: small
+- 75–90% → low, effort: trivial
+- ≥ 90% → info only
+
+**If tool fails or is not installed**: Create a medium finding `"Coverage measurement unavailable — install cargo-tarpaulin (cargo install cargo-tarpaulin)"` instead of silently skipping.
+
 ## Context7 Library IDs
 
 - `tokio-rs/tokio` -- Async runtime

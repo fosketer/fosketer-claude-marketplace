@@ -22,6 +22,26 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 
 ## Workflow
 
+### Step 0 — Measure Actual Coverage
+
+Run the language-appropriate coverage command from the LANGUAGE_PROFILE's "Coverage Measurement" section:
+
+1. Execute the coverage command in `PROJECT_PATH` using Bash
+2. Parse the output file to extract the line/branch coverage percentage:
+   - **Python**: Read `coverage.json` → `totals.percent_covered`
+   - **Rust**: Read `tarpaulin-report.json` → top-level `coverage`
+   - **TypeScript**: Read `coverage-summary.json` → `total.lines.pct`
+3. Map the coverage percentage to a finding using the severity thresholds from the LANGUAGE_PROFILE:
+   - < 40% → critical, effort: large
+   - 40–60% → high, effort: medium
+   - 60–75% → medium, effort: small
+   - 75–90% → low, effort: trivial
+   - ≥ 90% → info only
+4. If the coverage tool fails to run, is not installed, or produces no output: create a **medium** finding:
+   `"Coverage measurement unavailable — install [tool name from profile]"`
+   **Do NOT silently skip.** Do NOT assign a score without a measurement.
+5. The coverage finding MUST rank above all other testing findings in severity ordering.
+
 ### Step 1 — Discover Test Files
 
 1. Use Glob to locate test files by convention:
@@ -107,6 +127,8 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 }
 ```
 
+Always populate `snippet` with the relevant code lines when `line_start` is provided.
+
 Return the findings array to the orchestrator.
 
 ## Error Handling
@@ -121,6 +143,7 @@ Return the findings array to the orchestrator.
 
 ## Success Checklist
 
+- [ ] Coverage command executed and percentage parsed (or unavailability finding created)
 - [ ] Test files discovered and counted
 - [ ] Test-to-code ratio computed
 - [ ] Public APIs mapped to corresponding test files

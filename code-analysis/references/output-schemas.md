@@ -56,7 +56,7 @@ Each individual finding produced by a scan dimension.
     },
     "snippet": {
       "type": "string",
-      "description": "Relevant code snippet (max 10 lines). Null if not applicable.",
+      "description": "Relevant code snippet (max 10 lines). REQUIRED when line_start is not null — include lines [line_start-1, line_end+1] for context, trim trailing whitespace. Set to '[binary/minified — snippet omitted]' for binary or minified files. May remain null ONLY when file_path is null (project-wide finding).",
       "nullable": true
     },
     "recommendation": {
@@ -73,6 +73,11 @@ Each individual finding produced by a scan dimension.
       "items": { "type": "string" },
       "description": "Optional tags for grouping: e.g. ['owasp-a01', 'react', 'n-plus-one']",
       "default": []
+    },
+    "priority_tier": {
+      "type": "string",
+      "enum": ["immediate", "sprint-1", "sprint-2", "backlog"],
+      "description": "Action priority tier assigned during reconciliation per the rules in analysis-dimensions.md. Null before reconciliation."
     }
   }
 }
@@ -494,6 +499,140 @@ Structured feedback produced by report-critic and plan-critic agents.
         }
       }
     }
+  }
+}
+```
+
+## Root Cause Cluster Schema
+
+Output of Step 4b in reconciliation. One entry per hot module (file appearing in ≥ 3 findings across ≥ 2 dimensions).
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RootCauseCluster",
+  "type": "object",
+  "required": ["cluster_id", "file_path", "finding_ids", "dimension_count", "aggregate_effort", "summary"],
+  "properties": {
+    "cluster_id": {
+      "type": "string",
+      "pattern": "^C\\d+$",
+      "description": "Short cluster identifier, e.g. 'C1', 'C2'"
+    },
+    "file_path": {
+      "type": "string",
+      "description": "Relative path to the hot module"
+    },
+    "finding_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of all findings touching this module"
+    },
+    "dimension_count": {
+      "type": "integer",
+      "minimum": 2,
+      "description": "Number of distinct dimensions with findings in this module"
+    },
+    "aggregate_effort": {
+      "type": "string",
+      "enum": ["trivial", "small", "medium", "large", "xl"],
+      "description": "Largest individual effort in the cluster"
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-sentence remediation recommendation for this hot module"
+    }
+  }
+}
+```
+
+## Run Delta Schema
+
+Output of Step 4d in reconciliation. Produced when PREVIOUS_SCORES is available.
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunDelta",
+  "type": "object",
+  "required": ["previous_date", "new_finding_ids", "resolved_finding_ids", "unchanged_count", "score_deltas"],
+  "properties": {
+    "previous_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the previous scan run"
+    },
+    "new_finding_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Finding IDs present in current run but not in previous"
+    },
+    "resolved_finding_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Finding IDs present in previous run but not in current"
+    },
+    "unchanged_count": {
+      "type": "integer",
+      "description": "Count of findings present in both runs"
+    },
+    "score_deltas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "previous_score", "current_score", "delta"],
+        "properties": {
+          "dimension": { "type": "string" },
+          "previous_score": { "type": "number" },
+          "current_score": { "type": "number" },
+          "delta": { "type": "number", "description": "current_score - previous_score" }
+        }
+      }
+    }
+  }
+}
+```
+
+## Override File Schema
+
+User-managed file at `.code-analysis/overrides.json`. Controls which findings are suppressed or deprioritized.
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OverrideFile",
+  "type": "object",
+  "properties": {
+    "false_positives": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Finding IDs to exclude entirely from report and score",
+      "default": []
+    },
+    "wont_fix": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Finding IDs to keep in report with [WONT-FIX] tag but exclude from score",
+      "default": []
+    },
+    "notes": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Human-readable justification per finding ID",
+      "default": {}
+    }
+  }
+}
+```
+
+**Example**:
+```json
+{
+  "false_positives": ["sec-010"],
+  "wont_fix": ["qual-007"],
+  "notes": {
+    "sec-010": "IDOR risk accepted — job IDs are UUIDs in prod, not sequential",
+    "qual-007": "Intentional casing — matches external enum spec"
   }
 }
 ```
