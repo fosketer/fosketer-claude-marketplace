@@ -21,10 +21,43 @@ The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×crit
 `.claude/loop-state.md` persists between ralph-loop iterations:
 
 ```markdown
-current_score: 1.0
+# Ralph-Loop State
+dimension: architecture
+target: 10
+current_score: 6.0
+starting_score: 1.0
 plan_path: .code-analysis/plans/2026-03-19-arch-plan.md
-completed_finding_ids: []
+completed_finding_ids: [arch-001, arch-003, arch-005]
+last_commit_sha: 2614d94a
+phase: committed
+iteration: 3
+score_history: [1.0, 4.5, 6.0]
+started_at: 2026-03-19T06:25:42Z
+last_updated_at: 2026-03-19T14:26:48Z
 ```
+
+> **Note on finding ID format:** `completed_finding_ids` uses whatever ID format the scanner produces. If fingerprint IDs are implemented, these will be fingerprint-format IDs (e.g., `ARCH-8f3a21-0370`). Otherwise they use the current scanner-assigned format.
+
+> **Scoring formula:** `current_score` and `target` use the authoritative formula from `skills/reconcile-report/SKILL.md`: `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×critical + 2×high + 1×medium + 0.5×low`. The floor is **1.0**, not 0.
+
+### Phase State Machine
+
+```
+scanning → planning → implementing → committed → rescanning → planning (next iteration)
+                                                                  ↓
+                                                           score >= target → done
+```
+
+Each phase transition writes to `loop-state.md` **before** starting the next phase. A crash at any point leaves the state file pointing to the last *completed* phase.
+
+| Phase | Meaning | What was completed before entering |
+|-------|---------|-----------------------------------|
+| `scanning` | Initial dimension scan in progress | Nothing yet (first run) |
+| `planning` | Selecting/generating plan for next batch | Scan complete, score known |
+| `implementing` | Subagents are making code changes | Plan selected, batch chosen |
+| `committed` | Changes committed to git | All changes committed, SHA recorded |
+| `rescanning` | Re-scan in progress to measure new score | Commit verified |
+| `done` | Target score reached | Final score recorded |
 
 ## Every Iteration: Steps in Order
 
