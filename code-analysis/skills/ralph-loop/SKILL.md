@@ -1,16 +1,17 @@
 ---
 name: ralph-loop
 description: |
-  Use when iteratively improving a single codebase dimension score to ≥ TARGET/10
-  using analyze-codebase + ralph-loop. Applies when the user wants to fix all
-  findings in one dimension, run a score improvement loop, or automate
-  refactoring until a quality threshold is reached.
+  Use when iteratively improving codebase dimension scores to target thresholds
+  using analyze-codebase + ralph-loop. Supports single-dimension (positional args)
+  or multi-dimension (--targets flag) with per-dimension target scores.
+  Applies when the user wants to fix findings across one or more dimensions,
+  run a score improvement loop, or automate refactoring until quality thresholds are reached.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill
 ---
 
 # Ralph-Loop × Analyze-Codebase
 
-Iteratively scan one codebase dimension, implement the generated refactoring plan, commit to main, and loop until the dimension score reaches ≥ TARGET/10.
+Iteratively scan codebase dimensions, implement the generated refactoring plans, commit to main, and loop until all dimension scores reach their targets. Supports single-dimension mode (backward-compatible) and multi-dimension mode with per-dimension target scores.
 
 ## Why a Loop is Required
 
