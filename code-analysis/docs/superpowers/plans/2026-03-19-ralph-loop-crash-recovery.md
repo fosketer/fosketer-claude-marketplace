@@ -151,69 +151,166 @@ git commit -m "feat(ralph-loop): add crash recovery logic with phase-based resum
 
 ---
 
-### Task 3: Add Phase Writes to Steps 3-8
+### Task 3: Retire Step 2 and Add Phase Writes to Steps 3-8
 
 **Files:**
-- Modify: `skills/ralph-loop/SKILL.md` (Steps 3, 4, 5, 6, 7, 8)
+- Modify: `skills/ralph-loop/SKILL.md` (Steps 2, 3, 4, 4c, 5, 6, 7, 8)
 
-- [ ] **Step 1: Update Step 3 (First Run)**
+Note: All edits in this task are to `skills/ralph-loop/SKILL.md`. Use the Edit tool with old_string/new_string for each step. Run git from the repo root (`local-claude-marketplace/`).
 
-Add phase writes: `phase: scanning` before analyze-codebase invocation, then `phase: planning` + `starting_score` + `current_score` + `score_history: [<initial_score>]` + `started_at` after scan completes.
+- [ ] **Step 1: Retire Step 2 (Check Completion)**
 
-In the state file creation block, replace the current 3-field format:
-```
-current_score: <score>
-plan_path: <path>
-completed_finding_ids: []
-```
-with:
-```
-dimension: DIMENSION
-target: TARGET
-current_score: <score>
-starting_score: <score>
-plan_path: <path>
-completed_finding_ids: []
-last_commit_sha:
-phase: planning
-iteration: 0
-score_history: [<score>]
-started_at: <ISO 8601 now>
-last_updated_at: <ISO 8601 now>
+The existing Step 2 checks `current_score >= TARGET` and emits SCORE_REACHED. This is now handled by the recovery logic (Step 1, CASE "done") and Step 8. Replace Step 2 with a passthrough:
+
+Old:
+```markdown
+### Step 2 — Check Completion
+
+If `current_score >= TARGET`, output exactly:
+\`\`\`
+<promise>SCORE_REACHED</promise>
+\`\`\`
+Then stop. Do nothing else.
 ```
 
-- [ ] **Step 2: Update Step 4 (Brainstorm & Plan)**
+New:
+```markdown
+### Step 2 — Check Completion
 
-Add at entry: "Write `phase: planning` to loop-state.md before selecting the batch."
+If `phase` is `done` or `current_score >= TARGET`, output exactly:
+\`\`\`
+<promise>SCORE_REACHED</promise>
+\`\`\`
+Then stop. Do nothing else.
 
-- [ ] **Step 3: Update Step 4c/5 (Implement)**
-
-Add: "Write `phase: implementing` to loop-state.md before dispatching subagents."
-
-- [ ] **Step 4: Update Step 6 (Commit)**
-
-After the `git commit` instruction, add:
-```
-- Capture SHA: `git log -1 --format=%H`
-- Update loop-state.md: `phase: committed`, `last_commit_sha: <SHA>`, increment `iteration`, update `last_updated_at`
+> Note: On restart, the recovery logic in Step 1 handles phase-based completion checks. Step 2 is the fallback for within-session iteration.
 ```
 
-- [ ] **Step 5: Update Step 7 (Re-scan)**
+- [ ] **Step 2: Update Step 3 (First Run)**
 
-Add before analyze-codebase: "Write `phase: rescanning` to loop-state.md."
-After score extracted, change to: "Write `phase: planning`, update `current_score`, append new score to `score_history`, update `last_updated_at`."
+Find the state file creation block in Step 3 and replace:
 
-Add note: "Phase transitions to `planning` (not `committed`) because the next action is selecting a new batch."
+Old:
+```markdown
+- Create `.claude/loop-state.md`:
+  \`\`\`
+  current_score: <score>
+  plan_path: <path>
+  completed_finding_ids: []
+  \`\`\`
+- Go to Step 7.
+```
 
-- [ ] **Step 6: Update Step 8 (Check Completion)**
+New:
+```markdown
+- Before invoking analyze-codebase, write initial state:
+  \`\`\`
+  dimension: DIMENSION
+  target: TARGET
+  phase: scanning
+  started_at: <ISO 8601 now>
+  last_updated_at: <ISO 8601 now>
+  \`\`\`
+- After scan completes, update `.claude/loop-state.md`:
+  \`\`\`
+  dimension: DIMENSION
+  target: TARGET
+  current_score: <score>
+  starting_score: <score>
+  plan_path: <path>
+  completed_finding_ids: []
+  last_commit_sha:
+  phase: planning
+  iteration: 0
+  score_history: [<score>]
+  started_at: <preserved from above>
+  last_updated_at: <ISO 8601 now>
+  \`\`\`
+- Go to Step 7.
+```
 
-Add: "If score >= target: write `phase: done` to loop-state.md, then output SCORE_REACHED."
+- [ ] **Step 3: Add phase write to Step 4 (Brainstorm & Plan)**
 
-- [ ] **Step 7: Verify all phase writes**
+At the beginning of Step 4, before "Before touching code, select the next 3–5 findings", insert:
 
-Read through the entire SKILL.md and verify every step writes the correct phase before its action.
+```markdown
+Write `phase: planning` and `last_updated_at` to `.claude/loop-state.md`.
+```
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 4: Add phase write to Step 4c (Execute plan)**
+
+In Step 4c, before "invoke `superpowers:subagent-driven-development`", insert:
+
+```markdown
+Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
+```
+
+Note: Step 5 (mechanical fixes) also writes `phase: implementing` before making changes — add the same line at the start of Step 5 before "Read plan at `plan_path`".
+
+- [ ] **Step 5: Update Step 6 (Commit)**
+
+Find the current Step 6 commit section. After the `git commit -m` line, add:
+
+```markdown
+- After successful commit:
+  - Capture SHA: `git log -1 --format=%H`
+  - Update `.claude/loop-state.md`:
+    - `phase: committed`
+    - `last_commit_sha: <captured SHA>`
+    - Increment `iteration`
+    - Update `last_updated_at`
+```
+
+- [ ] **Step 6: Update Step 7 (Re-scan)**
+
+Replace the current Step 7 content. Old:
+```markdown
+### Step 7 — Re-scan
+
+- Run a fresh draft scan:
+  \`\`\`
+  /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics
+  \`\`\`
+- Read the new score from `.code-analysis/reports/*-scores.json` (latest date file).
+- Update `current_score` in `.claude/loop-state.md`.
+```
+
+New:
+```markdown
+### Step 7 — Re-scan
+
+- Write `phase: rescanning` and `last_updated_at` to `.claude/loop-state.md`.
+- Run a fresh draft scan:
+  \`\`\`
+  /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics
+  \`\`\`
+- Read the new score from `.code-analysis/reports/*-scores.json` (latest date file).
+- Update `.claude/loop-state.md`:
+  - `phase: planning`
+  - `current_score: <new score>`
+  - Append new score to `score_history`
+  - Update `last_updated_at`
+- Note: phase transitions to `planning` (not `committed`) because the next action is selecting a new batch — not re-scanning again.
+```
+
+- [ ] **Step 7: Update Step 8 (Check Completion)**
+
+After the existing SCORE_REACHED output, add:
+```markdown
+Before outputting, write `phase: done` and `last_updated_at` to `.claude/loop-state.md`.
+```
+
+- [ ] **Step 8: Verify all phase writes**
+
+Read through the entire SKILL.md and verify this sequence:
+- Step 3: scanning → planning
+- Step 4: planning (at entry)
+- Step 4c/5: implementing (before subagents/changes)
+- Step 6: committed (after git commit, with SHA)
+- Step 7: rescanning → planning (after score)
+- Step 8: done (before SCORE_REACHED)
+
+- [ ] **Step 9: Commit**
 
 ```bash
 git add skills/ralph-loop/SKILL.md
@@ -222,22 +319,32 @@ git commit -m "feat(ralph-loop): add phase transition writes to all iteration st
 
 ---
 
-### Task 4: Final Review & Version Bump
+### Task 4: Final Review & Verification Scenarios
 
 **Files:**
-- Modify: `skills/ralph-loop/SKILL.md` (full review)
-- Modify: `.claude-plugin/plugin.json` (version bump)
+- Review: `skills/ralph-loop/SKILL.md` (full review)
 
 - [ ] **Step 1: Read the complete SKILL.md end-to-end**
 
 Verify:
 - State file section has 12 fields + phase state machine
-- Step 1 has recovery logic for all 6 phases
+- Step 1 has recovery logic for all 6 phases + backwards compat
+- Step 2 checks both `phase: done` and `current_score >= TARGET`
 - Steps 3-8 all have phase transition writes
-- Backwards compat note for old state files
 - No orphaned references to old 3-field format
 
-- [ ] **Step 2: Commit final cleanup if needed**
+- [ ] **Step 2: Verify spec scenario mapping**
+
+Check that the SKILL.md supports all 7 spec verification scenarios:
+1. Committed crash → Step 1 CASE "committed" resumes at Step 7
+2. Implementing crash (dirty) → Step 1 CASE "implementing" prompts 3 options
+3. Implementing crash (clean) → Step 1 CASE "implementing" resumes Step 4
+4. Planning crash → Step 1 CASE "planning" restarts Step 4
+5. Scanning crash → Step 1 CASE "scanning" restarts Step 3
+6. HEAD-behind → Step 1 CASE "committed" prompts user (no silent delete)
+7. Old state file → backwards compat note, treated as committed, no SHA check
+
+- [ ] **Step 3: Commit final cleanup if needed**
 
 ```bash
 git add skills/ralph-loop/SKILL.md

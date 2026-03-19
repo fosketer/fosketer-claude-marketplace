@@ -149,7 +149,11 @@ NEVER use sequential numbering (001, 002) or free-form IDs.
 
 **Fresh scan** (no PREVIOUS_FINDINGS): sort by severity DESC then title ASC. First gets the bare ID, subsequent findings get -2, -3, etc.
 
-**Carry-forward re-scan**: carried-forward findings ALWAYS keep their existing ID. New findings in the same bucket get suffixes starting from highest existing suffix + 1.
+**Carry-forward re-scan** (PREVIOUS_FINDINGS provided): carried-forward findings ALWAYS keep their existing ID, regardless of severity rank relative to new findings. When a new finding collides with a carried-forward ID:
+1. Collect all existing IDs in this bucket (from carried-forward findings)
+2. Find the highest existing suffix number (bare = 1, -2 = 2, -3 = 3, etc.)
+3. Assign the new finding suffix = highest + 1
+Example: if `QUAL-8f3a21-0370` and `QUAL-8f3a21-0370-2` are carried forward, a new collision gets `QUAL-8f3a21-0370-3`.
 
 ## Carry-Forward Protocol
 
@@ -178,9 +182,17 @@ B. If finding.file_path IS in CHANGED_FILES, OR if CHANGED_FILES is null:
      NO (resolved) → add to resolved_ids list. Do NOT include in output.
      FILE DELETED → add to resolved_ids list. Do NOT include in output.
 
-**Cost threshold:** If PREVIOUS_FINDINGS has >30 findings and CHANGED_FILES is null,
-MAY skip Phase 1 verification and carry all forward tentatively (mark unverified count
-in carry_forward_summary).
+### Cost Note on CHANGED_FILES=null
+
+When CHANGED_FILES is null, Phase 1 re-reads every file referenced by previous findings,
+and Phase 2 scans the full codebase. This can be MORE expensive than a fresh scan.
+- ralph-loop SHOULD always provide CHANGED_FILES (via `git diff --name-only`)
+- Initial `/analyze-codebase` scans pass CHANGED_FILES=null, which is acceptable because
+  there are no PREVIOUS_FINDINGS on first scan
+- If PREVIOUS_FINDINGS has >30 findings and CHANGED_FILES is null, the scanner MAY skip
+  Phase 1 verification and carry all findings forward tentatively. In this case, set
+  `unverified` in carry_forward_summary to the count of tentatively carried findings.
+  Note: `unverified` is a **subset** of `carried_forward` (not additive).
 
 ### Phase 2 — Discover New Findings
 
@@ -308,17 +320,20 @@ In the Optional Flags section (after `--draft-only`), add:
 
 - [ ] **Step 3: Update Stage 2 dispatch**
 
-In Stage 2, update the scanner dispatch to pass new parameters. Find the section that dispatches code-analyzer agents and add:
+In Stage 2, find the code-analyzer agent dispatch section. After the existing dispatch parameters (DIMENSION, STACK, etc.), append two new parameters to the agent prompt. The exact text to add to the dispatch block:
 
 ```markdown
-Each code-analyzer agent receives:
-- DIMENSION: dimension name
-- STACK: detected stack
-- SCAN_REPORTS_DIR: ".code-analysis/scan-reports" (path hint for loading previous findings)
-- CHANGED_FILES: if --changed-files-hint flag provided, split comma-separated value into array; otherwise null
+Additional parameters for each code-analyzer agent:
+- SCAN_REPORTS_DIR: ".code-analysis/scan-reports"
+  (Path hint — the scanner loads its own previous findings from this directory.
+   The orchestrator MUST NOT read scan reports itself.)
+- CHANGED_FILES: <array of relative file paths, or null>
+  (If --changed-files-hint flag was provided, split the comma-separated value
+   into an array and pass it here. If the flag was not provided, pass null.
+   Scanners use this for diff-scoped carry-forward.)
 ```
 
-The orchestrator MUST NOT read previous scan reports itself — each scanner loads its own.
+Do NOT restructure the existing dispatch format — only append these two parameters to it.
 
 - [ ] **Step 4: Verify**
 
@@ -477,6 +492,6 @@ Read each modified file and verify consistency:
 - [ ] **Step 3: Commit cleanup**
 
 ```bash
-git add -A
-git commit -m "chore(code-analysis): finalize finding ID stability and scanner anchoring implementation"
+git rm docs/superpowers/plans/_scan-skill-appendix.md
+git commit -m "chore(code-analysis): remove temporary appendix file after scan skill updates"
 ```
