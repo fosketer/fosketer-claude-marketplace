@@ -17,6 +17,31 @@ Iteratively scan codebase dimensions, implement the generated refactoring plans,
 
 The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×critical + 2×high + 1×medium + 0.5×low`. Because the penalty is capped at 9, **all dimensions with many findings sit at the 1.0 floor**. Individual scattered fixes appear invisible. You must clear enough findings to bring `raw < 9` before the score moves at all.
 
+## Input Parsing
+
+**Single-dimension mode** (backward-compatible):
+```bash
+/code-analysis:ralph-loop <dimension> <target> [--max-iterations N] [--completion-promise "SCORE_REACHED"]
+```
+
+**Multi-dimension mode**:
+```bash
+/code-analysis:ralph-loop --targets="arch:8,patterns:9,security:10" [--max-iterations N] [--completion-promise "SCORE_REACHED"]
+```
+
+### Parsing rules
+
+- Positional args `<dimension> <target>` → single-dimension mode (existing behavior unchanged)
+- `--targets` flag → multi-dimension mode (2+ dimensions)
+- `--targets` with a single dimension → auto-converted to single-dimension mode for state file consistency
+- Cannot mix positional args and `--targets` — error if both provided
+- Dimension shorthand: `arch` → architecture, `deps` → dependencies, `perf` → performance, `debt` → tech-debt
+
+### Validation
+
+- Duplicate dimension in `--targets` → error: `"Duplicate dimension: {name}"`
+- Target score < 1 or > 10 → error: `"Target must be between 1.0 and 10.0"`
+
 ## State File
 
 `.claude/loop-state.md` persists between ralph-loop iterations:
@@ -59,6 +84,41 @@ Each phase transition writes to `loop-state.md` **before** starting the next pha
 | `committed` | Changes committed to git | All changes committed, SHA recorded |
 | `rescanning` | Re-scan in progress to measure new score | Commit verified |
 | `done` | Target score reached | Final score recorded |
+
+### Multi-Dimension State File
+
+When running in multi-dimension mode, `.claude/loop-state.md` uses an extended format:
+
+```markdown
+# Ralph-Loop State
+mode: multi
+targets: { architecture: 8, patterns: 9 }
+current_scores: { architecture: 1.0, patterns: 1.0 }
+starting_scores: { architecture: 1.0, patterns: 1.0 }
+plan_paths: { architecture: .code-analysis/plans/2026-03-19-architecture-plan.md, patterns: .code-analysis/plans/2026-03-19-patterns-plan.md }
+completed_finding_ids: [ARCH-1ec634-0000, PAT-8d5fec-0020]
+last_commit_sha: 2614d94a
+phase: committed
+iteration: 3
+score_history:
+  - { architecture: 1.0, patterns: 1.0 }
+  - { architecture: 4.5, patterns: 3.0 }
+  - { architecture: 6.0, patterns: 5.5 }
+started_at: 2026-03-19T06:25:42Z
+last_updated_at: 2026-03-19T14:26:48Z
+```
+
+**Key differences from single-dimension format:**
+- `mode: multi` — identifies multi-dimension state (absent in single-dimension)
+- `targets` — map of dimension → target score (replaces `dimension` + `target`)
+- `current_scores` / `starting_scores` — maps (replace `current_score` / `starting_score`)
+- `plan_paths` — map of dimension → plan path (replaces `plan_path`)
+- `completed_finding_ids` — flat list (unchanged; IDs contain dimension prefix e.g. `ARCH-`, `PAT-`)
+- `score_history` — entries are maps (replace scalar values)
+
+**Backward compatibility:** If `mode` key is absent, treat as single-dimension (existing format). Old state files work unchanged.
+
+**Exit condition:** Loop exits when `current_scores[dim] >= targets[dim]` for **every** dimension.
 
 ## Every Iteration: Steps in Order
 
