@@ -17,8 +17,9 @@ Each individual finding produced by a scan dimension.
   "properties": {
     "id": {
       "type": "string",
-      "description": "Unique identifier: {dimension}-{sequential_number}, e.g. 'architecture-003'",
-      "pattern": "^[a-z-]+-\\d{3}$"
+      "pattern": "^[A-Z]{3,4}-(000000-0000-[0-9a-f]{4}|[0-9a-f]{6}-\\d{4})(-[2-9]\\d*)?$",
+      "description": "Deterministic fingerprint: {DIM}-{file_hash6}-{line_bucket} for file findings, {DIM}-000000-0000-{title_hash4} for null-file findings. Collision suffix starts at -2.",
+      "examples": ["ARCH-8f3a21-0370", "SEC-000000-0000-a7f2", "QUAL-8f3a21-0370-2"]
     },
     "dimension": {
       "type": "string",
@@ -78,6 +79,11 @@ Each individual finding produced by a scan dimension.
       "type": "string",
       "enum": ["immediate", "sprint-1", "sprint-2", "backlog"],
       "description": "Action priority tier assigned during reconciliation per the rules in analysis-dimensions.md. Null before reconciliation."
+    },
+    "previous_id": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Set when a carried-forward finding's code shifted >10 lines, causing a new fingerprint. Links to the old ID for continuity tracking."
     }
   }
 }
@@ -146,6 +152,18 @@ Output of a single scan dimension execution.
       "type": "array",
       "items": { "$ref": "#Finding" },
       "description": "All findings, ordered by severity (critical first) then by file path"
+    },
+    "carry_forward_summary": {
+      "type": ["object", "null"],
+      "default": null,
+      "description": "Present when PREVIOUS_FINDINGS was provided to the scanner. Null on first-ever scan.",
+      "properties": {
+        "carried_forward": { "type": "integer", "description": "Total carried forward (includes unverified)" },
+        "resolved": { "type": "integer" },
+        "new": { "type": "integer" },
+        "unverified": { "type": "integer", "default": 0, "description": "Subset not re-verified (tentative carry-forward)" },
+        "resolved_ids": { "type": "array", "items": { "type": "string" } }
+      }
     }
   }
 }
@@ -435,6 +453,24 @@ Machine-readable scores produced by the reconciliation agent. Enables tracking h
         "total_raw_findings": { "type": "integer", "description": "Sum of findings across all dimensions before dedup" },
         "total_after_dedup": { "type": "integer", "description": "Findings count after cross-dimension dedup" },
         "merged_count": { "type": "integer", "description": "Number of findings merged during dedup" }
+      }
+    },
+    "scan_metadata": {
+      "type": ["object", "null"],
+      "default": null,
+      "description": "Aggregated carry-forward statistics across dimensions.",
+      "properties": {
+        "carry_forward_stats": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "carried_forward": { "type": "integer" },
+              "resolved": { "type": "integer" },
+              "new": { "type": "integer" }
+            }
+          }
+        }
       }
     }
   }
