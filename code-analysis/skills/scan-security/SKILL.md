@@ -115,7 +115,7 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 
 ```json
 {
-  "id": "sec-001",
+  "id": "SEC-e7b4a1-0000",
   "dimension": "security",
   "title": "Hardcoded API key in configuration",
   "description": "...",

@@ -114,7 +114,7 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 
 ```json
 {
-  "id": "test-001",
+  "id": "TST-e7b4a1-0000",
   "dimension": "testing",
   "title": "Untested public API: UserService.createUser()",
   "description": "...",

@@ -59,7 +59,7 @@ Apply hard deduplication rules (do NOT use LLM-based title similarity judgment):
 
 | Finding ID | Absorbed By | Reason |
 |-----------|-------------|--------|
-| arch-003  | qual-007    | Same file + overlapping lines (Rule 1) |
+| ARCH-a1b2c3-0140  | QUAL-d4e5f6-0080    | Same file + overlapping lines (Rule 1) |
 
 ### Step 2 — Compute Dimension Scores
 

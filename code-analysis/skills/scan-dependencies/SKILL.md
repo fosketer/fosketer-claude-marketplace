@@ -95,7 +95,7 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 
 ```json
 {
-  "id": "deps-001",
+  "id": "DEP-e7b4a1-0000",
   "dimension": "dependencies",
   "title": "Known vulnerability in lodash@4.17.15",
   "description": "CVE-2021-23337: lodash 4.17.15 is vulnerable to command injection via template(). Fixed in 4.17.21.",

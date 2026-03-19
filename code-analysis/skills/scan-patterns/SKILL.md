@@ -95,7 +95,7 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 
 ```json
 {
-  "id": "pattern-001",
+  "id": "PAT-e7b4a1-0000",
   "dimension": "patterns",
   "title": "God class detected: ApplicationService",
   "description": "ApplicationService has 23 public methods, 18 injected dependencies, and handles user management, notifications, and billing in a single class.",

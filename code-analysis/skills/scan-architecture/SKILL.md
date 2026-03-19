@@ -69,7 +69,7 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 
 ```json
 {
-  "id": "arch-001",
+  "id": "ARCH-e7b4a1-0000",
   "dimension": "architecture",
   "title": "Circular dependency between modules X and Y",
   "description": "...",

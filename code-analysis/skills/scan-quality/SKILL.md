@@ -89,7 +89,7 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 
 ```json
 {
-  "id": "quality-001",
+  "id": "QUAL-e7b4a1-0000",
   "dimension": "quality",
   "title": "Duplicated validation logic across 3 modules",
   "description": "The email validation block (15 lines) is copy-pasted in user_service.py, auth_handler.py, and registration.py",

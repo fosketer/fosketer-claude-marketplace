@@ -96,7 +96,7 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 
 ```json
 {
-  "id": "perf-001",
+  "id": "PERF-e7b4a1-0000",
   "dimension": "performance",
   "title": "N+1 query in OrderController.getOrders()",
   "description": "...",
