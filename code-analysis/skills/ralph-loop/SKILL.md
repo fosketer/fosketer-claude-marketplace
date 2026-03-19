@@ -61,10 +61,53 @@ Each phase transition writes to `loop-state.md` **before** starting the next pha
 
 ## Every Iteration: Steps in Order
 
-### Step 1 — Read State
+### Step 1 — Read State & Recover
 
 Check if `.claude/loop-state.md` exists and read it.
-It contains: `current_score`, `plan_path`, `completed_finding_ids` (list).
+
+**If no state file** → first run (go to Step 3).
+
+**If state file exists:**
+Read `dimension` and `target` from state (no need to re-specify via args).
+If args are provided AND differ from state, warn: "State says {dim}/{target}, args say {new_dim}/{new_target}. Use state values? [Y/n]"
+
+**Backwards compatibility:** If `phase` key is absent (old 3-field format), treat as `phase: committed`. If `last_commit_sha` is also absent, skip SHA verification entirely and resume at Step 7 (re-scan).
+
+**Recovery by phase:**
+
+CASE "done":
+  Output SCORE_REACHED. Stop.
+
+CASE "committed":
+  Verify: `git log -1 --format=%H` == `last_commit_sha`?
+    YES → resume at Step 7 (re-scan)
+    NO, HEAD is ahead → external commits detected. Log warning, re-scan to recalibrate (Step 7)
+    NO, HEAD is behind → prompt user: "State records commit {sha} but HEAD is at {head_sha} (behind). Options:
+      1. Keep state and re-scan from current HEAD
+      2. Delete state and start fresh"
+    Do NOT delete state without user confirmation.
+
+CASE "rescanning":
+  Re-scan was interrupted. Restart Step 7.
+
+CASE "implementing":
+  First, check if subagents committed independently:
+    `git log -1 --format=%H` vs `last_commit_sha`:
+      HEAD is AHEAD → subagents committed. Update last_commit_sha, treat as "committed" → Step 7.
+      HEAD is BEHIND → prompt user (same as committed HEAD-behind case).
+  If HEAD matches (no independent commits):
+    `git status --porcelain`:
+      CLEAN → no changes from interrupted implementation. Log message, resume Step 4.
+      DIRTY → prompt user: "Found uncommitted changes from interrupted session. Options:
+        1. Review changes, attempt compilation, and commit if it passes
+        2. Discard changes (git checkout .) and re-implement this batch
+        3. Start fresh (delete state, re-scan dimension)"
+
+CASE "planning":
+  Plan generation was interrupted. Restart Step 4.
+
+CASE "scanning":
+  Initial scan was interrupted. Restart Step 3.
 
 ### Step 2 — Check Completion
 
