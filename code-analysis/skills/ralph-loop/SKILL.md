@@ -104,6 +104,8 @@ Run one dimension at a time. Pass this skill's content as the ralph-loop prompt,
 
 ```bash
 /ralph-loop --completion-promise "SCORE_REACHED" --max-iterations 20 "
+/clear
+
 <paste Steps 1–8 above with DIMENSION replaced>
 "
 ```
