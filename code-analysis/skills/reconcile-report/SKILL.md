@@ -159,22 +159,26 @@ Then produce an "Action Plan" section in the report:
 
 If `PREVIOUS_SCORES` is not null:
 
-1. Compare finding IDs between current and previous run:
-   - **New**: present in current, absent in previous
-   - **Resolved**: present in previous, absent in current
-   - **Unchanged**: present in both
-2. Compare per-dimension scores and overall score: `prev → curr (delta)`
-3. Add a "Run Delta" section to the report:
+With fingerprint-based IDs, delta analysis is reliable:
 
-```
-## Run Delta (vs YYYY-MM-DD)
+- **Resolved**: IDs in PREVIOUS_SCORES findings but not in current → genuinely fixed
+- **New**: IDs in current but not in PREVIOUS_SCORES → genuinely new issues
+- **Unchanged**: IDs present in both → persistent issues
 
-Findings: +12 new, -8 resolved, 94 unchanged
-Scores: Architecture 0.0→3.5 (+3.5) | Quality 0.0→4.5 (+4.5) | Overall 0.0→2.4 (+2.4)
+**Handling merged IDs:**
+During dedup (Step 1), findings may be merged. To handle resolved_ids from
+carry_forward_summary correctly:
+1. Build mapping: {original_scanner_id → merged_id} from dedup table
+2. Check both original and merged IDs when computing deltas
+3. A finding is "resolved" if its scanner ID is in carry_forward_summary.resolved_ids,
+   even if PREVIOUS_SCORES stored a different merged ID
+4. Include both scanner ID and mapped merged ID in resolved_finding_ids
 
-New findings: ARCH-005, QUAL-011, ...
-Resolved:     ARCH-002, SEC-007, ...
-```
+**Old-format detection:** If ANY finding ID in PREVIOUS_SCORES matches `^[a-z-]+-\d{3}$`
+(old sequential format), treat the entire previous report as old-format and skip delta
+comparison (all findings treated as "new").
+
+Add a "Run Delta" section to the report with new, resolved, unchanged counts and score deltas.
 
 Produce a `RunDelta` object matching the schema in `output-schemas.md`.
 
@@ -189,6 +193,11 @@ Use the `analysis-draft.md` template:
 ### Step 6 — Assemble Scores JSON
 
 Produce `scores.json` matching the ScoresReport schema.
+
+**6b.** If any DimensionReport contains a `carry_forward_summary`, aggregate into
+`scan_metadata.carry_forward_stats` in the ScoresReport:
+For each dimension with carry_forward_summary:
+  `scan_metadata.carry_forward_stats[dimension] = { carried_forward, resolved, new }`
 
 ### Step 7 — Handle Critic Feedback (if present)
 
@@ -257,6 +266,8 @@ Produce output matching the CrossAnalysis schema. Do NOT persist — return to o
 - [ ] Action Plan section produced with tier groupings
 - [ ] Cross-cutting observations include 3-5 bullet points
 - [ ] Run Delta section produced (if PREVIOUS_SCORES provided)
+- [ ] scan_metadata.carry_forward_stats aggregated from DimensionReport.carry_forward_summary (if any scanner provided it)
+- [ ] Old-format PREVIOUS_SCORES detected and delta comparison skipped if applicable
 - [ ] Draft report written using template
 - [ ] scores.json matches ScoresReport schema
 - [ ] Critic feedback addressed (if provided)
