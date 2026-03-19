@@ -423,6 +423,8 @@ If all plan steps are completed but score < TARGET, the codebase has changed eno
 
 ## How to Run
 
+### Single-dimension (backward-compatible)
+
 Run one dimension at a time. Pass this skill's content as the ralph-loop prompt,
 replacing `DIMENSION` with the target dimension flag and `TARGET` with the desired
 minimum score (e.g. 6 for a quick win, 9 for full quality):
@@ -432,6 +434,33 @@ minimum score (e.g. 6 for a quick win, 9 for full quality):
 <paste Steps 1–9 above with DIMENSION and TARGET replaced>
 "
 ```
+
+### Multi-dimension
+
+```bash
+/code-analysis:ralph-loop --targets="arch:8,patterns:9,security:10" --completion-promise "SCORE_REACHED" --max-iterations 10
+```
+
+All target dimensions are scanned together each iteration, preserving cross-scanner context. Findings are selected across all dimensions using a gap-weighted priority algorithm. The loop exits when every dimension reaches its own target.
+
+### Max iterations exhausted
+
+`--max-iterations` applies to total loop count across all dimensions. When exhausted:
+
+```
+Ralph-loop stopped after 6 iterations (max reached)
+  architecture: 1.0 -> 7.5 (target: 8) -- not reached
+  patterns: 1.0 -> 9.0 (target: 9) -- reached
+```
+
+### Error Handling (multi-dimension)
+
+| Scenario | Resolution |
+|----------|-----------|
+| One dimension's plan generation fails | Log warning, continue with other dimensions. Retry plan generation on next re-scan. |
+| All findings are xl effort | Proceed normally. Log: `"Only xl-effort findings remaining, iterations may be slow"` |
+| Fix in dimension A introduces new finding in dimension B | Re-scan catches it, batch selection picks it up if impactful enough (gap-weighted priority) |
+| Dimension reaches target then regresses below target | Re-enters fix pool automatically — mid-loop completion is reversible |
 
 ### Dimension Flags
 
