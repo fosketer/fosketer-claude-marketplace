@@ -338,7 +338,8 @@ Used when the batch selected in Step 4 consists entirely of XS-effort mechanical
 
 Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
 
-- Read plan at `plan_path` from state file.
+- **Single-dimension:** Read plan at `plan_path` from state file.
+- **Multi-dimension:** Read plans from all `plan_paths` entries. Identify the batch of trivial findings NOT yet in `completed_finding_ids` across all dimensions, using the gap-weighted priority from Step 4.
 - Identify the batch of XS findings NOT yet in `completed_finding_ids`.
 - Implement them directly:
   - Read each affected file before editing it.
@@ -350,9 +351,9 @@ Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
 
 - Stage all modified files individually (never `git add -A`).
 - Commit to main:
-  ```
-  git commit -m 'fix(DIMENSION): <one-line summary of what was fixed>'
-  ```
+  - **Single-dimension:** `git commit -m 'fix(DIMENSION): <one-line summary>'`
+  - **Multi-dimension:** `git commit -m 'fix(ralph-loop): <one-line summary> [dim1,dim2]'`
+    In multi-dimension mode, the commit scope is always `ralph-loop`, even if a particular batch only contains findings from a single dimension. The bracket suffix lists which dimensions' findings were addressed in that batch.
 - After successful commit:
   - Capture SHA: `git log -1 --format=%H`
   - Update `.claude/loop-state.md`:
