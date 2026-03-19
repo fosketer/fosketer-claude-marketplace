@@ -401,9 +401,10 @@ Add/update these fields in the Finding properties block:
 DimensionReport.carry_forward_summary (new, optional):
   type: object or null
   properties:
-    carried_forward: { type: integer }
+    carried_forward: { type: integer, description: "Total carried forward (includes unverified)" }
     resolved: { type: integer }
     new: { type: integer }
+    unverified: { type: integer, default: 0, description: "Subset of carried_forward not re-verified (tentative carry-forward when >30 findings + CHANGED_FILES=null)" }
     resolved_ids: { type: array, items: { type: string } }
   description: >
     Present when PREVIOUS_FINDINGS was provided to the scanner.
@@ -451,7 +452,7 @@ ScoresReport.scan_metadata (new, optional):
 | `skills/scan-performance/SKILL.md` | Append sections | Finding ID Generation + Carry-Forward Protocol |
 | `skills/scan-security/SKILL.md` | Append sections | Finding ID Generation + Carry-Forward Protocol |
 | `skills/scan-tech-debt/SKILL.md` | Append sections | Finding ID Generation + Carry-Forward Protocol |
-| `skills/analyze-codebase/SKILL.md` | Modify Stage 2 | Load PREVIOUS_FINDINGS, pass CHANGED_FILES to scanners |
+| `skills/analyze-codebase/SKILL.md` | Modify Stage 2 | Add `--changed-files-hint` flag; pass `SCAN_REPORTS_DIR` path hint and `CHANGED_FILES` to scanner agents |
 | `skills/reconcile-report/SKILL.md` | Modify Step 4d | Reliable delta analysis, carry_forward_stats aggregation |
 | `skills/ralph-loop/SKILL.md` | Modify Step 7 | Compute and pass CHANGED_FILES hint |
 

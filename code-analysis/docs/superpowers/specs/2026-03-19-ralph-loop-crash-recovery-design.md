@@ -112,6 +112,10 @@ IF state file exists:
           HEAD is AHEAD of last_commit_sha → subagents committed
             Update last_commit_sha to HEAD
             Treat as CASE "committed" → resume at Step 7 (re-scan)
+          HEAD is BEHIND last_commit_sha → user reset during implementation
+            Prompt user: "HEAD is behind recorded commit. Options:
+              1. Keep state and re-scan from current HEAD
+              2. Delete state and start fresh"
 
       If HEAD matches last_commit_sha (no independent commits):
         Check: git status --porcelain
@@ -144,7 +148,7 @@ Changes are minimal — only adding phase writes at transition points:
 
 **Step 3 — First Run (Generate Plan):**
 - Before invoking analyze-codebase: write `phase: scanning`
-- After scan completes and score extracted: write `phase: planning` + `starting_score` + `current_score`
+- After scan completes and score extracted: write `phase: planning` + `starting_score` + `current_score` + `score_history: [<initial_score>]`
 
 **Step 4 — Brainstorm & Plan Next Batch:**
 - At entry: write `phase: planning`
@@ -169,7 +173,7 @@ Changes are minimal — only adding phase writes at transition points:
 
 ### 5. Backwards Compatibility
 
-- **Old state files** (3 fields, no `phase`): Detected by absence of `phase` key. Treated as `phase: committed` with no SHA verification. The loop resumes at re-scan — safe default that may repeat one scan but loses no work.
+- **Old state files** (3 fields, no `phase`): Detected by absence of `phase` key. Treated as `phase: committed`. If `last_commit_sha` is also absent, skip SHA verification entirely and resume at re-scan. This is the safe default — may repeat one scan but loses no work.
 - **Old args format** (`/ralph-loop arch 10`): Still works. On restart, args are optional if state file has `dimension` and `target`.
 - **No changes to other skills or agents**: This spec is entirely contained within `ralph-loop/SKILL.md`.
 
