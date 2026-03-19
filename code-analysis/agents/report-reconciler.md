@@ -104,4 +104,4 @@ If dispatched with critic feedback (from report-critic):
 
 - This agent does NOT scan the codebase — it works from findings provided by the orchestrator
 - Dedup is conservative: only merge findings with overlapping file+line ranges across dimensions
-- Scores use the formula: base 10, deductions per severity (critical=-3, high=-2, medium=-1, low=-0.5, info=0), floor at 0
+- Scores use the formula from reconcile-report/SKILL.md: raw = 3×crit + 2×high + 1×med + 0.5×low; score = max(1.0, 10 - min(raw, 9))

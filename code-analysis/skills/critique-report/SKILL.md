@@ -31,11 +31,11 @@ Read `scores.json` and verify:
 
 1. **Formula correctness**: For each dimension, manually count findings by severity and verify:
    ```
-   expected_score = max(0, 10 - (critical*3 + high*2 + medium*1 + low*0.5))
+   expected_score = max(1.0, 10 - min(critical*3 + high*2 + medium*1 + low*0.5, 9))
    ```
    Tolerance: ±0.1 (rounding)
 
-2. **Cross-dimension consistency**: Flag if:
+2. **Cross-dimension consistency** *(skip if `dimensions_analyzed` in scores.json has < 2 entries)*: Flag if:
    - A dimension with more critical findings scores higher than one with fewer
    - Two dimensions have similar finding profiles but scores differ by > 2 points
    - Overall score does not match weighted average (tolerance ±0.1)
@@ -55,7 +55,7 @@ Read the scan reports and check for obvious gaps:
    - Data project → SHOULD have performance findings related to data handling
    - If a dimension has 0 findings where findings are expected, flag
 
-2. **Dimension balance**: If one dimension has 20+ findings and a related dimension has 0, flag (e.g., architecture has 20 issues but patterns has 0 — unlikely)
+2. **Dimension balance**: Only compare dimensions listed in `dimensions_analyzed` from scores.json (not all 8). If one analyzed dimension has 20+ findings and a related analyzed dimension has 0, flag (e.g., architecture has 20 issues but patterns has 0 — unlikely). Skip this check entirely if < 2 dimensions were analyzed.
 
 **Issue category**: `coverage-gap`
 **Severity**: `warning` (critic cannot re-scan, but should flag for user awareness)
@@ -65,7 +65,7 @@ Read the scan reports and check for obvious gaps:
 Read the raw scan reports and the dedup stats in scores.json:
 
 1. **Over-merging**: If dedup merged > 40% of total findings, flag as potential over-merging
-2. **Under-merging**: Spot-check 5 random pairs of findings in the same file across dimensions — if any clearly refer to the same issue but were not merged, flag
+2. **Under-merging** *(skip cross-dimension pair check if < 2 dimensions were analyzed)*: Spot-check 5 random pairs of findings in the same file across dimensions — if any clearly refer to the same issue but were not merged, flag
 3. **Severity preservation**: Verify merged findings kept the higher severity
 
 **Issue category**: `dedup-error`
