@@ -42,6 +42,12 @@ Read `scores.json` and verify:
 
 3. **Weight application**: If custom weights were used, verify they were applied correctly
 
+4. **Iteration estimates validation**: For each dimension in `scores.json`:
+   - Verify `true_raw` matches `3 × critical + 2 × high + 1 × medium + 0.5 × low` (tolerance ±0.1)
+   - Verify `estimated_iterations == 0` when the dimension score is already at or above the target score
+   - Verify `range[0] <= range[1]` and `range[0] >= 0` for all three targets
+   - Verify `by_effort` counts sum to `findings_count` minus info-severity findings
+
 **Issue category**: `score-calibration`
 **Severity**: `blocking` if formula is wrong; `warning` if consistency concern
 

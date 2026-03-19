@@ -61,8 +61,10 @@ score = max(1.0, 10 - min(raw, 9))
 - **10.0** = clean (zero findings or info-only)
 - **1.0** = needs attention (raw penalty ≥ 9)
 - **Overall** = weighted average of all dimensions
+- **true_raw** = unclipped penalty (not capped at 9), reveals actual magnitude behind floor scores
+- **Iteration estimates** = predicted ralph-loop iterations to reach 5/10, 8/10, or 10/10 per dimension
 
-Scores track across runs with delta analysis (new/resolved/unchanged findings).
+Scores track across runs with delta analysis (new/resolved/unchanged findings). Iteration estimates help prioritize which dimensions to ralph-loop first by showing effort efficiency — dimensions with fewer estimated iterations yield faster score improvements.
 
 ## Finding IDs (v0.3.0)
 
@@ -250,6 +252,12 @@ code-analysis/
 ```
 
 ## Changelog
+
+### v0.3.1 (2026-03-19)
+- **Iteration estimates**: Ralph-loop effort predictions (5/10, 8/10, 10/10 targets) per dimension
+- **true_raw exposure**: Unclipped penalty reveals actual magnitude behind floor scores (1.0)
+- **Effort distribution**: `by_effort` field tracks findings by effort level in scores.json
+- **Critic validation**: Report critic validates iteration estimate consistency and formula correctness
 
 ### v0.3.0 (2026-03-19)
 - **Finding ID stability**: Deterministic fingerprint IDs (`{DIM}-{hash}-{line}`) replace sequential numbering

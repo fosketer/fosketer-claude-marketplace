@@ -190,10 +190,12 @@ loop:
 
 Present to the user:
 1. Overall codebase health score
-2. Per-dimension score table
+2. Per-dimension score table (including True Raw and Est. Iterations columns)
 3. Dedup statistics
-4. Cross-cutting observations (from draft report)
-5. Critic status (passed / passed with warnings / user-overridden)
+4. Ralph-loop iteration estimates table (3 targets per dimension)
+5. Recommended ralph-loop order (dimensions sorted by full_quality iterations ascending)
+6. Cross-cutting observations (from draft report)
+7. Critic status (passed / passed with warnings / user-overridden)
 
 Ask the user:
 - **Proceed to refactoring plans?** (continues to Stage 6)
