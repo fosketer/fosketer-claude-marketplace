@@ -89,6 +89,14 @@ Automates the scan → fix → re-scan cycle for one dimension:
 /code-analysis:ralph-loop <dimension> <target-score> --completion-promise "SCORE_REACHED" --max-iterations <N>
 ```
 
+**Multi-dimension** (v0.4.0) — scan multiple dimensions together, fix with per-dimension targets:
+
+```
+/code-analysis:ralph-loop --targets="arch:8,patterns:9" --completion-promise "SCORE_REACHED" --max-iterations 10
+```
+
+All target dimensions are scanned together each iteration, so cross-cutting findings (god structs, race conditions spanning multiple concerns) are caught. Findings are prioritized by a gap-weighted algorithm — dimensions furthest from target get fixed first.
+
 **How it works:**
 1. Scans the dimension and generates a refactoring plan
 2. Selects 3-5 findings per iteration (XS effort first)
@@ -96,6 +104,7 @@ Automates the scan → fix → re-scan cycle for one dimension:
 4. Commits to main
 5. Re-scans with carry-forward (only changed files re-evaluated)
 6. Loops until score >= target
+7. **Multi-dimension:** When using `--targets`, all dimensions are scanned together and findings are selected across dimensions using gap-weighted priority
 
 **Crash recovery (v0.3.0):** State is checkpointed after each phase (scanning → planning → implementing → committed → rescanning). On restart, the loop resumes from the last completed phase — no re-scanning or re-implementing.
 
@@ -252,6 +261,11 @@ code-analysis/
 ```
 
 ## Changelog
+
+### v0.4.0 (2026-03-19)
+- **Multi-dimension ralph-loop**: `--targets="arch:8,patterns:9"` runs multiple dimensions in one loop with per-dimension target scores
+- **Cross-dimension scanning**: All target dimensions scanned together each iteration, catching cross-cutting findings
+- **Gap-weighted batch selection**: Findings prioritized by dimension gap — furthest from target gets fixed first
 
 ### v0.3.1 (2026-03-19)
 - **Iteration estimates**: Ralph-loop effort predictions (5/10, 8/10, 10/10 targets) per dimension
