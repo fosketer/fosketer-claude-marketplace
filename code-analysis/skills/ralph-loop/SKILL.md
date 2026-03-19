@@ -129,6 +129,27 @@ Check if `.claude/loop-state.md` exists and read it.
 **If no state file** → first run (go to Step 3).
 
 **If state file exists:**
+
+**Mode detection:** Check for `mode` key in state file.
+- If absent → single-dimension recovery (existing logic below)
+- If `mode: multi` → multi-dimension recovery (see below)
+
+**Cross-mode conflicts:**
+- Existing single-dimension state + `--targets` flag → error: `"Active single-dimension loop found. Complete or delete .claude/loop-state.md first"`
+- Existing multi-dimension state + positional args → error: `"Active multi-dimension loop found. Use --targets or delete .claude/loop-state.md first"`
+
+**Multi-dimension recovery:**
+
+1. **Arg mismatch detection**: Compare `--targets` from CLI args against stored `targets` map.
+   - If maps are identical → resume at the stored `phase`
+   - If maps differ → prompt user: `"State has targets {stored}, args have {new}. Resume existing loop, or delete and start fresh?"`
+   - If positional args were provided instead of `--targets` → error (see cross-mode conflicts above)
+
+2. **Phase recovery**: Same logic as single-dimension — read `phase` from state, execute the corresponding recovery action. The only difference: recovery reads `targets`/`current_scores`/`plan_paths` (maps) instead of `dimension`/`target`/`current_score`/`plan_path` (scalars).
+
+3. **SHA verification**: Same as single-dimension — compare `last_commit_sha` against HEAD.
+
+**Single-dimension recovery** (existing behavior, unchanged):
 Read `dimension` and `target` from state (no need to re-specify via args).
 If args are provided AND differ from state, warn: "State says {dim}/{target}, args say {new_dim}/{new_target}. Use state values? [Y/n]"
 
