@@ -225,7 +225,7 @@ Gracefully degrades when Context7 is unavailable.
 
 ```
 code-analysis/
-├── .claude-plugin/plugin.json    # v0.3.0
+├── .claude-plugin/plugin.json    # v0.4.0
 ├── skills/                       # 16 skills
 │   ├── analyze-codebase/         # Orchestrator (10-stage pipeline)
 │   ├── ralph-loop/               # Iterative fix loop with crash recovery
