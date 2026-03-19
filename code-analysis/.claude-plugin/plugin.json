@@ -1,6 +1,6 @@
 {
   "name": "code-analysis",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Comprehensive codebase analysis across any language/framework — produces scored reports with critic validation and focused refactoring plans.",
   "author": {
     "name": "Vooban Developer Team",

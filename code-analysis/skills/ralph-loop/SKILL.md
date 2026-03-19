@@ -58,19 +58,49 @@ Then stop. Do nothing else.
   plan_path: <path>
   completed_finding_ids: []
   ```
-- Go to Step 6.
+- Go to Step 7.
 
-### Step 4 — Subsequent Runs: Implement Next Batch
+### Step 4 — Brainstorm & Plan the Next Batch
+
+Before touching code, select the next 3–5 findings from the plan (not yet in `completed_finding_ids`, prioritizing XS → S → M effort).
+
+**Gate:** If every finding in this batch is an XS-effort mechanical fix (rename, delete unused import, bump version, whitespace), skip Steps 4a–4c and go directly to Step 5 to avoid overhead.
+
+Otherwise, run the superpowers design pipeline on this batch:
+
+**4a. Brainstorm** — invoke `superpowers:brainstorming` skill with the selected findings as input.
+  - Scope: only the findings selected for this iteration (not the full plan).
+  - Output: a design doc describing the approach for each finding.
+  - Skip the visual companion offer (not applicable in a loop context).
+  - Auto-approve the design if every finding's recommended action is a single concrete action (e.g. "move X to module Y") with no design alternatives needed.
+
+**4b. Write implementation plan** — invoke `superpowers:writing-plans` skill using the brainstorm output.
+  - Plan scope: only this batch, not the full dimension.
+  - **Stay on current branch** — do NOT invoke `superpowers:using-git-worktrees`.
+  - Add this note at the top of the generated plan file:
+    ```
+    branch: current (no worktree — ralph-loop manages its own commit cadence)
+    ```
+
+**4c. Execute plan** — invoke `superpowers:executing-plans` skill.
+  - Skip the `superpowers:finishing-a-development-branch` sub-skill (ralph-loop handles commits in Step 6).
+  - Follow the plan steps exactly; stop immediately on any blocker.
+
+After execution completes, add the implemented finding IDs to `completed_finding_ids` in `.claude/loop-state.md`.
+
+### Step 5 — Subsequent Runs: Implement Next Batch (mechanical fixes only)
+
+Used when the batch selected in Step 4 consists entirely of XS-effort mechanical fixes (skipping the design pipeline):
 
 - Read plan at `plan_path` from state file.
-- Identify all plan steps NOT yet in `completed_finding_ids`.
-- Implement the next 3–5 steps, prioritizing by effort: XS first, then S, then M.
+- Identify the batch of XS findings NOT yet in `completed_finding_ids`.
+- Implement them directly:
   - Read each affected file before editing it.
   - Make the minimal code change that resolves the finding.
   - Do NOT refactor unrelated code.
 - Add the implemented finding IDs to `completed_finding_ids` in `.claude/loop-state.md`.
 
-### Step 5 — Commit
+### Step 6 — Commit
 
 - Stage all modified files individually (never `git add -A`).
 - Commit to main:
@@ -78,7 +108,7 @@ Then stop. Do nothing else.
   git commit -m 'fix(DIMENSION): <one-line summary of what was fixed>'
   ```
 
-### Step 6 — Re-scan
+### Step 7 — Re-scan
 
 - Run a fresh draft scan:
   ```
@@ -87,14 +117,14 @@ Then stop. Do nothing else.
 - Read the new score from `.code-analysis/reports/*-scores.json` (latest date file).
 - Update `current_score` in `.claude/loop-state.md`.
 
-### Step 7 — Check Completion
+### Step 8 — Check Completion
 
 If `current_score >= 9`, output exactly:
 ```
 <promise>SCORE_REACHED</promise>
 ```
 
-### Step 8 — Refresh Plan if Exhausted
+### Step 9 — Refresh Plan if Exhausted
 
 If all plan steps are completed but score < 9, the codebase has changed enough to warrant a fresh scan. Clear `completed_finding_ids` and delete `loop-state.md`, then on the next iteration a new plan will be generated (Step 3).
 
@@ -104,9 +134,7 @@ Run one dimension at a time. Pass this skill's content as the ralph-loop prompt,
 
 ```bash
 /ralph-loop --completion-promise "SCORE_REACHED" --max-iterations 20 "
-/clear
-
-<paste Steps 1–8 above with DIMENSION replaced>
+<paste Steps 1–9 above with DIMENSION replaced>
 "
 ```
 
