@@ -286,9 +286,28 @@ Then stop. Do nothing else.
 
 Write `phase: planning` and `last_updated_at` to `.claude/loop-state.md`.
 
+**Multi-dimension batch selection:**
+
+When in multi-dimension mode, findings are selected across ALL dimensions' plans using a gap-weighted priority algorithm:
+
+1. Compute each dimension's gap: `gap = target - current_score`
+2. Dimensions already at or above target: gap = 0 (excluded from selection)
+3. Score each finding: `priority = severity_weight × gap_of_its_dimension`
+   - Severity weights: critical=3, high=2, medium=1, low=0.5
+4. Sort by priority descending, pick top 3-5 (not yet in `completed_finding_ids`)
+5. Effort tiebreaker: among equal-priority findings, prefer smaller effort (trivial → small → medium → large → xl)
+
+**Example:** Architecture at 1.0 (target 8, gap=7), patterns at 5.0 (target 9, gap=4). A high-severity architecture finding scores `2 × 7 = 14`, a high-severity patterns finding scores `2 × 4 = 8`. Architecture findings get picked first.
+
+**Cross-dimension fixes:** When a fix resolves findings in multiple dimensions (e.g., refactoring a god struct that spans architecture and patterns), add ALL affected finding IDs to `completed_finding_ids` regardless of dimension. The re-scan naturally drops resolved findings from all dimensions.
+
+**Single-dimension mode:** Unchanged — select next 3-5 findings from the plan, prioritizing trivial → small → medium effort.
+
 Before touching code, select the next 3–5 findings from the plan (not yet in `completed_finding_ids`, prioritizing XS → S → M effort).
 
 **Gate:** If every finding in this batch is an XS-effort mechanical fix (rename, delete unused import, bump version, whitespace), skip Steps 4a–4c and go directly to Step 5 to avoid overhead.
+
+**XS-gate in multi-dimension mode:** The trivial-effort gate applies to the batch as a whole, regardless of how many dimensions are represented. A batch with 3 trivial arch findings and 1 small patterns finding goes through the full design pipeline.
 
 Otherwise, run the superpowers design pipeline on this batch:
 
