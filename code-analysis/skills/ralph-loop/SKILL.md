@@ -218,10 +218,16 @@ Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
 ### Step 7 — Re-scan
 
 - Write `phase: rescanning` and `last_updated_at` to `.claude/loop-state.md`.
+- Compute changed files since last commit:
+  ```bash
+  git diff --name-only {last_commit_sha}..HEAD
+  ```
 - Run a fresh draft scan:
   ```
-  /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics
+  /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics \
+    --changed-files-hint="{comma-separated file list from git diff}"
   ```
+  This enables diff-scoped carry-forward: unchanged files' findings are carried forward without re-reading, reducing re-scan token cost.
 - Read the new score from `.code-analysis/reports/*-scores.json` (latest date file).
 - Update `.claude/loop-state.md`:
   - `phase: planning`
