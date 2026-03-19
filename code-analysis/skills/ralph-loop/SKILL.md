@@ -82,7 +82,7 @@ Otherwise, run the superpowers design pipeline on this batch:
     branch: current (no worktree — ralph-loop manages its own commit cadence)
     ```
 
-**4c. Execute plan** — invoke `superpowers:executing-plans` skill.
+**4c. Execute plan** — invoke `superpowers:subagent-driven-development` skill (always prefer subagents over `superpowers:executing-plans`).
   - Skip the `superpowers:finishing-a-development-branch` sub-skill (ralph-loop handles commits in Step 6).
   - Follow the plan steps exactly; stop immediately on any blocker.
 
