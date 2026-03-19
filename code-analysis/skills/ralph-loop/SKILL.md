@@ -111,14 +111,24 @@ CASE "scanning":
 
 ### Step 2 — Check Completion
 
-If `current_score >= TARGET`, output exactly:
+If `phase` is `done` or `current_score >= TARGET`, output exactly:
 ```
 <promise>SCORE_REACHED</promise>
 ```
 Then stop. Do nothing else.
 
+> Note: On restart, the recovery logic in Step 1 handles phase-based completion checks. Step 2 is the fallback for within-session iteration.
+
 ### Step 3 — First-Run: Generate Plan (only if no state file)
 
+- Before invoking analyze-codebase, write initial state to `.claude/loop-state.md`:
+  ```
+  dimension: DIMENSION
+  target: TARGET
+  phase: scanning
+  started_at: <ISO 8601 now>
+  last_updated_at: <ISO 8601 now>
+  ```
 - Invoke the analyze-codebase skill for this dimension:
   ```
   /analyze-codebase --dimensions=DIMENSION --skip-critics
@@ -128,15 +138,26 @@ Then stop. Do nothing else.
 - Find the plan at `.code-analysis/plans/*-DIMENSION-plan.md` (use latest date).
 - Find latest score in `.code-analysis/reports/*-scores.json`.
 - Extract `current_score` for dimension DIMENSION.
-- Create `.claude/loop-state.md`:
+- After scan completes, update `.claude/loop-state.md`:
   ```
+  dimension: DIMENSION
+  target: TARGET
   current_score: <score>
+  starting_score: <score>
   plan_path: <path>
   completed_finding_ids: []
+  last_commit_sha:
+  phase: planning
+  iteration: 0
+  score_history: [<score>]
+  started_at: <preserved from above>
+  last_updated_at: <ISO 8601 now>
   ```
 - Go to Step 7.
 
 ### Step 4 — Brainstorm & Plan the Next Batch
+
+Write `phase: planning` and `last_updated_at` to `.claude/loop-state.md`.
 
 Before touching code, select the next 3–5 findings from the plan (not yet in `completed_finding_ids`, prioritizing XS → S → M effort).
 
@@ -158,7 +179,8 @@ Otherwise, run the superpowers design pipeline on this batch:
     branch: current (no worktree — ralph-loop manages its own commit cadence)
     ```
 
-**4c. Execute plan** — invoke `superpowers:subagent-driven-development` skill (always prefer subagents over `superpowers:executing-plans`).
+**4c. Execute plan** — Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
+  invoke `superpowers:subagent-driven-development` skill (always prefer subagents over `superpowers:executing-plans`).
   - Skip the `superpowers:finishing-a-development-branch` sub-skill (ralph-loop handles commits in Step 6).
   - Follow the plan steps exactly; stop immediately on any blocker.
 
@@ -167,6 +189,8 @@ After execution completes, add the implemented finding IDs to `completed_finding
 ### Step 5 — Subsequent Runs: Implement Next Batch (mechanical fixes only)
 
 Used when the batch selected in Step 4 consists entirely of XS-effort mechanical fixes (skipping the design pipeline):
+
+Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
 
 - Read plan at `plan_path` from state file.
 - Identify the batch of XS findings NOT yet in `completed_finding_ids`.
@@ -183,19 +207,34 @@ Used when the batch selected in Step 4 consists entirely of XS-effort mechanical
   ```
   git commit -m 'fix(DIMENSION): <one-line summary of what was fixed>'
   ```
+- After successful commit:
+  - Capture SHA: `git log -1 --format=%H`
+  - Update `.claude/loop-state.md`:
+    - `phase: committed`
+    - `last_commit_sha: <captured SHA>`
+    - Increment `iteration`
+    - Update `last_updated_at`
 
 ### Step 7 — Re-scan
 
+- Write `phase: rescanning` and `last_updated_at` to `.claude/loop-state.md`.
 - Run a fresh draft scan:
   ```
   /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics
   ```
 - Read the new score from `.code-analysis/reports/*-scores.json` (latest date file).
-- Update `current_score` in `.claude/loop-state.md`.
+- Update `.claude/loop-state.md`:
+  - `phase: planning`
+  - `current_score: <new score>`
+  - Append new score to `score_history`
+  - Update `last_updated_at`
+- Note: phase transitions to `planning` (not `committed`) because the next action is selecting a new batch — not re-scanning again.
 
 ### Step 8 — Check Completion
 
-If `current_score >= TARGET`, output exactly:
+If `current_score >= TARGET`:
+- Write `phase: done` and `last_updated_at` to `.claude/loop-state.md`.
+- Output exactly:
 ```
 <promise>SCORE_REACHED</promise>
 ```
