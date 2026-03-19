@@ -1,7 +1,7 @@
 ---
 name: ralph-loop
 description: |
-  Use when iteratively improving a single codebase dimension score to ≥ 9/10
+  Use when iteratively improving a single codebase dimension score to ≥ TARGET/10
   using analyze-codebase + ralph-loop. Applies when the user wants to fix all
   findings in one dimension, run a score improvement loop, or automate
   refactoring until a quality threshold is reached.
@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill
 
 # Ralph-Loop × Analyze-Codebase
 
-Iteratively scan one codebase dimension, implement the generated refactoring plan, commit to main, and loop until the dimension score reaches ≥ 9/10.
+Iteratively scan one codebase dimension, implement the generated refactoring plan, commit to main, and loop until the dimension score reaches ≥ TARGET/10.
 
 ## Why a Loop is Required
 
@@ -35,7 +35,7 @@ It contains: `current_score`, `plan_path`, `completed_finding_ids` (list).
 
 ### Step 2 — Check Completion
 
-If `current_score >= 9`, output exactly:
+If `current_score >= TARGET`, output exactly:
 ```
 <promise>SCORE_REACHED</promise>
 ```
@@ -119,22 +119,24 @@ Used when the batch selected in Step 4 consists entirely of XS-effort mechanical
 
 ### Step 8 — Check Completion
 
-If `current_score >= 9`, output exactly:
+If `current_score >= TARGET`, output exactly:
 ```
 <promise>SCORE_REACHED</promise>
 ```
 
 ### Step 9 — Refresh Plan if Exhausted
 
-If all plan steps are completed but score < 9, the codebase has changed enough to warrant a fresh scan. Clear `completed_finding_ids` and delete `loop-state.md`, then on the next iteration a new plan will be generated (Step 3).
+If all plan steps are completed but score < TARGET, the codebase has changed enough to warrant a fresh scan. Clear `completed_finding_ids` and delete `loop-state.md`, then on the next iteration a new plan will be generated (Step 3).
 
 ## How to Run
 
-Run one dimension at a time. Pass this skill's content as the ralph-loop prompt, replacing `DIMENSION` with the target dimension flag:
+Run one dimension at a time. Pass this skill's content as the ralph-loop prompt,
+replacing `DIMENSION` with the target dimension flag and `TARGET` with the desired
+minimum score (e.g. 6 for a quick win, 9 for full quality):
 
 ```bash
 /ralph-loop --completion-promise "SCORE_REACHED" --max-iterations 20 "
-<paste Steps 1–9 above with DIMENSION replaced>
+<paste Steps 1–9 above with DIMENSION and TARGET replaced>
 "
 ```
 
@@ -154,7 +156,7 @@ Run one dimension at a time. Pass this skill's content as the ralph-loop prompt,
 ## Verification After Each Dimension
 
 ```bash
-# Score should be ≥ 9
+# Score should be ≥ TARGET
 cat .code-analysis/reports/*-scores.json | grep DIMENSION
 
 # No regressions
