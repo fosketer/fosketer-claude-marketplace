@@ -58,6 +58,7 @@ Target path: $ARGUMENTS (default: current working directory)
 - `--critic-iterations=N` — max critic feedback loop iterations (default: 3)
 - `--skip-critics` — bypass critic loops entirely (skip Stages 4 and 8)
 - `--draft-only` — stop after Stage 3 (scan + reconcile + persist draft, no user interaction)
+- `--changed-files-hint=<comma-separated file paths>` — passed by ralph-loop to enable diff-scoped carry-forward. Optional. When absent, scanners do full scans.
 
 ## Context Efficiency Rules
 
@@ -122,6 +123,15 @@ Include a summary header: { dimension, total, critical, high, medium, low, info 
 ```
 
 Collect all findings arrays from subagent responses.
+
+Additional parameters for each code-analyzer agent:
+- SCAN_REPORTS_DIR: ".code-analysis/scan-reports"
+  (Path hint — the scanner loads its own previous findings from this directory.
+   The orchestrator MUST NOT read scan reports itself.)
+- CHANGED_FILES: <array of relative file paths, or null>
+  (If --changed-files-hint flag was provided, split the comma-separated value
+   into an array and pass it here. If the flag was not provided, pass null.
+   Scanners use this for diff-scoped carry-forward.)
 
 **Fallback**: If the platform limits concurrent agents, dispatch in batches of 4. Prefer full parallelism.
 
