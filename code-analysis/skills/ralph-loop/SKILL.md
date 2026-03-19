@@ -370,16 +370,24 @@ Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
   git diff --name-only {last_commit_sha}..HEAD
   ```
 - Run a fresh draft scan:
-  ```
-  /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics \
-    --changed-files-hint="{comma-separated file list from git diff}"
-  ```
+  - **Single-dimension:**
+    ```
+    /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics \
+      --changed-files-hint="{comma-separated file list from git diff}"
+    ```
+  - **Multi-dimension:**
+    ```
+    /analyze-codebase --dimensions=dim1,dim2,... --draft-only --skip-critics \
+      --changed-files-hint="{comma-separated file list from git diff}"
+    ```
+    All target dimensions are scanned together (including dimensions already at target, for cross-dimension context).
   This enables diff-scoped carry-forward: unchanged files' findings are carried forward without re-reading, reducing re-scan token cost.
 - Read the new score from `.code-analysis/reports/*-scores.json` (latest date file).
 - Update `.claude/loop-state.md`:
   - `phase: planning`
   - `current_score: <new score>`
   - Append new score to `score_history`
+  - **Multi-dimension:** Update all entries in `current_scores`, append full score map to `score_history`
   - Update `last_updated_at`
 - Note: phase transitions to `planning` (not `committed`) because the next action is selecting a new batch — not re-scanning again.
 
@@ -392,9 +400,26 @@ If `current_score >= TARGET`:
 <promise>SCORE_REACHED</promise>
 ```
 
+**Multi-dimension:** If `current_scores[dim] >= targets[dim]` for every dimension:
+- Write `phase: done` and `last_updated_at` to `.claude/loop-state.md`.
+- Output exactly:
+```
+<promise>SCORE_REACHED</promise>
+```
+
+**Mid-loop dimension completion** (multi-dimension only): When a dimension reaches its target but others haven't:
+- Log: `"{dimension} reached {score} (target {target}) — continuing for {remaining dimensions}"`
+- That dimension's findings are no longer selected in batch picks
+- Still scanned each iteration (cross-dimension context)
+- If score drops below target due to another fix, re-enters fix pool
+
 ### Step 9 — Refresh Plan if Exhausted
 
 If all plan steps are completed but score < TARGET, the codebase has changed enough to warrant a fresh scan. Clear `completed_finding_ids` and delete `loop-state.md`, then on the next iteration a new plan will be generated (Step 3).
+
+**Multi-dimension:**
+- **One dimension's plan exhausted, score below target:** Clear its IDs from `completed_finding_ids` using the finding ID prefix (e.g., `ARCH-*` belongs to architecture, `PAT-*` to patterns). Next scan generates a fresh plan for that dimension. Other dimensions continue using their existing plans.
+- **All plans exhausted, any score below target:** Clear all `completed_finding_ids`, delete `loop-state.md`. Next iteration starts fresh (Step 3).
 
 ## How to Run
 
