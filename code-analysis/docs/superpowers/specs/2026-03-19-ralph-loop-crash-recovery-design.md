@@ -27,7 +27,7 @@ target: 10
 current_score: 6.0
 starting_score: 1.0
 plan_path: .code-analysis/plans/2026-03-19-arch-plan.md
-completed_finding_ids: [ARCH-8f3a21-0370, ARCH-c4d7e2-0120]
+completed_finding_ids: [arch-001, arch-003, arch-005]
 last_commit_sha: 2614d94a
 phase: committed
 iteration: 3
@@ -35,6 +35,10 @@ score_history: [1.0, 4.5, 6.0]
 started_at: 2026-03-19T06:25:42Z
 last_updated_at: 2026-03-19T14:26:48Z
 ```
+
+> **Note on finding ID format:** `completed_finding_ids` uses whatever ID format the scanner produces. If Spec B (fingerprint IDs) is implemented, these will be fingerprint-format IDs (e.g., `ARCH-8f3a21-0370`). Otherwise they use the current scanner-assigned format.
+
+> **Scoring formula:** `current_score` and `target` use the authoritative formula from `skills/reconcile-report/SKILL.md`: `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×critical + 2×high + 1×medium + 0.5×low`. The floor is **1.0**, not 0. The `2026-03-13-pipeline-redesign-design.md` floor of 0 is superseded by the reconciler implementation.
 
 | Field | Type | Purpose |
 |-------|------|---------|
@@ -54,11 +58,9 @@ last_updated_at: 2026-03-19T14:26:48Z
 ### 2. Phase State Machine
 
 ```
-scanning → planning → implementing → committed → rescanning
-                                                      ↓
-                                               [next iteration: planning]
-                                                      ↓
-                                               score >= target → done
+scanning → planning → implementing → committed → rescanning → planning (next iteration)
+                                                                  ↓
+                                                           score >= target → done
 ```
 
 Each phase transition writes to `loop-state.md` **before** starting the next phase. A crash at any point leaves the state file pointing to the last *completed* phase.
@@ -94,26 +96,35 @@ IF state file exists:
         NO, HEAD is ahead → external commits detected
           Log: "HEAD is {HEAD_SHA}, expected {last_commit_sha}. External commits detected."
           Re-scan to recalibrate (Step 7)
-        NO, HEAD is behind → should not happen; treat as corruption
-          Log warning, delete state, restart fresh (Step 3)
+        NO, HEAD is behind → user may have run git reset
+          Prompt user: "State records commit {sha} but HEAD is at {head_sha} (behind).
+            Did you reset? Options:
+            1. Keep state and re-scan from current HEAD
+            2. Delete state and start fresh"
+          Execute chosen option. Do NOT delete state without user confirmation.
 
     CASE "rescanning":
       Re-scan was interrupted. Restart Step 7.
 
     CASE "implementing":
-      Check: git status --porcelain
-        CLEAN working tree → implementation complete but not committed
-          Verify compilation: cargo build / npm run build
-            SUCCESS → proceed to Step 6 (commit)
-            FAILURE → discard and re-implement: git checkout .
-              Resume at Step 4 (select batch)
+      First, check if subagents committed independently:
+        Compare: git log -1 --format=%H vs last_commit_sha
+          HEAD is AHEAD of last_commit_sha → subagents committed
+            Update last_commit_sha to HEAD
+            Treat as CASE "committed" → resume at Step 7 (re-scan)
 
-        DIRTY working tree → partial implementation
-          Prompt user with 3 options:
-            1. "Review changes, commit what's there, and re-scan"
-            2. "Discard changes and re-implement this batch"
-            3. "Start fresh (delete state, re-scan dimension)"
-          Execute chosen option.
+      If HEAD matches last_commit_sha (no independent commits):
+        Check: git status --porcelain
+          CLEAN working tree → subagents made no changes (empty batch or no-op)
+            Log: "No changes from interrupted implementation. Re-selecting batch."
+            Resume at Step 4 (select batch)
+
+          DIRTY working tree → partial implementation
+            Prompt user with 3 options:
+              1. "Review changes, attempt compilation, and commit if it passes"
+              2. "Discard changes (git checkout .) and re-implement this batch"
+              3. "Start fresh (delete state, re-scan dimension)"
+            Execute chosen option.
 
     CASE "planning":
       Plan generation was interrupted. Restart Step 4.
@@ -147,11 +158,11 @@ Changes are minimal — only adding phase writes at transition points:
 - After successful `git commit`:
   - Capture SHA: `git log -1 --format=%H`
   - Write `phase: committed`, `last_commit_sha`, increment `iteration`, update `last_updated_at`
-  - Append current score to `score_history` (score not yet known — append after Step 7)
 
 **Step 7 — Re-scan:**
 - Before invoking analyze-codebase: write `phase: rescanning`
-- After score extracted: write `phase: committed`, update `current_score`, append to `score_history`, update `last_updated_at`
+- After score extracted: write `phase: planning`, update `current_score`, append new score to `score_history`, update `last_updated_at`
+  - Note: phase transitions to `planning` (not `committed`) because the next action is selecting a new batch — not re-scanning again.
 
 **Step 8 — Check Completion:**
 - If score >= target: write `phase: done`, output SCORE_REACHED
@@ -172,10 +183,10 @@ Changes are minimal — only adding phase writes at transition points:
 
 After implementation, verify with this scenario:
 
-1. Start ralph-loop on a test dimension
-2. Let it complete one iteration (reach `committed` phase)
-3. Kill the session (Ctrl+C)
-4. Restart ralph-loop — should resume at re-scan without re-implementing
-5. Let it reach `implementing` phase
-6. Kill the session
-7. Restart — should detect dirty/clean working tree and offer recovery options
+1. **Committed crash**: Start ralph-loop, let it complete one iteration (reach `committed` phase). Kill session. Restart — should resume at re-scan without re-implementing.
+2. **Implementing crash (dirty)**: Start ralph-loop, let it reach `implementing` phase with partial file changes. Kill session. Restart — should detect dirty working tree and offer 3 recovery options.
+3. **Implementing crash (clean)**: Start ralph-loop, let it reach `implementing` but subagents complete with no changes. Kill session. Restart — should detect clean tree and re-select batch.
+4. **Planning crash**: Start ralph-loop, let it reach `planning` phase (brainstorm in progress). Kill session. Restart — should resume at Step 4 (select batch).
+5. **Scanning crash**: Start ralph-loop fresh (no state file). Kill during initial scan. Restart — should detect `scanning` phase and restart Step 3.
+6. **HEAD-behind**: Start ralph-loop, let it commit. Run `git reset --soft HEAD~1`. Restart — should prompt user about HEAD mismatch, not silently delete state.
+7. **Old state file**: Create a 3-field loop-state.md (old format). Restart — should treat as `committed` with no SHA verification and resume at re-scan.

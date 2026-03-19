@@ -64,6 +64,7 @@ Replace free-form IDs with content-based fingerprints:
 | Redis KEYS scan | `rust/src/storage/redis_store.rs` | 129 | `PERF-c4d7e2-0120` |
 | Router handle_message | `rust/src/bot/router.rs` | 374 | `ARCH-8f3a21-0370` |
 | Same file, nearby line | `rust/src/bot/router.rs` | 377 | `ARCH-8f3a21-0370` (same bucket) |
+| No kustomize structure | (null) | null | `ARCH-000000-0000-a7f2` |
 
 #### 1.4 Edge Cases
 
@@ -76,30 +77,52 @@ Example: SEC-000000-0000-a7f2
 ```
 
 **Collision (two findings in same 10-line bucket):**
-If a scanner produces two findings with identical fingerprints, append `-2`, `-3` suffix. The first finding (by severity DESC, then title alphabetical ASC) gets the bare fingerprint:
+If a scanner produces two findings with identical fingerprints, append `-2`, `-3` suffix.
+
+On a **fresh scan** (no PREVIOUS_FINDINGS): the first finding (by severity DESC, then title alphabetical ASC) gets the bare fingerprint:
 ```
 QUAL-8f3a21-0370      (first finding, higher severity)
 QUAL-8f3a21-0370-2    (second finding, same bucket)
 ```
 
+On a **carry-forward re-scan**: carried-forward findings **always keep their existing ID**, regardless of severity rank. New findings in the same bucket are assigned suffixes starting from the highest existing suffix + 1. This preserves ID stability across scans:
+```
+QUAL-8f3a21-0370      (carried forward from previous scan, keeps bare ID)
+QUAL-8f3a21-0370-2    (new finding in same bucket, gets next suffix)
+```
+
 **Moved code (>10 lines):**
-Code that moves beyond the 10-line bucket boundary gets a new fingerprint. The carry-forward mechanism (Part 2) handles continuity by matching on file_path + title similarity before generating a new ID.
+Code that moves beyond the 10-line bucket boundary gets a new fingerprint. The carry-forward mechanism (Part 2) handles continuity: the scanner sets `previous_id` on the finding to link to the old fingerprint. The reconciler uses `previous_id` to track the finding as "moved" rather than "new + resolved."
 
 #### 1.5 Schema Change
 
-In `references/output-schemas.md`, update the Finding.id pattern:
+In `references/output-schemas.md`, update the Finding.id pattern.
 
-```
-Old: "^[a-z-]+-\\d{3}$"
-New: "^[A-Z]{3,4}-[0-9a-f]{6}-\\d{4}(-[0-9a-f]{4})?(-\\d+)?$"
-```
+There are two valid formats — file-path findings and null-file findings — validated by separate patterns:
 
-Regex breakdown:
+**File-path findings:**
+```
+"^[A-Z]{3,4}-[0-9a-f]{6}-\\d{4}(-[2-9]\\d*)?$"
+```
 - `[A-Z]{3,4}` — dimension prefix (ARCH, QUAL, DEP, PAT, TST, PERF, SEC, DEBT)
-- `-[0-9a-f]{6}` — file path hash
+- `-[0-9a-f]{6}` — file path hash (non-zero)
 - `-\\d{4}` — line bucket
-- `(-[0-9a-f]{4})?` — optional title hash for null file_path findings
-- `(-\\d+)?` — optional collision suffix
+- `(-[2-9]\\d*)?` — optional collision suffix (starts at 2, never 1)
+
+**Null-file findings (file_hash = 000000):**
+```
+"^[A-Z]{3,4}-000000-0000-[0-9a-f]{4}(-[2-9]\\d*)?$"
+```
+- `000000-0000` — signals no file path
+- `-[0-9a-f]{4}` — title hash (required for null-file findings)
+- `(-[2-9]\\d*)?` — optional collision suffix
+
+**Combined regex** (for schema validators that need a single pattern):
+```
+"^[A-Z]{3,4}-(000000-0000-[0-9a-f]{4}|[0-9a-f]{6}-\\d{4})(-[2-9]\\d*)?$"
+```
+
+This ensures title_hash4 only appears when file_hash is `000000`, and collision suffixes start at `-2` (the bare ID is always the first finding).
 
 #### 1.6 Scan Skill Instruction Block
 
@@ -113,8 +136,8 @@ NEVER use sequential numbering (001, 002) or free-form IDs.
 
 ### For findings with a file_path:
 
-1. Compute file_hash6:
-   echo -n "{relative_file_path}" | shasum -a 256 | cut -c1-6
+1. Compute file_hash6 (use python3 for cross-platform portability):
+   python3 -c "import hashlib; print(hashlib.sha256(b'{relative_file_path}').hexdigest()[:6])"
 
 2. Compute line_bucket:
    floor(line_start / 10) * 10, zero-padded to 4 digits
@@ -124,8 +147,8 @@ NEVER use sequential numbering (001, 002) or free-form IDs.
 
 ### For findings without a file_path:
 
-1. Compute title_hash4:
-   echo -n "{lowercase title}" | shasum -a 256 | cut -c1-4
+1. Compute title_hash4 (use python3 for cross-platform portability):
+   python3 -c "import hashlib; print(hashlib.sha256(b'{lowercase title}').hexdigest()[:4])"
 
 2. ID = {DIM}-000000-0000-{title_hash4}
 
@@ -140,31 +163,36 @@ findings append -2, -3, etc.
 
 #### 2.1 Orchestrator Changes (analyze-codebase Stage 2)
 
-When dispatching dimension scanners, the orchestrator passes previous findings:
+The orchestrator remains a thin dispatcher. It does **not** read previous scan reports (that would violate the context efficiency rule). Instead, each scanner agent loads its own previous findings.
+
+**Orchestrator changes are minimal:**
 
 ```markdown
 ## Stage 2 — Dispatch Dimension Scanners (updated)
 
 For each dimension in --dimensions:
 
-1. Find the latest scan report:
-   .code-analysis/scan-reports/*-{dimension}.json
-   Sort by filename date prefix, take most recent.
-
-2. If found, read its findings array → PREVIOUS_FINDINGS
-   If not found → PREVIOUS_FINDINGS = null
-
-3. If CHANGED_FILES_HINT is available (provided by ralph-loop via
-   git diff --name-only {last_commit_sha}..HEAD):
-   → pass as CHANGED_FILES
-   Otherwise → CHANGED_FILES = null
-
-4. Dispatch code-analyzer agent with parameters:
+1. Dispatch code-analyzer agent with parameters:
    - DIMENSION: dimension name
    - STACK: detected stack
-   - PREVIOUS_FINDINGS: array or null
+   - SCAN_REPORTS_DIR: ".code-analysis/scan-reports" (path hint, not content)
    - CHANGED_FILES: array of relative paths or null
+
+2. CHANGED_FILES is computed by the orchestrator only when provided
+   via the --changed-files-hint flag (used by ralph-loop):
+   - If flag is present → split comma-separated value into array
+   - If flag is absent → null (scanner will do full scan)
 ```
+
+**New orchestrator flag** (add to Optional Flags section of analyze-codebase SKILL.md):
+
+```
+--changed-files-hint=<comma-separated file paths>
+  Passed by ralph-loop to enable diff-scoped carry-forward.
+  Optional. When absent, scanners do full scans.
+```
+
+Each scanner agent is responsible for finding and reading its own previous scan report from `SCAN_REPORTS_DIR`. This keeps the orchestrator thin and avoids loading 8 large JSON files into the orchestrator's context.
 
 #### 2.2 Scan Skill Carry-Forward Protocol
 
@@ -205,9 +233,22 @@ B. If finding.file_path IS in CHANGED_FILES, OR if CHANGED_FILES is null:
        → Do NOT include in output
        → Add to resolved_ids list
 
+### Cost Note on CHANGED_FILES=null
+
+When CHANGED_FILES is null, Phase 1 re-reads every file referenced by previous findings,
+and Phase 2 scans the full codebase. This can be MORE expensive than a fresh scan without
+carry-forward. For this reason:
+- ralph-loop SHOULD always provide CHANGED_FILES (via git diff)
+- Full-codebase scans (initial /analyze-codebase) pass CHANGED_FILES=null, which is
+  acceptable because there are no PREVIOUS_FINDINGS on first scan
+- If PREVIOUS_FINDINGS has >30 findings and CHANGED_FILES is null, the scanner MAY
+  skip Phase 1 verification and carry all findings forward tentatively (marking them
+  as "unverified" in carry_forward_summary). This prevents token explosion on large
+  codebases.
+
 ### Phase 2 — Discover New Findings
 
-After verifying all previous findings:
+After verifying all previous findings (or carrying them forward tentatively):
 
 1. Determine scan scope:
    - If CHANGED_FILES is provided: scan ONLY those files for new issues
@@ -246,7 +287,11 @@ Your DimensionReport output MUST include:
 
 #### 2.3 Reconciler Changes (reconcile-report)
 
-Minor additions to `skills/reconcile-report/SKILL.md`:
+Updates to `skills/reconcile-report/SKILL.md`:
+
+**Data flow for carry_forward_summary:**
+
+Each scanner agent writes its `DimensionReport` (with `carry_forward_summary`) to `.code-analysis/scan-reports/`. The reconciler reads these scan reports as its input (it already does this — no change to data flow). The reconciler extracts `carry_forward_summary` from each `DimensionReport` and aggregates them into `ScoresReport.scan_metadata`.
 
 **In Step 4d (Delta Analysis):**
 
@@ -259,16 +304,27 @@ With fingerprint-based IDs, delta analysis is now reliable:
 - **New**: IDs in current but not in PREVIOUS_SCORES → genuinely new issues
 - **Unchanged**: IDs present in both → persistent issues
 
+**Handling merged IDs in delta tracking:**
+During dedup (Step 1), findings may be merged. A merged finding gets assigned to
+one dimension's ID. The `resolved_ids` from scanner carry_forward_summary use
+the scanner's original fingerprint IDs. To reconcile:
+1. Build a mapping: {original_scanner_id → merged_id} from the dedup table
+2. When computing deltas, check both original and merged IDs
+3. A finding is "resolved" if its original scanner ID is in carry_forward_summary.resolved_ids,
+   even if the previous ScoresReport stored a different merged ID for it
+4. Include both the scanner ID and any mapped merged ID in resolved_finding_ids
+
 Note: previous "new" findings that were actually re-discovered variants of existing
 issues no longer occur because carry-forward preserves IDs.
 ```
 
-**New field in ScoresReport:**
+**New field in ScoresReport — aggregated from scanner DimensionReports:**
 
 ```markdown
 ### scan_metadata (new, optional)
 
-Add to ScoresReport schema:
+The reconciler reads carry_forward_summary from each DimensionReport
+(already available as input) and aggregates into ScoresReport:
 
 "scan_metadata": {
   "carry_forward_stats": {
@@ -285,6 +341,9 @@ Add to ScoresReport schema:
   }
 }
 ```
+
+Add this to the reconciler's **Success Checklist**:
+- `[ ] scan_metadata.carry_forward_stats aggregated from DimensionReport.carry_forward_summary (if any scanner provided it)`
 
 #### 2.4 Ralph-Loop Integration
 
@@ -316,24 +375,25 @@ With stable fingerprint IDs, the `completed_finding_ids` array in loop-state rem
 
 #### 3.1 Finding Schema (output-schemas.md)
 
-```markdown
-Finding.id:
-  type: string
-  pattern: "^[A-Z]{3,4}-[0-9a-f]{6}-\\d{4}(-[0-9a-f]{4})?(-\\d+)?$"
-  description: >
-    Deterministic fingerprint: {DIM}-{file_hash6}-{line_bucket}.
-    Null-file findings append title_hash4. Collisions append -2, -3.
-  examples:
-    - "ARCH-8f3a21-0370"
-    - "SEC-000000-0000-a7f2"
-    - "QUAL-8f3a21-0370-2"
+Add/update these fields in the Finding properties block:
 
-Finding.previous_id (new, optional):
-  type: string or null
-  description: >
-    Set when a carried-forward finding's code shifted >10 lines,
-    causing a new fingerprint. Links to the old ID for tracking continuity.
+```json
+{
+  "id": {
+    "type": "string",
+    "pattern": "^[A-Z]{3,4}-(000000-0000-[0-9a-f]{4}|[0-9a-f]{6}-\\d{4})(-[2-9]\\d*)?$",
+    "description": "Deterministic fingerprint: {DIM}-{file_hash6}-{line_bucket} for file findings, {DIM}-000000-0000-{title_hash4} for null-file findings. Collision suffix starts at -2.",
+    "examples": ["ARCH-8f3a21-0370", "SEC-000000-0000-a7f2", "QUAL-8f3a21-0370-2"]
+  },
+  "previous_id": {
+    "type": ["string", "null"],
+    "default": null,
+    "description": "Set when a carried-forward finding's code shifted >10 lines, causing a new fingerprint. Links to the old ID for continuity tracking."
+  }
+}
 ```
+
+`previous_id` is NOT in the `required` array — it is optional and defaults to null. It MUST be accepted by schema validators (add to `properties` block, not to `required`). Validators using `additionalProperties: false` must include this field in the properties list.
 
 #### 3.2 DimensionReport Schema (output-schemas.md)
 
@@ -375,8 +435,8 @@ ScoresReport.scan_metadata (new, optional):
 |----------|----------|
 | Old scan reports (sequential IDs) | Treated as `PREVIOUS_FINDINGS = null` on next scan. First post-upgrade scan generates fingerprints; subsequent scans carry forward. |
 | Old loop-state.md (old IDs in completed_finding_ids) | IDs won't match new fingerprints. On first re-scan, loop detects no matches and effectively resets tracking. One-time cost. |
-| Mixed old/new reports in `.code-analysis/` | Reconciler handles both ID formats. Delta analysis skips comparison if previous report uses old format. |
-| Scanners that fail to compute hashes | Fallback: scanner can use `{DIM}-000000-{sequential}` format. Reconciler accepts both. Carry-forward treats these as unstable IDs (no matching). |
+| Mixed old/new reports in `.code-analysis/` | Reconciler handles both ID formats. Delta analysis detects old-format reports by checking if ANY finding ID matches `^[a-z-]+-\d{3}$` (the old schema pattern). If detected, the entire report is treated as old-format and delta comparison is skipped (all findings are treated as "new" since IDs cannot be correlated). |
+| Scanners that fail to compute hashes | Fallback: scanner can use `{DIM}-000000-{line_bucket}` format (zero file hash, normal line bucket). These are valid fingerprints but will collide with null-file findings if line_bucket is `0000`. Carry-forward treats zero-hash IDs as unstable (no matching). The reconciler accepts them. |
 
 ### Files Changed
 
