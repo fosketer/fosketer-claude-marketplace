@@ -193,7 +193,13 @@ CASE "scanning":
 
 ### Step 2 — Check Completion
 
-If `phase` is `done` or `current_score >= TARGET`, output exactly:
+**Single-dimension:** If `phase` is `done` or `current_score >= target`, output exactly:
+```
+<promise>SCORE_REACHED</promise>
+```
+Then stop. Do nothing else.
+
+**Multi-dimension:** If `phase` is `done` or `current_scores[dim] >= targets[dim]` for every dimension, output exactly:
 ```
 <promise>SCORE_REACHED</promise>
 ```
@@ -236,6 +242,45 @@ Then stop. Do nothing else.
   last_updated_at: <ISO 8601 now>
   ```
 - Go to Step 7.
+
+**Multi-dimension variant of Step 3:**
+
+- Before invoking analyze-codebase, write initial state to `.claude/loop-state.md`:
+  ```
+  mode: multi
+  targets: { architecture: 8, patterns: 9 }
+  phase: scanning
+  started_at: <ISO 8601 now>
+  last_updated_at: <ISO 8601 now>
+  ```
+- Invoke analyze-codebase with all target dimensions:
+  ```
+  /analyze-codebase --dimensions=arch,patterns --skip-critics
+  ```
+  **Note:** The initial scan does not use `--changed-files-hint` since there is no prior commit SHA to diff against.
+- At Stage 5 user checkpoint, automatically choose **Proceed to refactoring plans**.
+- Wait for all stages (1–10) to complete and plans to be written to disk.
+- Find each plan at `.code-analysis/plans/*-{DIMENSION}-plan.md` (use latest date).
+- Find latest scores in `.code-analysis/reports/*-scores.json`.
+- Extract scores for all target dimensions.
+- **Dimensions already at target on initial scan:** Mark as met in `current_scores` but do NOT remove from the scan list — they are still scanned each iteration for cross-dimension context. Exclude from batch selection. Log: `"{dimension} already at {score} (target {target}), skipping fixes — still scanning for cross-dimension context"`. If all dimensions already meet their targets → output `SCORE_REACHED`, done.
+- After scan completes, update `.claude/loop-state.md`:
+  ```
+  mode: multi
+  targets: { architecture: 8, patterns: 9 }
+  current_scores: { architecture: <score>, patterns: <score> }
+  starting_scores: { architecture: <score>, patterns: <score> }
+  plan_paths: { architecture: <path>, patterns: <path> }
+  completed_finding_ids: []
+  last_commit_sha:
+  phase: planning
+  iteration: 0
+  score_history:
+    - { architecture: <score>, patterns: <score> }
+  started_at: <preserved from above>
+  last_updated_at: <ISO 8601 now>
+  ```
+- Go to Step 4 (batch selection). **Note:** Single-dimension Step 3 continues to go to Step 7 (re-scan, unchanged). Multi-dimension goes to Step 4 because the first batch hasn't been selected yet from the multi-plan priority queue.
 
 ### Step 4 — Brainstorm & Plan the Next Batch
 
