@@ -23,7 +23,7 @@ Each individual finding produced by a scan dimension.
     },
     "dimension": {
       "type": "string",
-      "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt"],
+      "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"],
       "description": "The scan dimension that produced this finding"
     },
     "title": {
@@ -111,7 +111,7 @@ Output of a single scan dimension execution.
         },
         "dimension": {
           "type": "string",
-          "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt"]
+          "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"]
         },
         "project_path": {
           "type": "string",
@@ -190,7 +190,7 @@ Output of the plan generator for a single dimension's findings.
         },
         "dimension": {
           "type": "string",
-          "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt"]
+          "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"]
         },
         "project_path": {
           "type": "string"
