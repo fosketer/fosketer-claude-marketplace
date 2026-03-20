@@ -47,7 +47,8 @@ Architecture, Patterns, Performance, Testing — not applicable to Claude plugin
 - Accepts `--plugin` flag
 - Stage 1 becomes **Detect Plugin Structure**: reads `plugin.json`, inventories skills/agents/hooks/commands, identifies parent marketplace, builds official plugins comparison index
 - Stage 2 dispatches 10 plugin dimensions (all in parallel) instead of 8 general dimensions
-- Stages 3–8 unchanged — shared infrastructure is dimension-agnostic
+- Stages 0 and 3–10 unchanged — shared infrastructure is dimension-agnostic
+- Plugin-mode scan reports are written to the same `.code-analysis/scan-reports/` directory using the dimension name as the suffix (e.g., `YYYY-MM-DD-manifest-structure.json`), and carry-forward operates identically to general mode
 
 ### ralph-loop/SKILL.md
 
@@ -55,6 +56,17 @@ Architecture, Patterns, Performance, Testing — not applicable to Claude plugin
 - Passes flag through to `analyze-codebase` on each iteration
 - Dimension names in targets use new enum values
 - Example: `ralph-loop --plugin --targets skill-quality:8,convention-adherence:7`
+- Shorthands for new plugin dimensions: `mnf` (manifest-structure), `skl` (skill-quality), `agt` (agent-design), `hkc` (hook-correctness), `mkt` (marketplace-consistency), `cvn` (convention-adherence)
+
+### MODE Propagation
+
+The `--plugin` flag sets `MODE=plugin` which flows through the dispatch chain:
+
+1. **Orchestrator** (`analyze-codebase`) adds `Mode: plugin` to each Stage 2 `Agent` tool call dispatch message
+2. **code-analyzer agent** receives `MODE` as a top-level input field alongside `PROJECT_PATH`, `STACK`, etc., and forwards it to the scan skill in its Step 3 execution block
+3. **Scan skills** read `MODE` to branch into plugin-specific logic
+
+When `MODE=plugin`, the code-analyzer agent skips language/framework profile loading (plugin scans operate on `.md` and `.json` files that are stack-independent) and does not pass `LANGUAGE_PROFILE` or `FRAMEWORK_PROFILE` to scan skills. Instead, it passes `PLUGIN_PROFILES_DIR` (path to `references/plugin-profiles/`).
 
 ### 4 Adapted Scan Skills
 
@@ -66,7 +78,7 @@ Each gains a `MODE` check. When `MODE=plugin`:
 
 ### code-analyzer Agent
 
-Modified to handle plugin dimensions in its dispatch logic. No new agents needed.
+Modified to handle plugin dimensions in its dispatch logic. No new agents needed. Receives `MODE` and forwards it to scan skills. When `MODE=plugin`, substitutes `PLUGIN_PROFILES_DIR` for language/framework profiles.
 
 ## Reference Profiles
 
@@ -87,7 +99,7 @@ Derived from the official `plugin-dev` plugin documentation.
 During Stage 1, the orchestrator:
 1. Reads `~/.claude/plugins/cache/claude-plugins-official/` to discover installed official plugins
 2. Builds a comparison index: for each official plugin, catalogs skill count, agent count, frontmatter patterns, directory structure, word counts
-3. Passes this index to the 6 new scan skills as `OFFICIAL_PLUGINS_INDEX`
+3. Writes the index to `.code-analysis/plugin-analysis-cache/official-plugins-index.json` and passes the file path as `OFFICIAL_PLUGINS_INDEX_PATH` in each dispatch message to the 6 new scan skills
 
 Used by:
 - **Skill Quality** — compares description style, word count distribution against official skills
@@ -104,6 +116,8 @@ The 4 adapted dimensions do not use the live index — they rely on their refere
 Existing: `architecture`, `quality`, `dependencies`, `patterns`, `testing`, `performance`, `security`, `tech-debt`
 
 Added: `manifest-structure`, `skill-quality`, `agent-design`, `hook-correctness`, `marketplace-consistency`, `convention-adherence`
+
+The dimension enum extension applies to all schemas that contain a `dimension` field: `Finding`, `DimensionReport`, `DimensionReport.metadata`, and `RefactoringPlan.metadata`.
 
 ### ID Prefixes
 
@@ -124,6 +138,8 @@ Added: `manifest-structure`, `skill-quality`, `agent-design`, `hook-correctness`
 | `sprint-1` | Broken dependencies (unresolved `@file`, missing referenced skills). Hook schema errors. Marketplace version mismatch |
 | `sprint-2` | Skill quality issues (bad description triggers, missing examples). Agent design issues (no `<example>` blocks). Convention drift from official patterns |
 | `backlog` | Word count outside targets. Minor naming inconsistencies. Deprecated commands/ still present but functional |
+
+When `MODE=plugin`, the plugin-specific priority tier rules above take precedence over the general rules in `analysis-dimensions.md` for the 6 new dimensions. For the 4 adapted dimensions, the general rules apply unchanged.
 
 ### Templates
 
