@@ -3,6 +3,7 @@ name: scan-hook-correctness
 description: |
   Use when validating hooks.json schema, event names, matcher patterns, script existence, and security in Claude plugin hook configurations.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.
+allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 
 # Scan Hook Correctness

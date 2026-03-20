@@ -3,6 +3,7 @@ name: scan-manifest-structure
 description: |
   Use when validating Claude plugin manifest (plugin.json), directory layout, naming conventions, required files, and .claude-plugin/ placement.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.
+allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 
 # Scan Manifest Structure

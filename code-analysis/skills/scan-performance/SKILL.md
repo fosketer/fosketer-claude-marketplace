@@ -3,6 +3,7 @@ name: scan-performance
 description: |
   Use when detecting N+1 queries, missing pagination, unbounded collections, frontend re-render triggers, and caching gaps.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
+allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 
 # Scan Performance
