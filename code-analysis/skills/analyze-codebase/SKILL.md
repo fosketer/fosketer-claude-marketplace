@@ -20,9 +20,9 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 ## Pipeline
 
 ```
-Stage 1:  Detect Stack (sequential)
+Stage 1:  Detect Stack (sequential) — or Detect Plugin Structure when --plugin
     |
-Stage 2:  Scan All Dimensions (ALL 8 in parallel)
+Stage 2:  Scan All Dimensions (ALL 8 in parallel, or 10 in --plugin mode)
     |
 Stage 3:  Reconcile (report-reconciler agent — dedup, score, draft report)
     |         -> Auto-persist draft reports to disk
