@@ -116,6 +116,17 @@ Always populate `snippet` with the relevant code lines when `line_start` is prov
 
 Return the findings array to the orchestrator.
 
+## Severity Guidelines
+
+When assigning severity to performance findings, consider the execution context:
+
+- **critical**: Unbounded resource consumption in request-handling paths that could cause OOM or service degradation under normal load (e.g., loading all rows from an unbounded table into memory per request)
+- **high**: N+1 queries in list endpoints, missing pagination on user-facing APIs, synchronous blocking in async hot paths, full-library imports in client bundles
+- **medium**: Missing memoization in frequently-rendered components, cache-eligible operations without caching, sub-optimal query patterns in batch/background jobs
+- **low**: Minor optimization opportunities (e.g., pre-allocating slice capacity in Go, using `StringBuilder` instead of string concatenation in loops)
+
+Performance findings should always include the execution frequency context in the description (per-request, per-page-load, per-batch-run, startup-only) as this directly affects the real-world impact of the issue.
+
 ## Error Handling
 
 | Scenario | Resolution |
