@@ -21,12 +21,12 @@ The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×crit
 
 **Single-dimension mode** (backward-compatible):
 ```bash
-/code-analysis:ralph-loop <dimension> <target> [--max-iterations N] [--completion-promise "SCORE_REACHED"]
+/code-analysis:ralph-loop <dimension> <target> [--max-iterations N] [--model <model-spec>] [--completion-promise "SCORE_REACHED"]
 ```
 
 **Multi-dimension mode**:
 ```bash
-/code-analysis:ralph-loop --targets="arch:8,patterns:9,security:10" [--max-iterations N] [--completion-promise "SCORE_REACHED"]
+/code-analysis:ralph-loop --targets="arch:8,patterns:9,security:10" [--max-iterations N] [--model <model-spec>] [--completion-promise "SCORE_REACHED"]
 ```
 
 ### Parsing rules
@@ -36,6 +36,7 @@ The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×crit
 - `--targets` with a single dimension → auto-converted to single-dimension mode for state file consistency
 - Cannot mix positional args and `--targets` — error if both provided
 - Dimension shorthand: `arch` → architecture, `deps` → dependencies, `perf` → performance, `debt` → tech-debt
+- `--model` flag → stored as-is, passed through verbatim to all `/analyze-codebase` invocations. Ralph-loop does not resolve model config — resolution happens inside analyze-codebase.
 
 ### Validation
 
@@ -219,7 +220,7 @@ Then stop. Do nothing else.
   ```
 - Invoke the analyze-codebase skill for this dimension:
   ```
-  /analyze-codebase --dimensions=DIMENSION --skip-critics
+  /analyze-codebase --dimensions=DIMENSION --skip-critics [--model MODEL_SPEC if provided]
   ```
 - At Stage 5 user checkpoint, automatically choose **Proceed to refactoring plans**.
 - Wait for all stages (1–10) to complete and plans to be written to disk.
@@ -255,7 +256,7 @@ Then stop. Do nothing else.
   ```
 - Invoke analyze-codebase with all target dimensions:
   ```
-  /analyze-codebase --dimensions=arch,patterns --skip-critics
+  /analyze-codebase --dimensions=arch,patterns --skip-critics [--model MODEL_SPEC if provided]
   ```
   **Note:** The initial scan does not use `--changed-files-hint` since there is no prior commit SHA to diff against.
 - At Stage 5 user checkpoint, automatically choose **Proceed to refactoring plans**.
@@ -373,14 +374,17 @@ Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
   - **Single-dimension:**
     ```
     /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics \
-      --changed-files-hint="{comma-separated file list from git diff}"
+      --changed-files-hint="{comma-separated file list from git diff}" \
+      [--model MODEL_SPEC if provided]
     ```
   - **Multi-dimension:**
     ```
     /analyze-codebase --dimensions=dim1,dim2,... --draft-only --skip-critics \
-      --changed-files-hint="{comma-separated file list from git diff}"
+      --changed-files-hint="{comma-separated file list from git diff}" \
+      [--model MODEL_SPEC if provided]
     ```
     All target dimensions are scanned together (including dimensions already at target, for cross-dimension context).
+**Note:** The `--model` flag is passed through verbatim from ralph-loop's input. When `--skip-critics` is active, any `critique` model override is silently unused since critique stages are skipped. This is expected — the flag is not consumed.
   This enables diff-scoped carry-forward: unchanged files' findings are carried forward without re-reading, reducing re-scan token cost.
 - Read the new score from `.code-analysis/reports/*-scores.json` (latest date file).
 - Update `.claude/loop-state.md`:

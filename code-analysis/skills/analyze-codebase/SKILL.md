@@ -59,6 +59,13 @@ Target path: $ARGUMENTS (default: current working directory)
 - `--skip-critics` — bypass critic loops entirely (skip Stages 4 and 8)
 - `--draft-only` — stop after Stage 3 (scan + reconcile + persist draft, no user interaction)
 - `--changed-files-hint=<comma-separated file paths>` — passed by ralph-loop to enable diff-scoped carry-forward. Optional. When absent, scanners do full scans.
+- `--model=<model-spec>` — override model for agent dispatch. Accepts:
+  - Blanket: `--model opus` (all stages use opus)
+  - Per-stage: `--model scanning:haiku,critique:opus` (override specific stages)
+  - Mixed: `--model opus,critique:sonnet` (blanket first, then per-stage overrides on top)
+  - Valid model values: `haiku`, `sonnet`, `opus`, `inherit`
+  - Stages: `scanning`, `reconciliation`, `critique`, `planning`
+  - Unspecified stages fall through to config files or `inherit`
 
 ## Context Efficiency Rules
 
@@ -89,6 +96,30 @@ Before detecting the stack, check for previous scan data and user overrides:
    - If found: Load and pass as `OVERRIDES` to the reconciler in Stage 3
    - If not found: `OVERRIDES = null`
    - Create the file with empty arrays if the user wants to add overrides later — do NOT create it automatically
+
+3. **Model resolution** (per-stage model map): Resolve which model each pipeline stage uses.
+
+   Resolution order (highest priority wins):
+   1. `--model` CLI flag
+   2. Project config: `.code-analysis/config.json` → `models.*`
+   3. Global config: `~/.claude/code-analysis-config.json` → `models.*`
+   4. Default: `"inherit"` (omit `model` parameter — agent inherits parent model)
+
+   Resolution steps:
+   - Initialize all 4 stage keys (`scanning`, `reconciliation`, `critique`, `planning`) to `"inherit"`
+   - If global config exists and contains valid JSON with a `models` key, merge its values (stage-level merge)
+   - If project config exists and contains valid JSON with a `models` key, merge its values on top
+   - If `--model` flag is present:
+     - Tokenize by comma. For each token:
+       - If token contains `:` (e.g., `scanning:haiku`): set that stage key
+       - If token has no `:` (e.g., `opus`): set ALL 4 stage keys to that value (blanket)
+     - Blanket values are applied before per-stage values within the same flag
+   - Validate all resolved values are in `{haiku, sonnet, opus, inherit}`. If any invalid value found, abort with: `"Invalid model '{value}' for stage '{stage}'. Valid values: haiku, sonnet, opus, inherit"`
+   - If a config file exists but contains malformed JSON, abort with: `"Malformed JSON in config file: {path}"`
+
+   Result: `MODEL_MAP = { scanning: "...", reconciliation: "...", critique: "...", planning: "..." }`
+
+   The orchestrator uses `MODEL_MAP` at every agent dispatch site. If a stage's value is `"inherit"`, the `model` parameter is omitted from the Agent tool call (preserving current behavior). Otherwise, the resolved model name is passed as the `model` parameter.
 
 ### Stage 1 — Detect Stack
 
@@ -132,6 +163,7 @@ Additional parameters for each code-analyzer agent:
   (If --changed-files-hint flag was provided, split the comma-separated value
    into an array and pass it here. If the flag was not provided, pass null.
    Scanners use this for diff-scoped carry-forward.)
+- Model: `MODEL_MAP.scanning` (pass as `model` parameter if not "inherit")
 
 **Fallback**: If the platform limits concurrent agents, dispatch in batches of 4. Prefer full parallelism.
 
@@ -146,6 +178,7 @@ Dispatch the `report-reconciler` agent with:
 - Weights from `--weights` flag (or default)
 - `PREVIOUS_SCORES` from Stage 0 (null if first scan)
 - `OVERRIDES` from Stage 0 (null if no override file)
+- Model: `MODEL_MAP.reconciliation` (pass as `model` parameter if not "inherit")
 
 The agent will:
 1. Deduplicate cross-dimension findings
@@ -178,11 +211,13 @@ loop:
     - stack, project path
     - iteration: attempt + 1
     - prior feedback (from previous iteration, null on first)
+    - model: MODEL_MAP.critique (pass as `model` parameter if not "inherit")
   if critic returns verdict "pass":
     break
   dispatch report-reconciler agent with:
     - same findings
     - critic feedback
+    - model: MODEL_MAP.reconciliation (pass as `model` parameter if not "inherit")
   attempt++
 ```
 
@@ -215,6 +250,7 @@ Ask the user:
 Dispatch `report-reconciler` agent with `--deep` flag:
 - All dimension findings
 - Stack, project path
+- Model: `MODEL_MAP.reconciliation` (pass as `model` parameter if not "inherit")
 
 The agent returns CrossAnalysis JSON (root causes, systemic patterns, combined fixes). This is NOT persisted — used as input to planning.
 
@@ -224,6 +260,7 @@ Dispatch the `refactoring-planner` agent with:
 - All dimension findings (excluding user-skipped dimensions and info-only dimensions)
 - Cross-analysis results from Step 6a
 - Stack, project path
+- Model: `MODEL_MAP.planning` (pass as `model` parameter if not "inherit")
 
 The agent loads `generate-refactoring-plan/SKILL.md` internally — the orchestrator MUST NOT read it.
 
@@ -240,6 +277,8 @@ The orchestrator collects the master plan from the agent's output.
 Run the same critic feedback loop pattern as Stage 4, but with:
 - `plan-critic` agent instead of `report-critic`
 - `refactoring-planner` agent as the producer (re-dispatched with critic feedback)
+- Model for plan-critic: `MODEL_MAP.critique` (pass as `model` parameter if not "inherit")
+- Model for refactoring-planner re-dispatch: `MODEL_MAP.planning` (pass as `model` parameter if not "inherit")
 - Same max iterations from `--critic-iterations`
 
 ### Stage 9 — User Approval Gate ← MANDATORY GATE
@@ -256,6 +295,7 @@ Present to user:
 ### Stage 10 — Persist All Final Outputs
 
 Dispatch the `refactoring-planner` agent for persistence (Step 5 in its agent definition):
+- Model: `MODEL_MAP.planning` (pass as `model` parameter if not "inherit")
 - It reads templates internally (`refactoring-plan.md`, `orchestrator-plan.md`) — the orchestrator MUST NOT read them
 - It writes to `.code-analysis/plans/`:
   - `YYYY-MM-DD-{dimension}-plan.md` — per-dimension plans
