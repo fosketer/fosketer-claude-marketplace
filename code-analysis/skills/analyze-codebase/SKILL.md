@@ -6,6 +6,8 @@ description: |
   or wants a comprehensive multi-dimension codebase analysis with refactoring plans.
   Also use when the user asks to "analyze architecture", "check code quality",
   "scan for security issues", "find tech debt", or similar dimension-specific requests.
+  When used with --plugin flag, analyzes Claude Code plugins across 10 plugin-specific
+  dimensions including manifest structure, skill quality, agent design, and conventions.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__claude_ai_Context7__resolve-library-id, mcp__claude_ai_Context7__query-docs
 ---
 
@@ -66,6 +68,7 @@ Target path: $ARGUMENTS (default: current working directory)
   - Valid model values: `haiku`, `sonnet`, `opus`, `inherit`
   - Stages: `scanning`, `reconciliation`, `critique`, `planning`
   - Unspecified stages fall through to config files or `inherit`
+- `--plugin` — activate plugin analysis mode. Swaps dimension set to 10 plugin-specific dimensions (4 adapted + 6 new). Requires target to contain `.claude-plugin/plugin.json`.
 
 ## Context Efficiency Rules
 
@@ -137,11 +140,37 @@ Check for multi-language projects (e.g., Tauri = Rust + TypeScript). Read `CLAUD
 
 **Output**: `STACK = { languages: [], frameworks: [] }`
 
+**When `--plugin` is set:**
+
+Stage 1 becomes **Detect Plugin Structure**:
+
+1. Verify `.claude-plugin/plugin.json` exists — abort with error if missing: "Target directory is not a Claude plugin (no .claude-plugin/plugin.json found)"
+2. Read `plugin.json` — extract name, version, description
+3. Glob `skills/*/SKILL.md` — count and list skills
+4. Glob `agents/*.md` and `agents/*/AGENT.md` — count and list agents
+5. Glob `hooks/hooks.json` — note if hooks exist
+6. Glob `commands/*.md` — note if deprecated commands exist
+7. Detect parent marketplace: check `../.claude-plugin/marketplace.json`
+8. Build official plugins comparison index:
+   a. Read `~/.claude/plugins/cache/claude-plugins-official/` directory listing
+   b. For each official plugin, find the active version dir and catalog: skill count, agent count, hook presence, frontmatter patterns, word count ranges
+   c. Create directory if absent: `mkdir -p .code-analysis/plugin-analysis-cache`
+   d. Write index to `.code-analysis/plugin-analysis-cache/official-plugins-index.json`
+   e. Add `.code-analysis/plugin-analysis-cache/` to `.gitignore` if not already present (runtime cache, not committed)
+9. Output: `STACK = { languages: ["claude-plugin"], frameworks: [] }`, `PLUGIN_INVENTORY`, `OFFICIAL_PLUGINS_INDEX_PATH`
+
 ### Stage 2 — Scan All Dimensions (Full Parallel)
 
 Parse `--dimensions` flag. Default: all 8.
 
 Dimension map: `arch` → architecture, `quality`, `deps` → dependencies, `patterns`, `testing`, `perf` → performance, `security`, `debt` → tech-debt.
+
+When `--plugin` is set, dimension map changes to:
+Plugin dimensions: `quality`, `deps` → dependencies, `debt` → tech-debt, `security`, `mnf` → manifest-structure, `skl` → skill-quality, `agt` → agent-design, `hkc` → hook-correctness, `mkt` → marketplace-consistency, `cvn` → convention-adherence. Default: all 10.
+
+Dimensions NOT available in plugin mode: architecture, patterns, performance, testing.
+
+**Validation**: If `--plugin` is set and `--dimensions` contains a non-plugin dimension (arch, patterns, perf, testing), abort with: `"Dimension '{name}' is not available in plugin mode. Valid plugin dimensions: quality, deps, debt, security, mnf, skl, agt, hkc, mkt, cvn"`
 
 **Dispatch ALL `code-analyzer` subagents in parallel** (no batching):
 
@@ -168,6 +197,27 @@ Additional parameters for each code-analyzer agent:
 **Fallback**: If the platform limits concurrent agents, dispatch in batches of 4. Prefer full parallelism.
 
 **IMPORTANT**: Findings MUST be kept as compact JSON — do NOT expand into verbose descriptions in the main context.
+
+**When `--plugin` is set:**
+
+Parse `--dimensions` flag using plugin dimension map. Default: all 10.
+
+Dispatch ALL `code-analyzer` subagents in parallel with additional parameters:
+- MODE: "plugin"
+- PLUGIN_PROFILES_DIR: "${CLAUDE_PLUGIN_ROOT}/references/plugin-profiles/"
+- OFFICIAL_PLUGINS_INDEX_PATH: path from Stage 1 step 8d
+- SCAN_REPORTS_DIR: ".code-analysis/scan-reports"
+- CHANGED_FILES: from --changed-files-hint or null
+- Model: `MODEL_MAP.scanning`
+
+The dispatch message template for plugin mode:
+```
+Analyze the plugin at [PROJECT_PATH] for the [DIMENSION] dimension.
+Mode: plugin
+Plugin Profiles Dir: ${CLAUDE_PLUGIN_ROOT}/references/plugin-profiles/
+Official Plugins Index Path: [OFFICIAL_PLUGINS_INDEX_PATH]
+Return ONLY a structured JSON findings array.
+```
 
 ### Stage 3 — Reconcile (report-reconciler agent)
 
