@@ -21,6 +21,32 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 - `FRAMEWORK_PROFILE`: Loaded framework profile reference (if applicable)
 - `SCAN_REPORTS_DIR`: Path to `.code-analysis/scan-reports/` (for loading previous findings)
 - `CHANGED_FILES`: Array of relative file paths changed since last scan, or null
+- `MODE`: "plugin" when running in plugin analysis mode, absent otherwise
+- `PLUGIN_PROFILES_DIR`: Path to `references/plugin-profiles/` (only when MODE=plugin)
+
+### Mode Branch
+
+If `MODE=plugin`:
+- Execute Step 1 (TODO markers) normally but scoped to `.md` and `.sh` files
+- Skip Steps 2–4 (language-specific deprecated APIs). Execute Plugin Tech Debt steps instead.
+
+### Plugin Tech Debt Steps (MODE=plugin only)
+
+#### Step P1 — Detect Deprecated commands/ Usage
+1. Glob commands/*.md — each file is a finding
+2. Severity: **high** if command has no equivalent skill, **medium** if skill equivalent exists
+3. Recommendation: "Migrate command to skills/<name>/SKILL.md per plugin-dev conventions"
+
+#### Step P2 — Detect Legacy Format Patterns
+1. Grep for manifest.json at plugin root (legacy — should be .claude-plugin/plugin.json)
+2. Grep for disable-model-invocation in skill frontmatter (legacy command field)
+3. Grep for argument-hint in skill frontmatter (command-era field)
+4. Severity: **medium** for each legacy pattern
+
+#### Step P3 — Detect Stale Documentation
+1. Check if README.md references a version that doesn't match plugin.json version
+2. Check for references to removed skills/agents (Grep for names, Glob to verify existence)
+3. Severity: **low** for stale docs
 
 ## Workflow
 

@@ -21,6 +21,37 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 - `FRAMEWORK_PROFILE`: Loaded framework profile reference (if applicable)
 - `SCAN_REPORTS_DIR`: Path to `.code-analysis/scan-reports/` (for loading previous findings)
 - `CHANGED_FILES`: Array of relative file paths changed since last scan, or null
+- `MODE`: "plugin" when running in plugin analysis mode, absent otherwise
+- `PLUGIN_PROFILES_DIR`: Path to `references/plugin-profiles/` (only when MODE=plugin)
+
+### Mode Branch
+
+If `MODE=plugin`:
+- Execute Step 1 (hardcoded secrets) normally but scoped to all plugin files
+- Skip Steps 2–5 (injection, XSS, CSRF, auth). Execute Plugin Security steps instead.
+
+### Plugin Security Steps (MODE=plugin only)
+
+#### Step P1 — Scan Hook Scripts for Credentials
+1. Glob hooks/**/*.sh, hooks/**/*.js, hooks/**/*.py
+2. Grep for secret patterns: API_KEY, password, token, secret assignments
+3. Grep for hardcoded URLs with credentials
+4. Severity: **critical** for confirmed secrets
+
+#### Step P2 — Validate ${CLAUDE_PLUGIN_ROOT} Usage
+1. Grep all hook scripts and MCP configs for hardcoded absolute paths
+2. Flag any path that should use ${CLAUDE_PLUGIN_ROOT} instead
+3. Severity: **high** for hardcoded paths (portability and security risk)
+
+#### Step P3 — Check .local.md Credential Exposure
+1. Grep for .local.md patterns — verify they're in .gitignore
+2. Check if any .local.md files are tracked in git
+3. Severity: **critical** for tracked credential files
+
+#### Step P4 — Check MCP Security
+1. Read MCP server configs for non-HTTPS/WSS URLs
+2. Flag HTTP/WS connections: severity **high**
+3. Check for hardcoded auth tokens in MCP configs: severity **critical**
 
 ## Workflow
 

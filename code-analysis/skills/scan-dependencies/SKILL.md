@@ -21,6 +21,36 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 - `FRAMEWORK_PROFILE`: Loaded framework profile reference (if applicable)
 - `SCAN_REPORTS_DIR`: Path to `.code-analysis/scan-reports/` (for loading previous findings)
 - `CHANGED_FILES`: Array of relative file paths changed since last scan, or null
+- `MODE`: "plugin" when running in plugin analysis mode, absent otherwise
+- `PLUGIN_PROFILES_DIR`: Path to `references/plugin-profiles/` (only when MODE=plugin)
+
+### Mode Branch
+
+If `MODE=plugin`: skip Steps 1–6 (package dependencies). Execute Plugin Dependencies steps instead.
+
+### Plugin Dependencies Steps (MODE=plugin only)
+
+#### Step P1 — Scan Cross-References
+1. Grep all .md files for skill references by name (e.g., "invoke the writing-plans skill", "use superpowers:brainstorming")
+2. Build a dependency graph: which skills reference which other skills/plugins
+
+#### Step P2 — Scan @file Includes
+1. Grep for @ file path references
+2. Verify each referenced file exists (Glob)
+3. Flag broken references: severity **high**
+
+#### Step P3 — Scan MCP Server Dependencies
+1. Read .claude-plugin/plugin.json for mcpServers declarations
+2. Verify MCP server configurations are valid
+3. Flag missing or misconfigured: severity **high**
+
+#### Step P4 — Scan Intra-Plugin References
+1. Grep for ${CLAUDE_PLUGIN_ROOT} usage in all files
+2. Verify each path resolves to an existing file
+3. Flag broken internal references: severity **high**
+
+#### Step P5 — Produce Findings
+Compile findings array with dimension: "dependencies".
 
 ## Workflow
 

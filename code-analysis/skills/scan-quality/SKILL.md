@@ -21,6 +21,35 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 - `FRAMEWORK_PROFILE`: Loaded framework profile reference (if applicable)
 - `SCAN_REPORTS_DIR`: Path to `.code-analysis/scan-reports/` (for loading previous findings)
 - `CHANGED_FILES`: Array of relative file paths changed since last scan, or null
+- `MODE`: "plugin" when running in plugin analysis mode, absent otherwise
+- `PLUGIN_PROFILES_DIR`: Path to `references/plugin-profiles/` (only when MODE=plugin)
+
+### Mode Branch
+
+If `MODE=plugin`: skip Steps 1–6 (general code quality). Execute Plugin Quality steps instead.
+
+### Plugin Quality Steps (MODE=plugin only)
+
+#### Step P1 — Map Markdown Files
+1. Glob all `.md` files in plugin directory (exclude node_modules/, .git/)
+2. Categorize: skills (skills/*/SKILL.md), agents (agents/*.md, agents/*/AGENT.md), reference docs, README
+
+#### Step P2 — Check Word Counts
+1. For each SKILL.md: count words in body (below frontmatter). Flag:
+   - Below 500 words: severity **high** ("skill too thin")
+   - Below 1,000: **medium** ("skill could be more detailed")
+   - Above 3,000: **medium** ("skill may need splitting")
+   - Above 5,000: **high** ("skill exceeds maximum")
+2. For each agent: count words in system prompt body. Flag if > 5,000 words
+
+#### Step P3 — Check Content Duplication
+1. Read skill bodies and detect repeated instruction blocks across skills
+2. Flag duplicated blocks > 5 lines appearing in 2+ skills
+3. Severity: **medium** for duplication within same plugin
+
+#### Step P4 — Check Markdown Quality
+1. Grep for broken markdown: unclosed code fences, orphaned link references, inconsistent heading hierarchy
+2. Severity: **low** for formatting issues
 
 ## Workflow
 
