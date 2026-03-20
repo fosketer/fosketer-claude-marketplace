@@ -1,7 +1,7 @@
 ---
 name: generate-refactoring-plan
 description: |
-  Generate a focused refactoring plan for a single dimension's findings.
+  Use when generating a focused refactoring plan for a single dimension's findings.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 

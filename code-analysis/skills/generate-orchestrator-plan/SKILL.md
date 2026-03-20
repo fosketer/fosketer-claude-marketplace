@@ -1,7 +1,7 @@
 ---
 name: generate-orchestrator-plan
 description: |
-  Generate a master orchestrator plan that ties together all per-dimension refactoring plans
+  Use when generating a master orchestrator plan that ties together all per-dimension refactoring plans
   into a prioritized execution sequence with dependency tracking.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---

@@ -1,7 +1,7 @@
 ---
 name: critique-report
 description: |
-  Sub-skill for evaluating the quality of a reconciled analysis report.
+  Use when evaluating the quality of a reconciled analysis report.
   Loaded by the report-critic agent.
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: scan-patterns
 description: |
-  Detect design patterns, anti-patterns, pattern consistency, framework idiom adherence, and error handling patterns.
+  Use when detecting design patterns, anti-patterns, pattern consistency, framework idiom adherence, and error handling patterns.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 

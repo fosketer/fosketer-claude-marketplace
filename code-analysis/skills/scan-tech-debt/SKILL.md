@@ -1,7 +1,7 @@
 ---
 name: scan-tech-debt
 description: |
-  Detect TODO markers, deprecated API usage, legacy patterns, migration opportunities, and commented-out code.
+  Use when detecting TODO markers, deprecated API usage, legacy patterns, migration opportunities, and commented-out code.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 

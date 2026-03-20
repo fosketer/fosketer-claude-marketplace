@@ -1,7 +1,7 @@
 ---
 name: critique-plan
 description: |
-  Sub-skill for evaluating the quality and feasibility of an orchestrator refactoring plan.
+  Use when evaluating the quality and feasibility of an orchestrator refactoring plan.
   Loaded by the plan-critic agent.
 ---
 

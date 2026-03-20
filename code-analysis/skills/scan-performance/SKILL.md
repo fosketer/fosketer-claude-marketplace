@@ -1,7 +1,7 @@
 ---
 name: scan-performance
 description: |
-  Detect N+1 queries, missing pagination, unbounded collections, frontend re-render triggers, and caching gaps.
+  Use when detecting N+1 queries, missing pagination, unbounded collections, frontend re-render triggers, and caching gaps.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 

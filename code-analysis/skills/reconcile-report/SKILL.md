@@ -1,7 +1,7 @@
 ---
 name: reconcile-report
 description: |
-  Sub-skill for cross-dimension deduplication, scoring, and unified report assembly.
+  Use when performing cross-dimension deduplication, scoring, and unified report assembly.
   Loaded by the report-reconciler agent.
 ---
 

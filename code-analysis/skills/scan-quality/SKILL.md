@@ -1,7 +1,7 @@
 ---
 name: scan-quality
 description: |
-  Detect code duplication, complexity hotspots, dead code, naming inconsistencies, and size violations.
+  Use when detecting code duplication, complexity hotspots, dead code, naming inconsistencies, and size violations.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 

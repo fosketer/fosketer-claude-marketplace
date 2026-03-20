@@ -1,7 +1,7 @@
 ---
 name: scan-dependencies
 description: |
-  Audit project dependencies for outdated versions, vulnerabilities, unused packages, duplicates, and version conflicts.
+  Use when auditing project dependencies for outdated versions, vulnerabilities, unused packages, duplicates, and version conflicts.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 

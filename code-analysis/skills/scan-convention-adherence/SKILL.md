@@ -1,7 +1,7 @@
 ---
 name: scan-convention-adherence
 description: |
-  Detect deprecated commands/ usage, @file anti-patterns, token budget violations, and drift from official Claude plugin conventions.
+  Use when detecting deprecated commands/ usage, @file anti-patterns, token budget violations, and drift from official Claude plugin conventions.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: scan-marketplace-consistency
 description: |
-  Check marketplace.json registry alignment, version consistency across plugin.json and package.json, cross-plugin naming conflicts, and README presence.
+  Use when checking marketplace.json registry alignment, version consistency across plugin.json and package.json, cross-plugin naming conflicts, and README presence.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.
 ---
 

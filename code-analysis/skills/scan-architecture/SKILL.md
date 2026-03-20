@@ -1,7 +1,7 @@
 ---
 name: scan-architecture
 description: |
-  Analyze module structure, dependency graph, layering violations, and circular dependencies.
+  Use when analyzing module structure, dependency graph, layering violations, and circular dependencies.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 

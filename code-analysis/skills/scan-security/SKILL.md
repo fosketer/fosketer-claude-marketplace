@@ -1,7 +1,7 @@
 ---
 name: scan-security
 description: |
-  Detect hardcoded secrets, injection vectors, XSS, auth gaps, and OWASP top 10 vulnerabilities.
+  Use when detecting hardcoded secrets, injection vectors, XSS, auth gaps, and OWASP top 10 vulnerabilities.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 

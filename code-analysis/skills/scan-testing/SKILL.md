@@ -1,7 +1,7 @@
 ---
 name: scan-testing
 description: |
-  Analyze test coverage gaps, assertion quality, test isolation, and flaky test indicators.
+  Use when analyzing test coverage gaps, assertion quality, test isolation, and flaky test indicators.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 ---
 
