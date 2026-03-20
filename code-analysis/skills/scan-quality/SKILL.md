@@ -89,7 +89,7 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 
 ```json
 {
-  "id": "QUAL-e7b4a1-0000",
+  "id": "QUAL-e7b4a1-3f2a",
   "dimension": "quality",
   "title": "Duplicated validation logic across 3 modules",
   "description": "The email validation block (15 lines) is copy-pasted in user_service.py, auth_handler.py, and registration.py",
@@ -142,20 +142,23 @@ NEVER use sequential numbering (001, 002) or free-form IDs.
    python3 -c "import hashlib; print(hashlib.sha256(b'{relative_file_path}').hexdigest()[:6])"
    ```
 
-2. Compute line_bucket:
-   floor(line_start / 10) * 10, zero-padded to 4 digits
-   Examples: line 1 → 0000, line 47 → 0040, line 374 → 0370
+2. Compute title_hash4 — normalize the finding title (lowercase, strip whitespace) and hash:
+   ```bash
+   python3 -c "import hashlib; print(hashlib.sha256(b'{normalized_lowercase_title}').hexdigest()[:4])"
+   ```
 
-3. ID = QUAL-{file_hash6}-{line_bucket}
+3. ID = QUAL-{file_hash6}-{title_hash4}
+
+**Why title_hash instead of line_bucket:** Line numbers shift when code is refactored (e.g., 40-360 line shifts across iterations), breaking carry-forward ID matching and causing false "resolved" findings. Title hashes are stable across code movement — the same issue produces the same ID regardless of where in the file it appears.
 
 ### For findings without a file_path:
 
 1. Compute title_hash4 (use python3 for cross-platform portability):
    ```bash
-   python3 -c "import hashlib; print(hashlib.sha256(b'{lowercase title}').hexdigest()[:4])"
+   python3 -c "import hashlib; print(hashlib.sha256(b'{normalized_lowercase_title}').hexdigest()[:4])"
    ```
 
-2. ID = QUAL-000000-0000-{title_hash4}
+2. ID = QUAL-000000-{title_hash4}
 
 ### Collision resolution:
 
@@ -165,7 +168,7 @@ NEVER use sequential numbering (001, 002) or free-form IDs.
 1. Collect all existing IDs in this bucket (from carried-forward findings)
 2. Find the highest existing suffix number (bare = 1, -2 = 2, -3 = 3, etc.)
 3. Assign the new finding suffix = highest + 1
-Example: if `QUAL-8f3a21-0370` and `QUAL-8f3a21-0370-2` are carried forward, a new collision gets `QUAL-8f3a21-0370-3`.
+Example: if `QUAL-8f3a21-a1b2` and `QUAL-8f3a21-a1b2-2` are carried forward, a new collision gets `QUAL-8f3a21-a1b2-3`.
 
 ## Carry-Forward Protocol
 
@@ -190,7 +193,7 @@ B. If finding.file_path IS in CHANGED_FILES, OR if CHANGED_FILES is null:
    → Read the file at finding.file_path around finding.line_start to finding.line_end
    → Does the issue described in finding.description still exist?
      YES → carry forward with SAME ID. Update line numbers if code shifted.
-           If shifted >10 lines, recompute fingerprint and set previous_id to old ID.
+           Since IDs use title_hash (not line numbers), the ID remains stable across line shifts.
      NO (resolved) → add to resolved_ids list. Do NOT include in output.
      FILE DELETED → add to resolved_ids list. Do NOT include in output.
 
@@ -209,7 +212,7 @@ and Phase 2 scans the full codebase. This can be MORE expensive than a fresh sca
 ### Phase 2 — Discover New Findings
 
 1. Scan scope: CHANGED_FILES if provided, otherwise full codebase
-2. For each new finding: verify no duplicate with carried-forward findings (same file, overlapping 10-line range). If duplicate, skip. If new, generate fingerprint ID.
+2. For each new finding: verify no duplicate with carried-forward findings (same file and same or equivalent title). If duplicate, skip. If new, generate fingerprint ID.
 
 ### Output
 

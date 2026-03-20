@@ -313,7 +313,7 @@ Reports and scores were already persisted at Stage 3/5 — do NOT overwrite.
 | All dimensions clean | Score 10/10, congratulate user, skip Stages 6-10 |
 | User skips all at Stage 5 | Finalize reports, end |
 | Very large project (>5000 files) | Warn, suggest `--dimensions` to focus |
-| Stage 3/5 directory has today's reports | Ask: overwrite or append timestamp suffix |
+| Stage 3/5 directory has today's reports | If `--draft-only` is set: always overwrite (automated context, no user to ask). Otherwise: ask user to overwrite or append timestamp suffix |
 | `.code-analysis/overrides.json` references non-existent finding ID | Log warning in report: "Override ID X not found in current findings"; proceed normally |
 | Previous scores.json found but dimensions don't match | Generate partial delta (compare matching dimensions only), note discrepancy |
 | Critic loop exhausted | Present all issues to user, ask proceed or abort |

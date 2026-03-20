@@ -56,6 +56,7 @@ starting_score: 1.0
 plan_path: .code-analysis/plans/2026-03-19-arch-plan.md
 completed_finding_ids: [arch-001, arch-003, arch-005]
 last_commit_sha: 2614d94a
+starting_commit_sha: a1b2c3d4
 phase: committed
 iteration: 3
 score_history: [1.0, 4.5, 6.0]
@@ -63,7 +64,7 @@ started_at: 2026-03-19T06:25:42Z
 last_updated_at: 2026-03-19T14:26:48Z
 ```
 
-> **Note on finding ID format:** `completed_finding_ids` uses whatever ID format the scanner produces. If fingerprint IDs are implemented, these will be fingerprint-format IDs (e.g., `ARCH-8f3a21-0370`). Otherwise they use the current scanner-assigned format.
+> **Note on finding ID format:** `completed_finding_ids` uses the scanner's fingerprint ID format: `{DIM}-{file_hash6}-{title_hash4}` (e.g., `ARCH-8f3a21-a1b2`). Title-hash IDs are stable across code shifts, unlike the deprecated line-bucket format.
 
 > **Scoring formula:** `current_score` and `target` use the authoritative formula from `skills/reconcile-report/SKILL.md`: `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×critical + 2×high + 1×medium + 0.5×low`. The floor is **1.0**, not 0.
 
@@ -99,6 +100,7 @@ starting_scores: { architecture: 1.0, patterns: 1.0 }
 plan_paths: { architecture: .code-analysis/plans/2026-03-19-architecture-plan.md, patterns: .code-analysis/plans/2026-03-19-patterns-plan.md }
 completed_finding_ids: [ARCH-1ec634-0000, PAT-8d5fec-0020]
 last_commit_sha: 2614d94a
+starting_commit_sha: a1b2c3d4
 phase: committed
 iteration: 3
 score_history:
@@ -116,6 +118,7 @@ last_updated_at: 2026-03-19T14:26:48Z
 - `plan_paths` — map of dimension → plan path (replaces `plan_path`)
 - `completed_finding_ids` — flat list (unchanged; IDs contain dimension prefix e.g. `ARCH-`, `PAT-`)
 - `score_history` — entries are maps (replace scalar values)
+- `starting_commit_sha` — recorded at first run, used for accumulated diff scope (same in both modes)
 
 **Backward compatibility:** If `mode` key is absent, treat as single-dimension (existing format). Old state files work unchanged.
 
@@ -210,10 +213,14 @@ Then stop. Do nothing else.
 
 ### Step 3 — First-Run: Generate Plan (only if no state file)
 
-- Before invoking analyze-codebase, write initial state to `.claude/loop-state.md`:
+- Before invoking analyze-codebase, capture the current HEAD SHA and write initial state to `.claude/loop-state.md`:
+  ```bash
+  git log -1 --format=%H  # → starting_commit_sha
+  ```
   ```
   dimension: DIMENSION
   target: TARGET
+  starting_commit_sha: <captured SHA>
   phase: scanning
   started_at: <ISO 8601 now>
   last_updated_at: <ISO 8601 now>
@@ -236,6 +243,7 @@ Then stop. Do nothing else.
   plan_path: <path>
   completed_finding_ids: []
   last_commit_sha:
+  starting_commit_sha: <preserved from above>
   phase: planning
   iteration: 0
   score_history: [<score>]
@@ -246,10 +254,14 @@ Then stop. Do nothing else.
 
 **Multi-dimension variant of Step 3:**
 
-- Before invoking analyze-codebase, write initial state to `.claude/loop-state.md`:
+- Before invoking analyze-codebase, capture the current HEAD SHA and write initial state to `.claude/loop-state.md`:
+  ```bash
+  git log -1 --format=%H  # → starting_commit_sha
+  ```
   ```
   mode: multi
   targets: { architecture: 8, patterns: 9 }
+  starting_commit_sha: <captured SHA>
   phase: scanning
   started_at: <ISO 8601 now>
   last_updated_at: <ISO 8601 now>
@@ -274,6 +286,7 @@ Then stop. Do nothing else.
   plan_paths: { architecture: <path>, patterns: <path> }
   completed_finding_ids: []
   last_commit_sha:
+  starting_commit_sha: <preserved from above>
   phase: planning
   iteration: 0
   score_history:
@@ -366,11 +379,18 @@ Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
 ### Step 7 — Re-scan
 
 - Write `phase: rescanning` and `last_updated_at` to `.claude/loop-state.md`.
-- Compute changed files since last commit:
+- **Determine scan mode** — check `iteration` from state file:
+  - If `iteration % 3 == 0` (every 3rd iteration: 3, 6, 9, …) → **full re-discovery scan** (no `--changed-files-hint`)
+  - Otherwise → **carry-forward scan** (with `--changed-files-hint`)
+
+#### Carry-forward scan (default)
+
+- Compute changed files since **loop start** (accumulated diff):
   ```bash
-  git diff --name-only {last_commit_sha}..HEAD
+  git diff --name-only {starting_commit_sha}..HEAD
   ```
-- Run a fresh draft scan:
+  This uses `starting_commit_sha` (not `last_commit_sha`) so that ALL files modified across the entire loop are re-scanned, preventing carry-forward drift from narrow diff scope.
+- Run a draft scan:
   - **Single-dimension:**
     ```
     /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics \
@@ -384,8 +404,27 @@ Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
       [--model MODEL_SPEC if provided]
     ```
     All target dimensions are scanned together (including dimensions already at target, for cross-dimension context).
-**Note:** The `--model` flag is passed through verbatim from ralph-loop's input. When `--skip-critics` is active, any `critique` model override is silently unused since critique stages are skipped. This is expected — the flag is not consumed.
+  **Note:** The `--model` flag is passed through verbatim from ralph-loop's input. When `--skip-critics` is active, any `critique` model override is silently unused since critique stages are skipped. This is expected — the flag is not consumed.
   This enables diff-scoped carry-forward: unchanged files' findings are carried forward without re-reading, reducing re-scan token cost.
+
+#### Full re-discovery scan (every 3rd iteration)
+
+- Run a draft scan **without** `--changed-files-hint`:
+  - **Single-dimension:**
+    ```
+    /analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics \
+      [--model MODEL_SPEC if provided]
+    ```
+  - **Multi-dimension:**
+    ```
+    /analyze-codebase --dimensions=dim1,dim2,... --draft-only --skip-critics \
+      [--model MODEL_SPEC if provided]
+    ```
+  This forces scanners to re-verify ALL previous findings and scan the full codebase for new ones, breaking the carry-forward ratchet effect where findings can be incorrectly marked as resolved and never rediscovered.
+  Log: `"Iteration {N}: full re-discovery scan (carry-forward ratchet break)"`
+
+#### Post-scan update
+
 - Read the new score from `.code-analysis/reports/*-scores.json` (latest date file).
 - Update `.claude/loop-state.md`:
   - `phase: planning`
@@ -410,6 +449,26 @@ If `current_score >= TARGET`:
 ```
 <promise>SCORE_REACHED</promise>
 ```
+
+### Step 8b — Final Verification Scan (after SCORE_REACHED)
+
+Before outputting `<promise>SCORE_REACHED</promise>`, run a final verification scan to catch carry-forward inflation:
+
+1. Run a fresh full scan **without** `--changed-files-hint` on all loop dimensions:
+   - **Single-dimension:** `/analyze-codebase --dimensions=DIMENSION --draft-only --skip-critics [--model MODEL_SPEC if provided]`
+   - **Multi-dimension:** `/analyze-codebase --dimensions=dim1,dim2,... --draft-only --skip-critics [--model MODEL_SPEC if provided]`
+   Log: `"Running final verification scan (full codebase, no carry-forward)"`
+
+2. Read verified scores from `.code-analysis/reports/*-scores.json`.
+
+3. Compare loop scores vs verified scores for each dimension:
+   - If `|loop_score - verified_score| <= 2.0` for ALL dimensions → scores confirmed.
+     Update `current_score` / `current_scores` with verified values. Proceed to output `SCORE_REACHED`.
+   - If `|loop_score - verified_score| > 2.0` for ANY dimension → **score inflation detected**.
+     Log warning: `"Score inflation detected: {dimension} loop={loop_score} verified={verified_score} (delta={delta})"`
+     Update `current_score` / `current_scores` with verified values.
+     If verified scores still meet targets → proceed to output `SCORE_REACHED` with verified scores.
+     If verified scores do NOT meet targets → set `phase: planning`, log `"Continuing loop with verified scores"`, and resume at Step 4.
 
 **Mid-loop dimension completion** (multi-dimension only): When a dimension reaches its target but others haven't:
 - Log: `"{dimension} reached {score} (target {target}) — continuing for {remaining dimensions}"`

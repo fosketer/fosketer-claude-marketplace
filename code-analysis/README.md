@@ -66,20 +66,20 @@ score = max(1.0, 10 - min(raw, 9))
 
 Scores track across runs with delta analysis (new/resolved/unchanged findings). Iteration estimates help prioritize which dimensions to ralph-loop first by showing effort efficiency — dimensions with fewer estimated iterations yield faster score improvements.
 
-## Finding IDs (v0.3.0)
+## Finding IDs (v0.5.0)
 
 Findings use deterministic fingerprint IDs instead of sequential numbering:
 
 ```
-{DIM}-{file_hash6}-{line_bucket}
+{DIM}-{file_hash6}-{title_hash4}
 
 Examples:
-  ARCH-8f3a21-0370     (file-path finding)
-  SEC-000000-0000-a7f2  (null file_path finding)
-  QUAL-8f3a21-0370-2    (collision suffix)
+  ARCH-8f3a21-a1b2     (file-path finding)
+  SEC-000000-a7f2      (null file_path finding)
+  QUAL-8f3a21-a1b2-2   (collision suffix)
 ```
 
-This ensures the same finding in the same location gets the same ID across scans, enabling reliable delta tracking and cross-session continuity.
+IDs use a title hash (not line numbers) so the same finding keeps the same ID even when code is refactored and lines shift. This ensures reliable delta tracking and cross-session continuity.
 
 ## Ralph-Loop (Iterative Fix Loop)
 

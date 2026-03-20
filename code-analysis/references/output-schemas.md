@@ -17,9 +17,9 @@ Each individual finding produced by a scan dimension.
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^[A-Z]{3,4}-(000000-0000-[0-9a-f]{4}|[0-9a-f]{6}-\\d{4})(-[2-9]\\d*)?$",
-      "description": "Deterministic fingerprint: {DIM}-{file_hash6}-{line_bucket} for file findings, {DIM}-000000-0000-{title_hash4} for null-file findings. Collision suffix starts at -2.",
-      "examples": ["ARCH-8f3a21-0370", "SEC-000000-0000-a7f2", "QUAL-8f3a21-0370-2"]
+      "pattern": "^[A-Z]{3,4}-(000000-[0-9a-f]{4}|[0-9a-f]{6}-[0-9a-f]{4})(-[2-9]\\d*)?$",
+      "description": "Deterministic fingerprint: {DIM}-{file_hash6}-{title_hash4} for file findings, {DIM}-000000-{title_hash4} for null-file findings. Collision suffix starts at -2.",
+      "examples": ["ARCH-8f3a21-a1b2", "SEC-000000-a7f2", "QUAL-8f3a21-a1b2-2"]
     },
     "dimension": {
       "type": "string",
