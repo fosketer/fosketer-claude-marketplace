@@ -107,7 +107,7 @@ Used by:
 - **Convention Adherence** — detects drift from official plugin patterns
 - **Manifest & Structure** — compares directory layout against official plugins
 
-The 4 adapted dimensions do not use the live index — they rely on their reference profiles.
+All 6 new scan skills receive `OFFICIAL_PLUGINS_INDEX_PATH`, but only 4 consume it (Skill Quality, Agent Design, Convention Adherence, Manifest & Structure). Hook Correctness and Marketplace Consistency ignore it — they rely solely on static reference profiles. The 4 adapted dimensions also do not use the live index.
 
 ## Output Schema Extensions
 
