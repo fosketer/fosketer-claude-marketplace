@@ -1,0 +1,4 @@
+.code-analysis/plugin-analysis-cache/
+.code-analysis/reports/
+.code-analysis/scan-reports/
+*.local.md

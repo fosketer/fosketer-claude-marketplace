@@ -18,5 +18,9 @@
     "scoring",
     "plugin-analysis"
   ],
-  "skills": "./skills"
+  "skills": "./skills",
+  "agents": "./agents",
+  "peerDependencies": {
+    "superpowers": "*"
+  }
 }

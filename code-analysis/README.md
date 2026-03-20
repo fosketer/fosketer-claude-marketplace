@@ -136,6 +136,17 @@ All target dimensions are scanned together each iteration, so cross-cutting find
 | **Security** | OWASP top 10, hardcoded secrets, injection, auth gaps |
 | **Tech Debt** | TODOs, deprecated APIs, legacy patterns, migration opportunities |
 
+### Plugin Analysis Dimensions (`--plugin`)
+
+| Dimension | Checks |
+|-----------|--------|
+| **Manifest Structure** | plugin.json validation, directory layout, naming, required files |
+| **Skill Quality** | Frontmatter completeness, description triggers, word counts, allowed-tools |
+| **Agent Design** | AGENT.md format, examples, model/color validity, system prompt quality |
+| **Hook Correctness** | hooks.json schema, event names, matcher patterns, script existence |
+| **Marketplace Consistency** | Registry alignment, version consistency, cross-plugin naming |
+| **Convention Adherence** | Deprecated patterns, @file anti-patterns, token budget violations |
+
 ## Supported Stacks
 
 | Language | Frameworks |
@@ -225,8 +236,8 @@ Gracefully degrades when Context7 is unavailable.
 
 ```
 code-analysis/
-├── .claude-plugin/plugin.json    # v0.4.0
-├── skills/                       # 16 skills
+├── .claude-plugin/plugin.json    # v0.6.0
+├── skills/                       # 22 skills
 │   ├── analyze-codebase/         # Orchestrator (10-stage pipeline)
 │   ├── ralph-loop/               # Iterative fix loop with crash recovery
 │   ├── refactor-plan/            # Plan generation from existing analysis
@@ -238,6 +249,12 @@ code-analysis/
 │   ├── scan-performance/         # }
 │   ├── scan-security/            # }
 │   ├── scan-tech-debt/           # }
+│   ├── scan-manifest-structure/  # } 6 plugin-analysis
+│   ├── scan-skill-quality/       # } dimensions (--plugin)
+│   ├── scan-agent-design/        # }
+│   ├── scan-hook-correctness/    # }
+│   ├── scan-marketplace-consistency/ # }
+│   ├── scan-convention-adherence/# }
 │   ├── reconcile-report/         # Dedup + scoring
 │   ├── critique-report/          # Report validation
 │   ├── critique-plan/            # Plan validation
@@ -261,6 +278,18 @@ code-analysis/
 ```
 
 ## Changelog
+
+### v0.6.0 (2026-03-20)
+- **Plugin analysis mode**: `--plugin` flag enables 10-dimension analysis for Claude Code plugins
+- **6 new plugin dimensions**: manifest-structure, skill-quality, agent-design, hook-correctness, marketplace-consistency, convention-adherence
+- **Official plugins index**: Builds comparison baseline from installed official plugins
+- **Plugin profiles**: Reference profiles for each plugin dimension in `references/plugin-profiles/`
+
+### v0.5.0 (2026-03-19)
+- **Plugin scanner infrastructure**: 6 new scan-* skills for plugin-specific dimensions
+- **Agent directory format**: All agents migrated to `agents/{name}/AGENT.md` convention
+- **Model override**: `--model` flag for per-stage model selection (scanning, reconciliation, critique, planning)
+- **Config files**: `.code-analysis/config.json` and `~/.claude/code-analysis-config.json` for persistent settings
 
 ### v0.4.0 (2026-03-19)
 - **Multi-dimension ralph-loop**: `--targets="arch:8,patterns:9"` runs multiple dimensions in one loop with per-dimension target scores
