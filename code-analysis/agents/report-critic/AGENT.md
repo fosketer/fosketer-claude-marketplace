@@ -2,26 +2,20 @@
 name: report-critic
 description: |
   Use this agent when validating the quality of a reconciled analysis report.
-  Dispatched by the analyze-codebase orchestrator after reconciliation (Stage 4).
-  Returns structured feedback — never modifies the report directly.
+  Returns structured feedback — never modifies the report.
 
   <example>
   Context: Orchestrator has a reconciled report ready for validation
   user: "Analyze this codebase"
-  assistant: "Report reconciled. Dispatching report-critic for quality validation."
-  <commentary>
-  The orchestrator dispatches report-critic with the draft report and scores.
-  The critic returns pass/fail verdict with structured issues.
-  </commentary>
+  assistant: "Report reconciled. Dispatching report-critic for validation."
+  <commentary>Returns pass/fail verdict with structured issues.</commentary>
   </example>
 
   <example>
   Context: Report has a scoring inconsistency
   user: "Check this analysis report for scoring errors"
-  assistant: "Dispatching report-critic. Found: by_severity sum does not match total_findings."
-  <commentary>
-  The critic catches arithmetic errors between summary counts and severity breakdowns.
-  </commentary>
+  assistant: "Found: by_severity sum does not match total_findings."
+  <commentary>Catches arithmetic errors in scores.</commentary>
   </example>
 
 model: inherit

@@ -1,29 +1,21 @@
 ---
 name: report-reconciler
 description: |
-  Use this agent when reconciling findings from all dimension scanners into a unified,
-  deduplicated, scored analysis report. Dispatched by the analyze-codebase orchestrator
-  after all dimension scans complete (Stage 3), or re-dispatched with --deep for
-  cross-dimension root cause analysis (Stage 6).
+  Use this agent when reconciling findings from all dimension scanners into a
+  unified, deduplicated, scored report. Also used with --deep for root cause analysis.
 
   <example>
-  Context: Orchestrator has collected all 8 dimension findings
+  Context: Orchestrator has collected all dimension findings
   user: "Analyze this codebase"
   assistant: "All scans complete. Dispatching report-reconciler to deduplicate and score."
-  <commentary>
-  The orchestrator dispatches report-reconciler with all findings arrays.
-  The agent deduplicates, scores, and produces a unified draft report.
-  </commentary>
+  <commentary>Deduplicates, scores, produces unified draft report.</commentary>
   </example>
 
   <example>
   Context: User approved report and wants refactoring plans
   user: "Proceed to refactoring plans"
   assistant: "Dispatching report-reconciler with --deep for cross-dimension analysis."
-  <commentary>
-  Re-dispatched with --deep flag to perform root cause analysis across dimensions.
-  Output is cross-analysis.json fed to the plan generator.
-  </commentary>
+  <commentary>Root cause analysis across dimensions.</commentary>
   </example>
 
 model: inherit

@@ -2,26 +2,20 @@
 name: plan-critic
 description: |
   Use this agent when validating the quality and feasibility of an orchestrator
-  refactoring plan. Dispatched by the analyze-codebase orchestrator after plan
-  generation (Stage 8). Returns structured feedback — never modifies the plan directly.
+  refactoring plan. Returns structured feedback — never modifies the plan.
 
   <example>
   Context: Orchestrator has generated the master refactoring plan
   user: "Analyze this codebase"
-  assistant: "Orchestrator plan generated. Dispatching plan-critic for validation."
-  <commentary>
-  The orchestrator dispatches plan-critic with the orchestrator plan and findings.
-  The critic returns pass/fail verdict with structured issues.
-  </commentary>
+  assistant: "Plan generated. Dispatching plan-critic for validation."
+  <commentary>Returns pass/fail verdict with structured issues.</commentary>
   </example>
 
   <example>
   Context: Plan has cross-dimension phase conflicts
   user: "Review the orchestrator plan for phase conflicts"
-  assistant: "Dispatching plan-critic. Found: same file modified in Phase 1 and Phase 2."
-  <commentary>
-  The critic detects write conflicts across phases and flags ordering issues.
-  </commentary>
+  assistant: "Dispatching plan-critic. Found: same file in Phase 1 and Phase 2."
+  <commentary>Detects write conflicts across phases.</commentary>
   </example>
 
 model: inherit

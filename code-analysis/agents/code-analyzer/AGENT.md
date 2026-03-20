@@ -2,45 +2,20 @@
 name: code-analyzer
 description: |
   Use this agent when running analysis dimensions against a codebase. Dispatched
-  by the analyze-codebase orchestrator for each dimension, or used standalone
-  for single-dimension scans. Each invocation loads only the resources it needs.
+  by the analyze-codebase orchestrator for each dimension, or standalone.
 
   <example>
   Context: Orchestrator dispatches parallel dimension scans
   user: "Analyze this codebase"
   assistant: "I'll dispatch code-analyzer agents for each dimension."
-  <commentary>
-  The orchestrator dispatches multiple code-analyzer agents in parallel batches.
-  Each agent loads its own sub-skill and profiles, keeping the main context lean.
-  </commentary>
+  <commentary>Parallel dispatch, each agent loads its own sub-skill.</commentary>
   </example>
 
   <example>
   Context: User wants a single dimension scan
   user: "Just scan the security of this project"
   assistant: "I'll use the code-analyzer agent for the security dimension."
-  <commentary>
-  Single-dimension scan — the agent handles stack detection and execution.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to re-scan after fixes
-  user: "Re-scan dependencies — I updated the packages"
-  assistant: "I'll re-run the dependency scan to check."
-  <commentary>
-  Post-fix validation with optional delta comparison against prior results.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Orchestrator dispatches plugin analysis scans
-  user: "Analyze this Claude plugin"
-  assistant: "I'll dispatch code-analyzer agents for each plugin dimension."
-  <commentary>
-  Plugin mode — the orchestrator passes MODE=plugin and plugin-specific inputs.
-  The agent loads plugin profiles instead of language/framework profiles.
-  </commentary>
+  <commentary>Standalone single-dimension scan.</commentary>
   </example>
 
 model: inherit
