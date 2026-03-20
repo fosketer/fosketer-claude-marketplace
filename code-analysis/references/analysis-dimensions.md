@@ -108,6 +108,82 @@ Reference for the 8 scan dimensions used by the code-analysis plugin. Each dimen
   - Pinned versions that should be unpinned
 - **Severity**: critical (deprecated security APIs), high (deprecated core APIs), medium (TODOs, legacy patterns)
 
+## Plugin-Specific Dimensions (--plugin mode)
+
+These 6 dimensions are activated only when `MODE=plugin`. They validate Claude plugin structure, metadata, and marketplace consistency in addition to the 8 general dimensions above.
+
+### 5p. Manifest & Structure (`scan-manifest-structure`)
+
+- **Purpose**: Validate plugin.json, directory layout, naming conventions
+- **Checks**:
+  - `plugin.json` present in `.claude-plugin/` with all required fields
+  - Plugin name uses kebab-case
+  - Required files present (README.md, at least one skill or agent)
+  - Directory conventions followed (skills in `skills/`, agents in `agents/`)
+  - `${CLAUDE_PLUGIN_ROOT}` used for all internal path references
+- **Severity**: critical (invalid plugin.json), high (missing required files), medium (naming violations)
+
+### 6p. Skill Quality (`scan-skill-quality`)
+
+- **Purpose**: SKILL.md frontmatter quality, description triggers, progressive disclosure
+- **Checks**:
+  - Frontmatter contains all required fields
+  - Description under 1,024 characters
+  - Description starts with "Use when..." in third person
+  - Trigger phrases describe invocation context, not workflow summaries
+  - Word count target 1,500–2,000 words (medium severity outside range, high below 500 or above 5,000)
+  - Progressive disclosure present (summary → detail → examples)
+  - Resource directories referenced where appropriate
+  - `allowed-tools` scoped to actual needs
+- **Severity**: critical (missing SKILL.md), high (bad triggers, word count extremes), medium (style, disclosure)
+
+### 7p. Agent Design (`scan-agent-design`)
+
+- **Purpose**: AGENT.md frontmatter, example blocks, system prompt quality
+- **Checks**:
+  - Required fields present: name, description, model, color
+  - Name 3–50 characters, lowercase letters and hyphens only
+  - 2–4 `<example>` blocks, each with Context, user, assistant, and commentary
+  - Model value is one of: inherit, sonnet, opus, haiku
+  - Color value is one of: blue, cyan, green, yellow, magenta, red
+  - Tool scoping avoids over-broad permissions
+  - System prompt written in second person
+- **Severity**: critical (missing AGENT.md), high (no examples, invalid model/color), medium (style, scoping)
+
+### 8p. Hook Correctness (`scan-hook-correctness`)
+
+- **Purpose**: hooks.json schema, event names, matcher patterns, script existence
+- **Checks**:
+  - hooks.json uses plugin wrapper format: `{"hooks": {...}}`
+  - Event names are one of the 9 valid Claude hook events
+  - Matcher patterns are valid regular expressions
+  - Referenced scripts exist on disk
+  - `${CLAUDE_PLUGIN_ROOT}` used for all script paths
+  - No credentials or secrets embedded in hook definitions
+- **Severity**: critical (invalid JSON), high (invalid events, missing scripts), medium (path issues)
+
+### 9p. Marketplace Consistency (`scan-marketplace-consistency`)
+
+- **Purpose**: Registry alignment, version consistency
+- **Checks**:
+  - Plugin listed in `.claude-plugin/marketplace.json`
+  - Version in `plugin.json` matches `package.json` (when present)
+  - Description in registry matches `plugin.json`
+  - No naming conflicts with other registered plugins
+  - README.md exists and is non-empty
+- **Severity**: high (version mismatch, missing from registry), medium (description drift, missing README)
+
+### 10p. Convention Adherence (`scan-convention-adherence`)
+
+- **Purpose**: Deprecated patterns, token budgets, official plugin pattern drift
+- **Checks**:
+  - `commands/` directory deprecated — no equivalent skill/agent replacement
+  - `@file` anti-patterns in skill descriptions
+  - Skill or agent description exceeds 1,024 characters
+  - Significant drift from official Claude plugin patterns
+  - Duplicate functionality with another registered plugin
+- **Severity**: high (deprecated commands/ with no equivalent), medium (drift, @file patterns)
+
 ## Severity Scale
 
 | Level | Description | Action Required |
@@ -130,3 +206,14 @@ Every finding MUST be assigned a `priority_tier` during reconciliation using the
 | `backlog` | Medium severity (style/naming), low, info |
 
 **Application order**: Apply the first matching rule top-to-bottom. Security dimension findings use the top two tiers preferentially.
+
+### Plugin-Specific Priority Tiers (--plugin mode)
+
+When `MODE=plugin`, these rules take precedence for the 6 plugin-specific dimensions. Adapted general dimensions continue to use the general rules above.
+
+| Tier | Plugin-Mode Assignment Rule |
+|------|-----------------------------|
+| `immediate` | Security: hardcoded secrets in hooks. Manifest: invalid plugin.json |
+| `sprint-1` | Broken dependencies, hook schema errors, marketplace version mismatch |
+| `sprint-2` | Skill quality issues, agent design issues, convention drift |
+| `backlog` | Word count outside targets, minor naming violations, deprecated commands/ still functional |
