@@ -1,7 +1,7 @@
 ---
 name: critique-report
 description: |
-  Use when evaluating the quality of a reconciled analysis report.
+  This skill should be used when evaluating the quality of a reconciled analysis report.
   Loaded by the report-critic agent.
 allowed-tools: ["Read", "Grep", "Glob"]
 ---

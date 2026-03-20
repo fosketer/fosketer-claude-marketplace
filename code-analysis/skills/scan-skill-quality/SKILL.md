@@ -1,7 +1,7 @@
 ---
 name: scan-skill-quality
 description: |
-  Use when evaluating SKILL.md frontmatter quality, description triggers, word counts, progressive disclosure, and resource organization in Claude plugins.
+  This skill should be used when evaluating SKILL.md frontmatter quality, description triggers, word counts, progressive disclosure, and resource organization in Claude plugins.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.
 allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---

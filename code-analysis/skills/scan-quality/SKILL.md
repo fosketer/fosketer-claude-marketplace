@@ -1,7 +1,7 @@
 ---
 name: scan-quality
 description: |
-  Use when detecting code duplication, complexity hotspots, dead code, naming inconsistencies, and size violations.
+  This skill should be used when detecting code duplication, complexity hotspots, dead code, naming inconsistencies, and size violations.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---

@@ -1,7 +1,7 @@
 ---
 name: analyze-codebase
 description: |
-  Use when the user asks to "analyze this codebase", "scan for issues",
+  This skill should be used when the user asks to "analyze this codebase", "scan for issues",
   "find refactoring opportunities", "code analysis", "audit this project",
   or wants a comprehensive multi-dimension codebase analysis with refactoring plans.
   Also use when the user asks to "analyze architecture", "check code quality",

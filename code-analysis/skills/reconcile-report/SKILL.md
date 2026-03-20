@@ -1,7 +1,7 @@
 ---
 name: reconcile-report
 description: |
-  Use when performing cross-dimension deduplication, scoring, and unified report assembly.
+  This skill should be used when performing cross-dimension deduplication, scoring, and unified report assembly.
   Loaded by the report-reconciler agent.
 ---
 

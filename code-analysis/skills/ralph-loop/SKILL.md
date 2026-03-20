@@ -1,7 +1,7 @@
 ---
 name: ralph-loop
 description: |
-  Use when iteratively improving codebase dimension scores to target thresholds
+  This skill should be used when iteratively improving codebase dimension scores to target thresholds
   using analyze-codebase + ralph-loop. Supports single-dimension (positional args)
   or multi-dimension (--targets flag) with per-dimension target scores.
   Applies when the user wants to fix findings across one or more dimensions,

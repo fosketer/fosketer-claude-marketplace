@@ -1,7 +1,7 @@
 ---
 name: refactor-plan
 description: |
-  Use when the user asks to "generate refactoring plans", "create a refactoring plan",
+  This skill should be used when the user asks to "generate refactoring plans", "create a refactoring plan",
   "plan refactoring from analysis", or wants to produce refactoring plans from
   existing codebase analysis results without re-scanning.
   Replaces the deprecated /refactor-plan command.

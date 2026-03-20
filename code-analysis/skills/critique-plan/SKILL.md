@@ -1,7 +1,7 @@
 ---
 name: critique-plan
 description: |
-  Use when evaluating the quality and feasibility of an orchestrator refactoring plan.
+  This skill should be used when evaluating the quality and feasibility of an orchestrator refactoring plan.
   Loaded by the plan-critic agent.
 ---
 

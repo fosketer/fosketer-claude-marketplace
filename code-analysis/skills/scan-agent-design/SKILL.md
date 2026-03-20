@@ -1,7 +1,7 @@
 ---
 name: scan-agent-design
 description: |
-  Use when evaluating AGENT.md frontmatter format, example blocks, model/color validity, system prompt quality, and tool scoping in Claude plugins.
+  This skill should be used when evaluating AGENT.md frontmatter format, example blocks, model/color validity, system prompt quality, and tool scoping in Claude plugins.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.
 allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---
