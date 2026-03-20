@@ -6,6 +6,7 @@ description: |
   or multi-dimension (--targets flag) with per-dimension target scores.
   Applies when the user wants to fix findings across one or more dimensions,
   run a score improvement loop, or automate refactoring until quality thresholds are reached.
+  Supports --plugin flag for Claude Code plugin analysis dimensions.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill
 ---
 
@@ -21,12 +22,12 @@ The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×crit
 
 **Single-dimension mode** (backward-compatible):
 ```bash
-/code-analysis:ralph-loop <dimension> <target> [--max-iterations N] [--model <model-spec>] [--completion-promise "SCORE_REACHED"]
+/code-analysis:ralph-loop <dimension> <target> [--plugin] [--max-iterations N] [--model <model-spec>] [--completion-promise "SCORE_REACHED"]
 ```
 
 **Multi-dimension mode**:
 ```bash
-/code-analysis:ralph-loop --targets="arch:8,patterns:9,security:10" [--max-iterations N] [--model <model-spec>] [--completion-promise "SCORE_REACHED"]
+/code-analysis:ralph-loop --targets="skl:8,cvn:7" --plugin [--max-iterations N] [--model <model-spec>] [--completion-promise "SCORE_REACHED"]
 ```
 
 ### Parsing rules
@@ -36,6 +37,9 @@ The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×crit
 - `--targets` with a single dimension → auto-converted to single-dimension mode for state file consistency
 - Cannot mix positional args and `--targets` — error if both provided
 - Dimension shorthand: `arch` → architecture, `deps` → dependencies, `perf` → performance, `debt` → tech-debt
+- Plugin dimension shorthand (requires `--plugin`): `mnf` → manifest-structure, `skl` → skill-quality, `agt` → agent-design, `hkc` → hook-correctness, `mkt` → marketplace-consistency, `cvn` → convention-adherence
+- When `--plugin` is set, only plugin-valid dimensions are accepted: quality, deps/dependencies, debt/tech-debt, security, mnf/manifest-structure, skl/skill-quality, agt/agent-design, hkc/hook-correctness, mkt/marketplace-consistency, cvn/convention-adherence
+- Non-plugin dimensions (arch, patterns, perf, testing) with `--plugin` flag → error: "Dimension '{name}' is not available in plugin mode"
 - `--model` flag → stored as-is, passed through verbatim to all `/analyze-codebase` invocations. Ralph-loop does not resolve model config — resolution happens inside analyze-codebase.
 
 ### Validation
@@ -62,6 +66,7 @@ iteration: 3
 score_history: [1.0, 4.5, 6.0]
 started_at: 2026-03-19T06:25:42Z
 last_updated_at: 2026-03-19T14:26:48Z
+mode: plugin  # only present when --plugin was passed
 ```
 
 > **Note on finding ID format:** `completed_finding_ids` uses the scanner's fingerprint ID format: `{DIM}-{file_hash6}-{title_hash4}` (e.g., `ARCH-8f3a21-a1b2`). Title-hash IDs are stable across code shifts, unlike the deprecated line-bucket format.
@@ -229,6 +234,7 @@ Then stop. Do nothing else.
   ```
   /analyze-codebase --dimensions=DIMENSION --skip-critics [--model MODEL_SPEC if provided]
   ```
+  When `--plugin` is set, pass `--plugin` to all `/analyze-codebase` invocations.
 - At Stage 5 user checkpoint, automatically choose **Proceed to refactoring plans**.
 - Wait for all stages (1–10) to complete and plans to be written to disk.
 - Find the plan at `.code-analysis/plans/*-DIMENSION-plan.md` (use latest date).
@@ -270,6 +276,7 @@ Then stop. Do nothing else.
   ```
   /analyze-codebase --dimensions=arch,patterns --skip-critics [--model MODEL_SPEC if provided]
   ```
+  When `--plugin` is set, pass `--plugin` to all `/analyze-codebase` invocations.
   **Note:** The initial scan does not use `--changed-files-hint` since there is no prior commit SHA to diff against.
 - At Stage 5 user checkpoint, automatically choose **Proceed to refactoring plans**.
 - Wait for all stages (1–10) to complete and plans to be written to disk.
@@ -405,6 +412,7 @@ Write `phase: implementing` and `last_updated_at` to `.claude/loop-state.md`.
     ```
     All target dimensions are scanned together (including dimensions already at target, for cross-dimension context).
   **Note:** The `--model` flag is passed through verbatim from ralph-loop's input. When `--skip-critics` is active, any `critique` model override is silently unused since critique stages are skipped. This is expected — the flag is not consumed.
+  When `--plugin` is set, pass `--plugin` to all `/analyze-codebase` invocations.
   This enables diff-scoped carry-forward: unchanged files' findings are carried forward without re-reading, reducing re-scan token cost.
 
 #### Full re-discovery scan (every 3rd iteration)
