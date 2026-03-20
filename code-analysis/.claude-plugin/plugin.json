@@ -21,6 +21,6 @@
   "skills": "./skills",
   "agents": "./agents",
   "peerDependencies": {
-    "superpowers": "*"
+    "superpowers": ">=5.0.0"
   }
 }

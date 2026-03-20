@@ -1,11 +1,11 @@
 # code-analysis
 
-Comprehensive codebase analysis plugin for Claude Code. Scans any language/framework across 8 dimensions, produces scored reports with critic validation, and generates focused refactoring plans. Includes an iterative fix loop (ralph-loop) that implements fixes and re-scans until a target score is reached.
+Comprehensive codebase analysis plugin for Claude Code. Scans any language/framework across 8 code dimensions (plus 6 plugin-analysis dimensions with `--plugin`), produces scored reports with critic validation, and generates focused refactoring plans. Includes an iterative fix loop (ralph-loop) that implements fixes and re-scans until a target score is reached.
 
 ## Quick Start
 
 ```bash
-# Full analysis (all 8 dimensions)
+# Full analysis (all 8 code dimensions)
 /analyze-codebase
 
 # Single dimension
@@ -216,21 +216,20 @@ Multi-language projects (e.g., Tauri = Rust + TypeScript) supported with multipl
 | `analyze-codebase` | Yes | Full 10-stage analysis pipeline |
 | `refactor-plan` | Yes | Generate plans from existing analysis |
 | `ralph-loop` | Yes | Iterative scan-fix-rescan loop |
-| `scan-*` (8) | No | Dimension-specific scan sub-skills |
+| `scan-*` (14) | No | 8 code + 6 plugin dimension scan sub-skills |
 | `reconcile-report` | No | Dedup and scoring sub-skill |
 | `critique-report` | No | Report validation sub-skill |
 | `critique-plan` | No | Plan validation sub-skill |
 | `generate-refactoring-plan` | No | Per-dimension plan generation |
 | `generate-orchestrator-plan` | No | Master plan generation |
 
-## Context7 Integration
+## Dependencies
 
-When Context7 MCP is available, scanners validate:
-- Detected framework versions against documentation
-- Dependency versions for known issues
-- Framework-specific patterns against current best practices
+**Required:**
+- [superpowers](https://github.com/anthropics/claude-code-plugins) (>=5.0.0) — ralph-loop uses `superpowers:brainstorming`, `superpowers:writing-plans`, and `superpowers:subagent-driven-development`
 
-Gracefully degrades when Context7 is unavailable.
+**Optional:**
+- [Context7 MCP](https://github.com/upstash/context7) — when available, scanners validate framework versions, dependency issues, and patterns against current documentation. **Gracefully degrades when unavailable.**
 
 ## Plugin Structure
 

@@ -2,3 +2,4 @@
 .code-analysis/reports/
 .code-analysis/scan-reports/
 *.local.md
+docs/superpowers/plans/

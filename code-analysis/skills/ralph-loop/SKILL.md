@@ -552,11 +552,8 @@ Ralph-loop stopped after 6 iterations (max reached)
 # Score should be ≥ TARGET
 cat .code-analysis/reports/*-scores.json | grep DIMENSION
 
-# No regressions
-cd /root/src/claude-k3s-orchestrator/rust && cargo test
-
-# No new warnings
-cargo clippy
+# No regressions (run project-specific test suite)
+# e.g.: cargo test, npm test, pytest, etc.
 
 # Commits on main
 git log --oneline -10
