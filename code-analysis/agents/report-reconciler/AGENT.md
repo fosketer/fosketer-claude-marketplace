@@ -1,7 +1,7 @@
 ---
 name: report-reconciler
 description: |
-  Use this agent to reconcile findings from all dimension scanners into a unified,
+  Use this agent when reconciling findings from all dimension scanners into a unified,
   deduplicated, scored analysis report. Dispatched by the analyze-codebase orchestrator
   after all dimension scans complete (Stage 3), or re-dispatched with --deep for
   cross-dimension root cause analysis (Stage 6).

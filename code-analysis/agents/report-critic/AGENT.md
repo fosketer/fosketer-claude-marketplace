@@ -1,7 +1,7 @@
 ---
 name: report-critic
 description: |
-  Use this agent to validate the quality of a reconciled analysis report.
+  Use this agent when validating the quality of a reconciled analysis report.
   Dispatched by the analyze-codebase orchestrator after reconciliation (Stage 4).
   Returns structured feedback — never modifies the report directly.
 
@@ -15,8 +15,17 @@ description: |
   </commentary>
   </example>
 
+  <example>
+  Context: Report has a scoring inconsistency
+  user: "Check this analysis report for scoring errors"
+  assistant: "Dispatching report-critic. Found: by_severity sum does not match total_findings."
+  <commentary>
+  The critic catches arithmetic errors between summary counts and severity breakdowns.
+  </commentary>
+  </example>
+
 model: inherit
-color: orange
+color: yellow
 tools: ["Read", "Grep", "Glob"]
 ---
 

@@ -37,7 +37,7 @@ description: |
   </example>
 
 model: inherit
-color: purple
+color: magenta
 tools: ["Read", "Grep", "Glob", "Write"]
 ---
 

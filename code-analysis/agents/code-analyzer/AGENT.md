@@ -1,7 +1,7 @@
 ---
 name: code-analyzer
 description: |
-  Use this agent to run analysis dimensions against a codebase. Dispatched
+  Use this agent when running analysis dimensions against a codebase. Dispatched
   by the analyze-codebase orchestrator for each dimension, or used standalone
   for single-dimension scans. Each invocation loads only the resources it needs.
 
@@ -44,7 +44,7 @@ description: |
   </example>
 
 model: inherit
-color: green
+color: cyan
 tools: ["Read", "Grep", "Glob", "Bash", "mcp__plugin_context7_context7__resolve-library-id", "mcp__plugin_context7_context7__query-docs", "mcp__claude_ai_Context7__resolve-library-id", "mcp__claude_ai_Context7__query-docs"]
 ---
 
