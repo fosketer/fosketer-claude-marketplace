@@ -17,7 +17,9 @@
 **Files:**
 - Modify: `references/output-schemas.md:26` (Finding.dimension enum)
 - Modify: `references/output-schemas.md:114` (DimensionReport.metadata.dimension enum)
-- Modify: `references/output-schemas.md:192` (RefactoringPlan.metadata.dimension enum)
+- Modify: `references/output-schemas.md:193` (RefactoringPlan.metadata.dimension enum)
+
+> **Note:** The spec mentions 4 schemas but this resolves to 3 enum locations in the file, since DimensionReport and DimensionReport.metadata share the same JSON object.
 
 - [ ] **Step 1: Add new dimension values to Finding.dimension enum**
 
@@ -93,7 +95,7 @@ The following dimensions are activated when `--plugin` flag is passed. They repl
   - Frontmatter total < 1,024 chars
   - Description starts with "Use when..." and uses third person
   - Description contains trigger phrases, not workflow summaries
-  - Body word count between 1,000–3,000 (warning), outside 500–5,000 (high)
+  - Body word count target 1,500–2,000 (outside range is **medium**), below 500 or above 5,000 is **high**
   - Progressive disclosure: heavy content in references/, not inlined
   - Resource dirs (references/, examples/, scripts/) are organized
   - `allowed-tools` lists only necessary tools
@@ -264,6 +266,8 @@ git -C /Users/keven.foster/document-perso/local-claude-marketplace commit -m "fe
 
 Each skill follows the exact same contract as existing scan skills. Input: `PROJECT_PATH`, `STACK`, `PLUGIN_PROFILES_DIR`, `SCAN_REPORTS_DIR`, `CHANGED_FILES`, `OFFICIAL_PLUGINS_INDEX_PATH`. Output: `DimensionReport` JSON.
 
+> **Note:** `OFFICIAL_PLUGINS_INDEX_PATH` is passed to all 6 skills but only consumed by 4 (manifest-structure, skill-quality, agent-design, convention-adherence). Hook-correctness and marketplace-consistency MUST ignore it — they rely solely on static reference profiles.
+
 - [ ] **Step 1: Create scan-manifest-structure/SKILL.md**
 
 Frontmatter:
@@ -303,7 +307,7 @@ Workflow steps:
 1. Glob `skills/*/SKILL.md` — inventory all skills
 2. For each SKILL.md: read and parse YAML frontmatter
 3. Validate: `name` present, `description` present, starts with "Use when...", third person, <1,024 chars
-4. Count body words (below frontmatter `---`). Flag if outside 1,000–3,000 range
+4. Count body words (below frontmatter `---`). Target: 1,500–2,000. Flag **medium** if outside this range, **high** if below 500 or above 5,000
 5. Check for `@file` references in body (anti-pattern)
 6. Check `allowed-tools` — flag if missing when skill uses tools, or overly broad
 7. Glob for supporting dirs (references/, examples/, scripts/) — flag large inline content that should be in supporting files
@@ -400,7 +404,7 @@ description: |
 
 Workflow steps:
 1. Glob `commands/*.md` — flag each as deprecated (should be skills)
-2. Grep all `.md` files for `@file` or `@path` references in skill cross-references (anti-pattern)
+2. Grep all `.md` files for `@file` references in skill cross-references (anti-pattern — burns context by force-loading content)
 3. For each SKILL.md: check frontmatter description length against 1,024 char budget
 4. Read `OFFICIAL_PLUGINS_INDEX_PATH` — build a structural comparison:
    - Compare directory layout (skills count, agents count, hooks presence) against official plugins
@@ -619,6 +623,13 @@ git -C /Users/keven.foster/document-perso/local-claude-marketplace commit -m "fe
 
 Both files have identical content. Update both to stay in sync (pre-existing tech debt — both must match).
 
+- [ ] **Step 0: Pre-flight diff check**
+
+```bash
+diff agents/code-analyzer.md agents/code-analyzer/AGENT.md
+```
+If they differ, resolve the divergence first before proceeding. If identical, continue.
+
 - [ ] **Step 1: Add plugin dimensions to Input section**
 
 In the Input section (line 47), extend the dimension list:
@@ -744,6 +755,8 @@ When `--plugin` is set, dimension map changes to:
 Plugin dimensions: `quality`, `deps` → dependencies, `debt` → tech-debt, `security`, `mnf` → manifest-structure, `skl` → skill-quality, `agt` → agent-design, `hkc` → hook-correctness, `mkt` → marketplace-consistency, `cvn` → convention-adherence. Default: all 10.
 
 Dimensions NOT available in plugin mode: architecture, patterns, performance, testing.
+
+**Validation**: If `--plugin` is set and `--dimensions` contains a non-plugin dimension (arch, patterns, perf, testing), abort with: `"Dimension '{name}' is not available in plugin mode. Valid plugin dimensions: quality, deps, debt, security, mnf, skl, agt, hkc, mkt, cvn"`
 ```
 
 - [ ] **Step 4: Add plugin branch to Stage 1**
@@ -765,7 +778,9 @@ Stage 1 becomes **Detect Plugin Structure**:
 8. Build official plugins comparison index:
    a. Read `~/.claude/plugins/cache/claude-plugins-official/` directory listing
    b. For each official plugin, find the active version dir and catalog: skill count, agent count, hook presence, frontmatter patterns, word count ranges
-   c. Write index to `.code-analysis/plugin-analysis-cache/official-plugins-index.json`
+   c. Create directory if absent: `mkdir -p .code-analysis/plugin-analysis-cache`
+   d. Write index to `.code-analysis/plugin-analysis-cache/official-plugins-index.json`
+   e. Add `.code-analysis/plugin-analysis-cache/` to `.gitignore` if not already present (runtime cache, not committed)
 9. Output: `STACK = { languages: ["claude-plugin"], frameworks: [] }`, `PLUGIN_INVENTORY`, `OFFICIAL_PLUGINS_INDEX_PATH`
 ```
 
@@ -888,7 +903,7 @@ Change `"version": "0.5.0"` to `"version": "0.6.0"` in `.claude-plugin/plugin.js
 
 - [ ] **Step 2: Bump package.json version**
 
-Change version in `package.json` if it tracks the plugin version. (Currently `"version": "0.0.0"` with `"private": true` — leave as-is if it's a placeholder, or update to `"0.6.0"` to match.)
+Change `"version": "0.0.0"` to `"version": "0.6.0"` in `package.json` to match plugin.json.
 
 - [ ] **Step 3: Update plugin.json keywords**
 
@@ -926,19 +941,20 @@ git -C /Users/keven.foster/document-perso/local-claude-marketplace commit -m "ch
 
 ## Task Dependencies
 
+> **Note:** Tasks 4 and 5 reference plugin profiles at **runtime** (when scans execute against a real plugin), not at authoring time. The SKILL.md files use `PLUGIN_PROFILES_DIR` as an input variable — profile content doesn't need to exist for the skill files to be written. This means Tasks 1–5 are all authoring-independent.
+
 ```
 Task 1 (schemas) ──────────────────────┐
 Task 2 (dimensions ref) ──────────────┤
 Task 3 (plugin profiles) ─────────────┤── All independent, can run in parallel
+Task 4 (6 new scan skills) ───────────┤── (authoring-independent of Task 3)
+Task 5 (4 adapted scan skills) ───────┤── (authoring-independent of Task 3)
                                        │
-Task 4 (6 new scan skills) ───────────┤── Depends on Task 3 (reads profiles)
-Task 5 (4 adapted scan skills) ───────┤── Independent of Task 4
-Task 6 (code-analyzer agent) ─────────┤── Depends on Tasks 4+5 (dispatches them)
+Task 6 (code-analyzer agent) ─────────┤── Depends on Tasks 4+5 (references their dimensions)
 Task 7 (orchestrator) ────────────────┤── Depends on Task 6 (dispatches agent)
 Task 8 (ralph-loop) ──────────────────┤── Depends on Task 7 (invokes orchestrator)
 Task 9 (version bump) ────────────────┘── Depends on all above
 ```
 
-**Parallel batch 1:** Tasks 1, 2, 3 (all independent)
-**Parallel batch 2:** Tasks 4, 5 (both depend only on Task 3)
+**Parallel batch 1:** Tasks 1, 2, 3, 4, 5 (all authoring-independent)
 **Sequential:** Task 6 → Task 7 → Task 8 → Task 9
