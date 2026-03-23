@@ -1,18 +1,18 @@
 # code-analysis
 
-Comprehensive codebase analysis plugin for Claude Code. Scans any language/framework across 8 code dimensions (plus 6 plugin-analysis dimensions with `--plugin`), produces scored reports with critic validation, and generates focused refactoring plans. Includes an iterative fix loop (ralph-loop) that implements fixes and re-scans until a target score is reached.
+Comprehensive codebase analysis plugin for Claude Code. Scans any language/framework across 4 standard dimensions (plus 6 plugin-analysis dimensions with `--plugin`), produces scored reports with critic validation, and generates focused refactoring plans. Includes an iterative fix loop (ralph-loop) that implements fixes and re-scans until a target score is reached.
 
 ## Quick Start
 
 ```bash
-# Full analysis (all 8 code dimensions)
+# Full analysis (all 4 standard dimensions)
 /analyze-codebase
 
 # Single dimension
 /analyze-codebase --dimensions=security
 
 # Automated fix loop (scan → fix → re-scan until score >= 8/10)
-/code-analysis:ralph-loop perf 8 --completion-promise "SCORE_REACHED" --max-iterations 4
+/code-analysis:ralph-loop quality 8 --completion-promise "SCORE_REACHED" --max-iterations 4
 ```
 
 ## Architecture
@@ -22,15 +22,11 @@ Comprehensive codebase analysis plugin for Claude Code. Scans any language/frame
     │
 Stage 1:  Detect Stack ──────── language-profiles/ + framework-profiles/
     │
-Stage 2:  Scan Dimensions ───── 8 code-analyzer agents in PARALLEL
-    │                            ├── scan-architecture
-    │                            ├── scan-quality
-    │                            ├── scan-dependencies
-    │                            ├── scan-patterns
-    │                            ├── scan-testing
-    │                            ├── scan-performance
-    │                            ├── scan-security
-    │                            └── scan-tech-debt
+Stage 2:  Scan Dimensions ───── 4 code-analyzer agents in PARALLEL
+    │                            ├── scan-structure (arch + patterns)
+    │                            ├── scan-quality (quality + tech-debt + perf)
+    │                            ├── scan-security (security + CVE checks)
+    │                            └── scan-testing (testing + dep hygiene)
     │
 Stage 3:  Reconcile ─────────── report-reconciler agent (dedup, score, draft)
     │
@@ -92,7 +88,7 @@ Automates the scan → fix → re-scan cycle for one dimension:
 **Multi-dimension** (v0.4.0) — scan multiple dimensions together, fix with per-dimension targets:
 
 ```
-/code-analysis:ralph-loop --targets="arch:8,patterns:9" --completion-promise "SCORE_REACHED" --max-iterations 10
+/code-analysis:ralph-loop --targets="structure:8,quality:9" --completion-promise "SCORE_REACHED" --max-iterations 10
 ```
 
 All target dimensions are scanned together each iteration, so cross-cutting findings (god structs, race conditions spanning multiple concerns) are caught. Findings are prioritized by a gap-weighted algorithm — dimensions furthest from target get fixed first.
@@ -112,29 +108,21 @@ All target dimensions are scanned together each iteration, so cross-cutting find
 
 **Dimension flags:**
 
-| Flag | Dimension | Typical Strategy |
-|------|-----------|-----------------|
-| `arch` | Architecture | Fewest findings, fastest win |
-| `debt` | Tech-debt | Many XS/S effort items |
-| `security` | Security | Critical findings clear fast |
-| `perf` | Performance | Mostly medium items |
-| `patterns` | Patterns | Many low-effort structural fixes |
-| `deps` | Dependencies | Cargo.toml / package.json updates |
-| `quality` | Quality | Largest batch, do after structural fixes |
-| `testing` | Testing | Largest effort, do last |
+| Flag | Dimension | Aliases | Typical Strategy |
+|------|-----------|---------|-----------------|
+| `structure` | Structure | arch, patterns | Module structure, patterns, anti-patterns |
+| `quality` | Quality | debt, perf | Duplication, complexity, tech debt, performance |
+| `security` | Security | — | OWASP top 10, secrets, CVE checks |
+| `testing` | Testing | deps | Coverage, test quality, dependency hygiene |
 
 ## Analysis Dimensions
 
 | Dimension | Checks |
 |-----------|--------|
-| **Architecture** | Module structure, dependency graph, layering violations, circular deps |
-| **Quality** | Duplication, complexity, dead code, naming conventions |
-| **Dependencies** | Outdated, vulnerable, unused, conflicting packages |
-| **Patterns** | Design patterns, anti-patterns, framework idiom adherence |
-| **Testing** | Coverage gaps, assertion quality, missing edge cases, flaky tests |
-| **Performance** | N+1 queries, re-renders, memory leaks, bundle size |
-| **Security** | OWASP top 10, hardcoded secrets, injection, auth gaps |
-| **Tech Debt** | TODOs, deprecated APIs, legacy patterns, migration opportunities |
+| **Structure** | Module structure, dependency graph, layering violations, circular deps, design patterns, anti-patterns, framework idioms |
+| **Quality** | Duplication, complexity, dead code, naming, TODOs, deprecated APIs, N+1 queries, bundle size, caching |
+| **Security** | OWASP top 10, hardcoded secrets, injection, auth gaps, known CVEs |
+| **Testing** | Coverage gaps, assertion quality, edge cases, flaky tests, outdated/unused deps |
 
 ### Plugin Analysis Dimensions (`--plugin`)
 
@@ -164,7 +152,7 @@ Multi-language projects (e.g., Tauri = Rust + TypeScript) supported with multipl
 
 ```
 /analyze-codebase [path]
-  --dimensions=arch,quality,deps,patterns,testing,perf,security,debt
+  --dimensions=structure,quality,security,testing
   --stack=python|typescript|csharp|dart|rust|go
   --framework=react|dotnet|flutter|tauri|electron|maui
   --weights=security:2,architecture:1.5,...
@@ -181,7 +169,7 @@ Multi-language projects (e.g., Tauri = Rust + TypeScript) supported with multipl
 ├── .gitignore
 ├── overrides.json               # Optional: false_positives + wont_fix
 ├── scan-reports/
-│   ├── 2026-03-19-architecture.json
+│   ├── 2026-03-19-structure.json
 │   ├── 2026-03-19-quality.json
 │   └── ...
 ├── reports/
@@ -189,7 +177,7 @@ Multi-language projects (e.g., Tauri = Rust + TypeScript) supported with multipl
 │   ├── 2026-03-19-analysis.md
 │   └── 2026-03-19-scores.json
 └── plans/
-    ├── 2026-03-19-architecture-plan.md
+    ├── 2026-03-19-structure-plan.md
     ├── 2026-03-19-quality-plan.md
     ├── ...
     └── 2026-03-19-orchestrator-plan.md
@@ -216,7 +204,7 @@ Multi-language projects (e.g., Tauri = Rust + TypeScript) supported with multipl
 | `analyze-codebase` | Yes | Full 10-stage analysis pipeline |
 | `refactor-plan` | Yes | Generate plans from existing analysis |
 | `ralph-loop` | Yes | Iterative scan-fix-rescan loop |
-| `scan-*` (14) | No | 8 code + 6 plugin dimension scan sub-skills |
+| `scan-*` (10) | No | 4 standard + 6 plugin dimension scan sub-skills |
 | `reconcile-report` | No | Dedup and scoring sub-skill |
 | `critique-report` | No | Report validation sub-skill |
 | `critique-plan` | No | Plan validation sub-skill |
@@ -235,19 +223,15 @@ Multi-language projects (e.g., Tauri = Rust + TypeScript) supported with multipl
 
 ```
 code-analysis/
-├── .claude-plugin/plugin.json    # v0.6.0
-├── skills/                       # 22 skills
+├── .claude-plugin/plugin.json    # v0.7.0
+├── skills/                       # 18 skills
 │   ├── analyze-codebase/         # Orchestrator (10-stage pipeline)
 │   ├── ralph-loop/               # Iterative fix loop with crash recovery
 │   ├── refactor-plan/            # Plan generation from existing analysis
-│   ├── scan-architecture/        # } 8 dimension scan
-│   ├── scan-quality/             # } sub-skills with
-│   ├── scan-dependencies/        # } fingerprint IDs
-│   ├── scan-patterns/            # } and carry-forward
-│   ├── scan-testing/             # } protocol
-│   ├── scan-performance/         # }
-│   ├── scan-security/            # }
-│   ├── scan-tech-debt/           # }
+│   ├── scan-structure/           # } 4 standard dimension
+│   ├── scan-quality/             # } scan sub-skills with
+│   ├── scan-security/            # } fingerprint IDs and
+│   ├── scan-testing/             # } carry-forward protocol
 │   ├── scan-manifest-structure/  # } 6 plugin-analysis
 │   ├── scan-skill-quality/       # } dimensions (--plugin)
 │   ├── scan-agent-design/        # }
@@ -266,7 +250,7 @@ code-analysis/
 │   ├── report-critic/
 │   └── plan-critic/
 ├── references/
-│   ├── analysis-dimensions.md    # 8 dimensions, severity scale, priority tiers
+│   ├── analysis-dimensions.md    # 4 standard + 6 plugin dimensions, severity scale, priority tiers
 │   ├── output-schemas.md         # Finding, DimensionReport, ScoresReport, etc.
 │   ├── language-profiles/        # Python, TypeScript, C#, Dart, Rust, Go
 │   └── framework-profiles/       # React, .NET, Flutter, Tauri, Electron, MAUI
@@ -277,6 +261,12 @@ code-analysis/
 ```
 
 ## Changelog
+
+### v0.7.0 (2026-03-23)
+- **Dimension consolidation**: 8 standard dimensions merged to 4 (structure, quality, security, testing)
+- **Progressive disclosure**: 4 skills extract detailed content to references/ directories
+- **Plugin mode**: Drops from 10 to 8 dimensions (quality + security + 6 plugin dims)
+- **Backwards-compat aliases**: Old dimension names (arch, patterns, deps, perf, debt) still work
 
 ### v0.6.0 (2026-03-20)
 - **Plugin analysis mode**: `--plugin` flag enables 10-dimension analysis for Claude Code plugins
