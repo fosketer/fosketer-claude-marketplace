@@ -2,9 +2,12 @@
 name: scan-quality
 version: 0.7.0
 description: |
-  This skill should be used when detecting code duplication, complexity hotspots, dead code, naming inconsistencies,
-  size violations, tech debt markers, deprecated APIs, legacy patterns, performance anti-patterns, and caching gaps.
+  This skill should be used when the user asks to "detect duplication", "find dead code", "check naming conventions",
+  "scan for tech debt", "find performance anti-patterns", or when detecting code duplication, complexity hotspots,
+  dead code, naming inconsistencies, size violations, tech debt markers, deprecated APIs, legacy patterns,
+  performance anti-patterns, and caching gaps.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
+  Also used in --plugin mode for adapted plugin code quality analysis.
 allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 

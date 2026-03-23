@@ -2,7 +2,8 @@
 name: generate-refactoring-plan
 version: 0.7.0
 description: |
-  This skill should be used when generating a focused refactoring plan for a single dimension's findings.
+  This skill should be used when the user asks to "generate refactoring plan", "create dimension plan",
+  "plan fixes for findings", or when generating a focused refactoring plan for a single dimension's findings.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 allowed-tools: ["Read", "Glob", "Grep"]
 ---

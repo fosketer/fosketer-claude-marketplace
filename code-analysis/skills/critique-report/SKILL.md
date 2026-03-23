@@ -2,7 +2,8 @@
 name: critique-report
 version: 0.7.0
 description: |
-  This skill should be used when evaluating the quality of a reconciled analysis report.
+  This skill should be used when the user asks to "validate the analysis report", "critique the report quality",
+  "check report scoring accuracy", or when evaluating the quality of a reconciled analysis report.
   Loaded by the report-critic agent.
 allowed-tools: ["Read", "Grep", "Glob"]
 ---

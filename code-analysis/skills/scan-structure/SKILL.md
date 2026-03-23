@@ -2,8 +2,10 @@
 name: scan-structure
 version: 0.7.0
 description: |
-  This skill should be used when analyzing module structure, dependency graph, layering violations, circular dependencies,
-  design patterns, anti-patterns, pattern consistency, framework idiom adherence, and error handling patterns.
+  This skill should be used when the user asks to "analyze module structure", "find circular dependencies",
+  "check layering violations", "detect anti-patterns", or when analyzing module structure, dependency graph,
+  layering violations, circular dependencies, design patterns, anti-patterns, pattern consistency,
+  framework idiom adherence, and error handling patterns.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---

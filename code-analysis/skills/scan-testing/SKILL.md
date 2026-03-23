@@ -2,7 +2,9 @@
 name: scan-testing
 version: 0.7.0
 description: |
-  This skill should be used when analyzing test coverage gaps, assertion quality, test isolation, and flaky test indicators.
+  This skill should be used when the user asks to "check test coverage", "find flaky tests", "analyze test quality",
+  "scan for test isolation issues", or when analyzing test coverage gaps, assertion quality, test isolation,
+  and flaky test indicators.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
 allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---

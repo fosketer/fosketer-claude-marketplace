@@ -2,7 +2,9 @@
 name: scan-marketplace-consistency
 version: 0.7.0
 description: |
-  This skill should be used when checking marketplace.json registry alignment, version consistency across plugin.json and package.json, cross-plugin naming conflicts, and README presence.
+  This skill should be used when the user asks to "check marketplace registration", "verify version consistency",
+  "validate marketplace.json alignment", or when checking marketplace.json registry alignment, version consistency
+  across plugin.json and package.json, cross-plugin naming conflicts, and README presence.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.
 allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---

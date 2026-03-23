@@ -2,8 +2,11 @@
 name: scan-security
 version: 0.7.0
 description: |
-  This skill should be used when detecting hardcoded secrets, injection vectors, XSS, auth gaps, and OWASP top 10 vulnerabilities.
+  This skill should be used when the user asks to "find hardcoded secrets", "check for injection vulnerabilities",
+  "scan for XSS", "OWASP top 10 audit", or when detecting hardcoded secrets, injection vectors, XSS, auth gaps,
+  and OWASP top 10 vulnerabilities.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
+  Also used in --plugin mode for adapted plugin security analysis.
 allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 
