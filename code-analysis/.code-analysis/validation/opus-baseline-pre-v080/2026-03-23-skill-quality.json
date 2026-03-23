@@ -1,0 +1,125 @@
+{
+  "dimension": "skill-quality",
+  "scan_date": "2026-03-23",
+  "plugin_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+  "skills_inventoried": 18,
+  "summary": {
+    "dimension": "skill-quality",
+    "total": 7,
+    "critical": 0,
+    "high": 0,
+    "medium": 5,
+    "low": 0,
+    "info": 2
+  },
+  "carry_forward_summary": {
+    "carried_forward": 5,
+    "resolved": 2,
+    "new": 2,
+    "unverified": 0,
+    "resolved_ids": [
+      "SKL-bceac6-8360",
+      "SKL-5152db-7928"
+    ]
+  },
+  "findings": [
+    {
+      "id": "SKL-ec2fc3-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "medium",
+      "file_path": "skills/ralph-loop/SKILL.md",
+      "line_start": 13,
+      "line_end": 227,
+      "snippet": "# Ralph-Loop × Analyze-Codebase\n\nIteratively scan codebase dimensions...",
+      "description": "The ralph-loop SKILL.md body contains approximately 1,247 words, which is below the 1,500-word target minimum. Despite having a references/ directory with 3 files (multi-dimension.md, recovery-protocol.md, verification-scan.md) that offload detail via progressive disclosure, the core body is thin relative to the skill's complexity. Key concepts like the gap-weighted priority algorithm and multi-dimension state management are only briefly mentioned before deferring to references.",
+      "recommendation": "Expand the core workflow steps (Steps 4-9) with more inline detail on the iteration logic, batch selection heuristics, and completion detection. The references/ files handle advanced topics well, but the body should be self-sufficient for single-dimension mode without requiring reference loads.",
+      "effort": "medium",
+      "tags": ["word-count", "body-length", "below-target"]
+    },
+    {
+      "id": "SKL-b7874c-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "medium",
+      "file_path": "skills/refactor-plan/SKILL.md",
+      "line_start": 10,
+      "line_end": 213,
+      "snippet": "# Refactor Plan -- Generate Refactoring Plans from Analysis\n\nGenerate refactoring plans from existing analysis findings...",
+      "description": "The refactor-plan SKILL.md body contains approximately 1,228 words, below the 1,500-word target minimum. While the skill delegates most work to the refactoring-planner agent, the body could better document the flag-to-behavior mapping inline rather than deferring entirely to references/flag-behavior.md. The critic feedback loop (Phase 2) is well-documented but the edge cases and error handling sections are thin.",
+      "recommendation": "Expand the critic feedback loop documentation and inline a summary of how each flag affects agent behavior. The references/flag-behavior.md file can retain the full detail, but a condensed version in the body would improve self-sufficiency.",
+      "effort": "medium",
+      "tags": ["word-count", "body-length", "below-target"]
+    },
+    {
+      "id": "SKL-4d66d6-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "medium",
+      "file_path": "skills/scan-security/SKILL.md",
+      "line_start": 12,
+      "line_end": 214,
+      "snippet": "# Scan Security\n\n## Purpose\n\nAnalyze the codebase for security vulnerabilities...",
+      "description": "The scan-security SKILL.md body contains approximately 1,355 words, below the 1,500-word target minimum. The skill covers 11 workflow steps including OWASP top 10 patterns, plugin-mode security, and CVE checks, but several steps are compressed to 3-4 lines. Steps 6 (Path Traversal), 7 (SSRF), and 8 (Logging) would benefit from expanded grep pattern examples.",
+      "recommendation": "Expand Steps 6-8 with additional grep pattern examples for each language in the stack. The plugin security steps (P1-P4) are also quite terse and could include example grep commands. Target adding approximately 150-200 words to reach the 1,500-word floor.",
+      "effort": "low",
+      "tags": ["word-count", "body-length", "below-target"]
+    },
+    {
+      "id": "SKL-725ae5-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "medium",
+      "file_path": "skills/scan-quality/SKILL.md",
+      "line_start": 12,
+      "line_end": 315,
+      "snippet": "# Scan Quality\n\n## Purpose\n\nEvaluate code quality across three sub-areas...",
+      "description": "The scan-quality SKILL.md body contains approximately 2,273 words, above the 2,000-word target maximum. The skill covers 16 steps spanning code health, tech debt, and performance analysis. While comprehensive, several sections (Steps 11-15 on performance) contain detailed grep patterns that could be extracted to a references/ file.",
+      "recommendation": "Create a references/ directory and extract the performance-specific grep patterns (Steps 11-15) into references/performance-patterns.md. This would bring the body closer to the 2,000-word target while maintaining progressive disclosure.",
+      "effort": "medium",
+      "tags": ["word-count", "body-length", "above-target"]
+    },
+    {
+      "id": "SKL-725ae5-f7f9",
+      "dimension": "skill-quality",
+      "title": "Skill body exceeds 2,000 words with no references/ directory - extract detailed content",
+      "severity": "medium",
+      "file_path": "skills/scan-quality/SKILL.md",
+      "line_start": 12,
+      "line_end": 315,
+      "snippet": "# Scan Quality\n\n## Purpose\n\nEvaluate code quality across three sub-areas...",
+      "description": "The scan-quality skill has 2,273 body words but no references/ directory. The skill contains detailed language-specific grep patterns for 16 steps (code health, tech debt, performance) that load into context on every invocation. Performance patterns (Steps 11-15) and deprecated API patterns (Step 8) are reference material that Claude does not need on every activation.",
+      "recommendation": "Create skills/scan-quality/references/ with at least two files: performance-patterns.md (Steps 11-15 grep patterns) and deprecated-apis.md (Step 8 patterns). Update the SKILL.md body to reference them conditionally: 'Read references/performance-patterns.md when analyzing data access, pagination, memory, rendering, or caching patterns.'",
+      "effort": "medium",
+      "tags": ["progressive-disclosure", "references-missing", "word-count"]
+    },
+    {
+      "id": "SKL-04c261-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "info",
+      "file_path": "skills/scan-structure/SKILL.md",
+      "line_start": 12,
+      "line_end": 201,
+      "snippet": "# Scan Structure\n\n## Purpose\n\nAnalyze the codebase's module structure...",
+      "description": "The scan-structure SKILL.md body contains approximately 1,465 words, marginally below the 1,500-word target minimum (35 words short). The skill covers 10 workflow steps across module structure, design patterns, and error handling. The shortfall is minor and does not indicate insufficient coverage — most steps have adequate detail. Downgraded to info per profile ground truth because the gap is less than 5% of the target minimum.",
+      "recommendation": "Consider expanding Step 5 (Assess Cohesion) or Step 8 (Check Pattern Consistency) with additional inline examples. A small expansion of 35-50 words would bring the body within target range.",
+      "effort": "low",
+      "tags": ["word-count", "body-length", "below-target", "marginal"]
+    },
+    {
+      "id": "SKL-d9bdde-3fb4",
+      "dimension": "skill-quality",
+      "title": "Large inline content block should be extracted to a supporting file in references/ or examples/",
+      "severity": "info",
+      "file_path": "skills/scan-manifest-structure/SKILL.md",
+      "line_start": 70,
+      "line_end": 121,
+      "snippet": "```text\n# Standard plugin with skills and agents\nmy-plugin/\n...\n```",
+      "description": "The scan-manifest-structure SKILL.md contains a 31-line fenced text block showing acceptable and unacceptable directory structure examples. While just above the 30-line threshold and serving as procedural reference material (not pure reference documentation), it could be a candidate for extraction if the body grows further.",
+      "recommendation": "Monitor body length. If future edits push the word count above 2,000, extract the directory structure examples to references/structure-examples.md. Current word count (1,719) is within target range, so no immediate action needed.",
+      "effort": "low",
+      "tags": ["inline-content", "code-block", "progressive-disclosure"]
+    }
+  ]
+}

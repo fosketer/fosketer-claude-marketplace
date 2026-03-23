@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "marketplace-consistency",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": { "languages": ["claude-plugin"], "frameworks": [] },
+    "duration_seconds": 0
+  },
+  "summary": {
+    "total_findings": 2,
+    "by_severity": { "critical": 0, "high": 0, "medium": 1, "low": 0, "info": 1 }
+  },
+  "findings": [
+    {
+      "id": "MKT-037fda-2db6",
+      "dimension": "marketplace-consistency",
+      "title": "Description mismatch between marketplace.json and plugin.json",
+      "severity": "medium",
+      "file_path": ".claude-plugin/plugin.json",
+      "line_start": 4,
+      "line_end": 4,
+      "snippet": "\"description\": \"Comprehensive codebase analysis across 4 standard dimensions (structure, quality, security, testing) — produces scored reports with critic validation and focused refactoring plans. v0.8.0 adds token optimizations (split schemas, skip-clean ralph-loop passes, inline scoring, smart model defaults).\"",
+      "description": "The marketplace.json entry description ('Multi-dimensional codebase analysis across 4 standard dimensions (structure, quality, security, testing) with plugin-specific analysis mode, scored reports, critic validation, and refactoring plan generation') differs from plugin.json description ('Comprehensive codebase analysis across 4 standard dimensions... produces scored reports... v0.8.0 adds token optimizations...'). Key divergences: (1) marketplace uses 'Multi-dimensional', plugin.json uses 'Comprehensive'; (2) plugin.json embeds version-specific changelog detail ('v0.8.0 adds token optimizations...') which does not belong in a description field; (3) marketplace entry references 'plugin-specific analysis mode' while plugin.json omits it from the description. Both sources should share a canonical, stable description.",
+      "recommendation": "Craft a single canonical description in plugin.json that is version-agnostic and covers the core capability. Update marketplace.json to match it exactly, or use a deliberate subset. Remove version changelog details from the description field — those belong in the changelog section only.",
+      "effort": "trivial",
+      "tags": ["marketplace", "metadata", "consistency", "description-drift"],
+      "previous_id": "MKT-037fda-2db6"
+    },
+    {
+      "id": "MKT-037fda-9e7d",
+      "dimension": "marketplace-consistency",
+      "title": "Tags present in plugin.json but absent in marketplace entry",
+      "severity": "info",
+      "file_path": ".claude-plugin/plugin.json",
+      "line_start": 9,
+      "line_end": 19,
+      "snippet": "\"keywords\": [\n    \"dev\",\n    \"analysis\",\n    \"refactoring\",\n    \"code-quality\",\n    \"structure\",\n    \"security\",\n    \"testing\",\n    \"scoring\",\n    \"plugin-analysis\"\n  ]",
+      "description": "plugin.json declares 9 keywords (dev, analysis, refactoring, code-quality, structure, security, testing, scoring, plugin-analysis) but the marketplace entry for code-analysis has no tags or keywords field. While the marketplace schema does not require a tags field on plugin entries, aligning keywords between both sources improves discoverability and search indexing in future marketplace tooling.",
+      "recommendation": "Consider adding a 'tags' array to the code-analysis marketplace entry mirroring the plugin.json keywords, or accept the divergence as intentional omission.",
+      "effort": "trivial",
+      "tags": ["marketplace", "metadata", "tags"],
+      "previous_id": "MKT-037fda-9e7d"
+    }
+  ],
+  "carry_forward_summary": {
+    "carried_forward": 2,
+    "resolved": 0,
+    "new": 0,
+    "unverified": 0,
+    "resolved_ids": []
+  }
+}

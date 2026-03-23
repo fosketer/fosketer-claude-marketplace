@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "quality",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": { "languages": ["claude-plugin"], "frameworks": [] },
+    "mode": "plugin",
+    "scan_type": "carry-forward",
+    "duration_seconds": 0
+  },
+  "summary": {
+    "total_findings": 5,
+    "by_severity": {
+      "critical": 0,
+      "high": 0,
+      "medium": 3,
+      "low": 2,
+      "info": 0
+    }
+  },
+  "score": 6.0,
+  "raw_penalty": 4.0,
+  "findings": [
+    {
+      "id": "QUAL-000000-3109",
+      "dimension": "quality",
+      "title": "Duplicated Produce Findings boilerplate across 10 scan skills",
+      "severity": "medium",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "An 18-line 'Compile findings array' instruction block with JSON example template appears identically in all 10 scan-* skills. Each also includes the identical lines 'Always populate snippet with the relevant code lines' and 'Return the findings array to the orchestrator'. This constitutes a repeated instruction block exceeding the 5-line threshold across 2+ skills.",
+      "recommendation": "Extract the Produce Findings boilerplate into a shared reference document (e.g., references/findings-template.md) and reference it from each scan skill, similar to how scanner-protocol.md is already referenced.",
+      "effort": "medium",
+      "tags": ["duplication", "DRY-violation", "boilerplate"]
+    },
+    {
+      "id": "QUAL-000000-c4ae",
+      "dimension": "quality",
+      "title": "Duplicated Scanner Protocol reference across 10 scan skills",
+      "severity": "medium",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "All 10 scan skills contain a '## Scanner Protocol' section with near-identical text instructing the reader to 'Read and follow the shared scanner protocol at ${CLAUDE_PLUGIN_ROOT}/references/scanner-protocol.md'. This 5+ line section (heading, blank line, instructions, bullet list) is repeated across all scanners.",
+      "recommendation": "This reference pattern is arguably necessary for self-contained skills. Consider whether the code-analyzer agent could inject this reference automatically, removing the need for each skill to declare it.",
+      "effort": "low",
+      "tags": ["duplication", "cross-cutting-concern"]
+    },
+    {
+      "id": "QUAL-000000-bbc9",
+      "dimension": "quality",
+      "title": "Duplicated Success Checklist pattern across 13 skills",
+      "severity": "medium",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "13 of 18 skills include a '## Success Checklist' section with a markdown checkbox list. While the checklist content is skill-specific, the structural pattern and framing text are duplicated. This is a minor structural duplication.",
+      "recommendation": "The Success Checklist is a useful self-validation tool for each skill. The duplication here is structural rather than content-based. Consider whether a shared template could generate these, but this is low priority.",
+      "effort": "low",
+      "tags": ["duplication", "structural-pattern"]
+    },
+    {
+      "id": "QUAL-725ae5-f463",
+      "dimension": "quality",
+      "title": "Inconsistent heading hierarchy in scan-quality",
+      "severity": "low",
+      "file_path": "skills/scan-quality/SKILL.md",
+      "line_start": 61,
+      "line_end": 236,
+      "snippet": "### Step 1 — Map Source Files\n...\n### Sub-Section: Tech Debt\n#### Step 7 — Grep for TODO Markers\n...\n### Sub-Section: Performance\n#### Step 11 — Scan Data Access Patterns\n...\n### Step 16 — Produce Findings",
+      "description": "Steps 1-6 are at H3 level (### Step N) directly under ## Workflow, while Steps 7-15 are at H4 level (#### Step N) nested under H3 'Sub-Section' groupings (Tech Debt, Performance). Step 16 returns to H3. This creates an inconsistent step numbering depth where some steps are peers and others are children.",
+      "recommendation": "Either promote Steps 7-15 to H3 like Steps 1-6 (removing or repurposing the Sub-Section groupings), or demote Steps 1-6 under their own H3 grouping (e.g., '### Sub-Section: Code Health').",
+      "effort": "low",
+      "tags": ["markdown-quality", "heading-hierarchy"]
+    },
+    {
+      "id": "QUAL-000000-c1de",
+      "dimension": "quality",
+      "title": "Large inline JSON example blocks in Produce Findings sections",
+      "severity": "low",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "Each of the 10 scan skills contains a 15-18 line JSON example block inside the Produce Findings section showing a sample finding. These examples are dimension-specific (different ID prefixes, titles, descriptions) but follow the same schema structure. The examples consume significant word count in each skill.",
+      "recommendation": "Reference the output-schemas.md document for the schema definition and provide only a 3-4 line abbreviated example in each skill, or move full examples to a shared reference with per-dimension variants.",
+      "effort": "low",
+      "tags": ["content-size", "examples"]
+    }
+  ],
+  "carry_forward_summary": {
+    "carried_forward": 5,
+    "resolved": 0,
+    "new": 0,
+    "unverified": 0,
+    "resolved_ids": []
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "convention-adherence",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": {
+      "languages": [
+        "claude-plugin"
+      ],
+      "frameworks": []
+    }
+  },
+  "summary": {
+    "total_findings": 9,
+    "by_severity": {
+      "critical": 0,
+      "high": 0,
+      "medium": 2,
+      "low": 2,
+      "info": 5
+    }
+  },
+  "carry_forward_summary": {
+    "carried_forward": 7,
+    "resolved": 5,
+    "new": 2,
+    "unverified": 0,
+    "resolved_ids": [
+      "CVN-bceac6-cf27",
+      "CVN-ec2fc3-cf27",
+      "CVN-037fda-a170",
+      "CVN-5152db-fbc1",
+      "CVN-ff1213-9d0a"
+    ]
+  },
+  "findings": [
+    {
+      "id": "CVN-000000-19e9",
+      "dimension": "convention-adherence",
+      "title": "Identical example user prompt 'Analyze this codebase' shared by 4 agents",
+      "severity": "medium",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "The user prompt \"Analyze this codebase\" appears as an example in 4 different agents: code-analyzer, plan-critic, report-critic, and report-reconciler. Per agent-conventions.md, each agent's examples should demonstrate distinct triggering scenarios. Shared prompts create ambiguity about which agent should activate.",
+      "recommendation": "Use distinct, agent-specific user prompts in examples. For plan-critic: \"Validate this refactoring plan\". For report-critic: \"Check the analysis report quality\". For report-reconciler: \"Reconcile all dimension findings\".",
+      "effort": "small",
+      "tags": [
+        "agent-examples",
+        "trigger-ambiguity",
+        "duplicate-prompt"
+      ]
+    },
+    {
+      "id": "CVN-000000-6a14",
+      "dimension": "convention-adherence",
+      "title": "Moderate trigger phrase overlap between 'critique-plan' and 'critique-report' (overlap score: 0.55)",
+      "severity": "info",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "Skills critique-plan and critique-report share 55% token overlap in their descriptions (Jaccard 0.55). Both use terms like 'validate', 'critique', 'quality', 'feasibility', 'evaluating'. While they target different artifacts (plan vs report), the overlap may cause activation ambiguity.",
+      "recommendation": "Differentiate descriptions further by emphasizing distinct trigger phrases. critique-plan should emphasize dependency ordering, phase sequencing. critique-report should emphasize scoring accuracy, finding coverage.",
+      "effort": "small",
+      "tags": [
+        "skill-overlap",
+        "description-similarity",
+        "jaccard"
+      ]
+    },
+    {
+      "id": "CVN-000000-6180",
+      "dimension": "convention-adherence",
+      "title": "Moderate description overlap between agents 'plan-critic' and 'report-critic' (overlap score: 0.50)",
+      "severity": "info",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "Agents plan-critic and report-critic share 50% token overlap in their descriptions (Jaccard 0.50). Both validate quality and return structured feedback. While they target different artifacts, the overlapping language reduces trigger differentiation.",
+      "recommendation": "Make agent descriptions more distinct. plan-critic: focus on dependency correctness, phase ordering, effort realism. report-critic: focus on score arithmetic, finding coverage, recommendation quality.",
+      "effort": "small",
+      "tags": [
+        "agent-overlap",
+        "description-similarity",
+        "jaccard"
+      ]
+    },
+    {
+      "id": "CVN-000000-a316",
+      "dimension": "convention-adherence",
+      "title": "Agents 'plan-critic' and 'report-critic' share color 'yellow'",
+      "severity": "low",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "Both plan-critic and report-critic agents use color: yellow. Per agent-conventions.md section 3.4, agents within the same plugin should use distinct colors to aid visual identification in the Claude Code UI.",
+      "recommendation": "Change one agent's color. For example, keep plan-critic as yellow (validation) and change report-critic to cyan (analysis/data processing).",
+      "effort": "trivial",
+      "tags": [
+        "agent-color",
+        "visual-identification"
+      ]
+    },
+    {
+      "id": "CVN-037fda-75c7",
+      "dimension": "convention-adherence",
+      "title": "plugin.json contains non-standard field 'peerDependencies'",
+      "severity": "info",
+      "file_path": ".claude-plugin/plugin.json",
+      "line_start": 22,
+      "line_end": 24,
+      "snippet": "\"peerDependencies\": {\n    \"superpowers\": \">=5.0.0\"\n  }",
+      "description": "The plugin.json manifest contains a 'peerDependencies' field. This is not part of the official plugin manifest schema. While it does not cause errors, it is not validated or consumed by Claude Code.",
+      "recommendation": "Document plugin dependencies in README.md instead, or remove the field if the dependency is not enforced at runtime.",
+      "effort": "trivial",
+      "tags": [
+        "manifest",
+        "non-standard-field"
+      ]
+    },
+    {
+      "id": "CVN-037fda-cd95",
+      "dimension": "convention-adherence",
+      "title": "Plugin manifest lacks 'homepage' metadata field",
+      "severity": "low",
+      "file_path": ".claude-plugin/plugin.json",
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "The plugin.json manifest is missing the 'homepage' field. While description, author, and keywords are present, homepage is commonly included in official plugins for documentation links.",
+      "recommendation": "Add a homepage field pointing to the plugin's documentation or repository README, e.g.: \"homepage\": \"https://github.com/fosketer/fosketer-claude-marketplace/tree/main/code-analysis\"",
+      "effort": "trivial",
+      "tags": [
+        "manifest",
+        "metadata-completeness"
+      ]
+    },
+    {
+      "id": "CVN-136c90-0a3c",
+      "dimension": "convention-adherence",
+      "title": "Non-standard 'templates/' directory at plugin root",
+      "severity": "medium",
+      "file_path": "templates/",
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "The templates/ directory at the plugin root is not part of the canonical plugin layout (skills/, agents/, hooks/, scripts/, references/). Official plugins use skill-level assets/ or references/ directories for templates. A root-level templates/ directory diverges from the standard structure.",
+      "recommendation": "Move template files into the relevant skill's assets/ or references/ subdirectory. For example, analysis-draft.md could live in skills/reconcile-report/assets/. Ensure each relocated template is referenced in its parent SKILL.md.",
+      "effort": "medium",
+      "tags": [
+        "directory-structure",
+        "convention-drift",
+        "non-standard"
+      ]
+    },
+    {
+      "id": "CVN-756dcf-d2c2",
+      "dimension": "convention-adherence",
+      "title": "Non-standard 'docs/' directory at plugin root (development-only)",
+      "severity": "info",
+      "file_path": "docs/",
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "The docs/ directory contains superpowers plans and specs. These are development artifacts not part of the plugin runtime. While they do not cause issues, they are not part of the canonical plugin layout.",
+      "recommendation": "Consider excluding docs/ from published plugin distributions, or document it as a development-only directory in README.md. No action required if the plugin is not distributed as a package.",
+      "effort": "trivial",
+      "tags": [
+        "directory-structure",
+        "development-artifact"
+      ]
+    },
+    {
+      "id": "CVN-000000-9d32",
+      "dimension": "convention-adherence",
+      "title": "Plugin has no hooks — 3 of 14 official plugins use hooks",
+      "severity": "info",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "The plugin does not define any hooks. While only 3 of 14 official plugins use hooks (ralph-loop, hookify, superpowers), hooks can enhance plugin functionality through event-driven automation. This is informational only — hooks are optional.",
+      "recommendation": "Consider adding SessionStart hooks for context loading if the plugin benefits from automatic environment setup. No action required.",
+      "effort": "trivial",
+      "tags": [
+        "hooks",
+        "optional-feature",
+        "official-comparison"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "date": "2026-03-23",
+  "mode": "plugin",
+  "model_map": {
+    "scanning": "sonnet",
+    "reconciliation": "inherit",
+    "critique": "sonnet",
+    "planning": "inherit"
+  },
+  "weights": {
+    "quality": 1.0,
+    "security": 1.0,
+    "manifest-structure": 1.0,
+    "skill-quality": 1.0,
+    "agent-design": 1.0,
+    "hook-correctness": 1.0,
+    "marketplace-consistency": 1.0,
+    "convention-adherence": 1.0
+  },
+  "dimensions": {
+    "quality": {
+      "score": 5.0,
+      "raw_penalty": 5.0,
+      "total": 6,
+      "by_severity": { "critical": 0, "high": 0, "medium": 4, "low": 2, "info": 0 }
+    },
+    "security": {
+      "score": 7.5,
+      "raw_penalty": 2.5,
+      "total": 2,
+      "by_severity": { "critical": 0, "high": 1, "medium": 0, "low": 1, "info": 0 }
+    },
+    "manifest-structure": {
+      "score": 8.0,
+      "raw_penalty": 2.0,
+      "total": 6,
+      "by_severity": { "critical": 0, "high": 0, "medium": 1, "low": 2, "info": 3 }
+    },
+    "skill-quality": {
+      "score": 4.0,
+      "raw_penalty": 6.0,
+      "total": 6,
+      "by_severity": { "critical": 0, "high": 0, "medium": 6, "low": 0, "info": 0 }
+    },
+    "agent-design": {
+      "score": 4.0,
+      "raw_penalty": 6.0,
+      "total": 15,
+      "by_severity": { "critical": 0, "high": 0, "medium": 4, "low": 4, "info": 7 }
+    },
+    "hook-correctness": {
+      "score": 10.0,
+      "raw_penalty": 0.0,
+      "total": 0,
+      "by_severity": { "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0 }
+    },
+    "marketplace-consistency": {
+      "score": 9.0,
+      "raw_penalty": 1.0,
+      "total": 2,
+      "by_severity": { "critical": 0, "high": 0, "medium": 1, "low": 0, "info": 1 }
+    },
+    "convention-adherence": {
+      "score": 7.5,
+      "raw_penalty": 2.5,
+      "total": 9,
+      "by_severity": { "critical": 0, "high": 0, "medium": 2, "low": 1, "info": 6 }
+    }
+  },
+  "overall": {
+    "score": 6.88,
+    "total_findings": 46,
+    "by_severity": { "critical": 0, "high": 1, "medium": 18, "low": 10, "info": 17 }
+  }
+}

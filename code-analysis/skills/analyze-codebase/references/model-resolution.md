@@ -14,9 +14,9 @@ Highest priority wins:
 ## Resolution Steps
 
 1. Initialize stage keys with smart defaults:
-   - `scanning`: `"sonnet"` — pattern matching and structured output; Sonnet sufficient
+   - `scanning`: `"inherit"` — validated: Sonnet diverges on security dimension (2.0 point gap vs Opus); progressive escalation handles cost optimization instead
    - `reconciliation`: `"inherit"` — cross-dimension reasoning benefits from session model
-   - `critique`: `"sonnet"` — checklist validation and formula verification
+   - `critique`: `"sonnet"` — checklist validation and formula verification; validated equivalent to Opus
    - `planning`: `"inherit"` — complex dependency analysis benefits from session model
 2. If global config exists and contains valid JSON with a `models` key, merge its values (stage-level merge)
 3. If project config exists and contains valid JSON with a `models` key, merge its values on top

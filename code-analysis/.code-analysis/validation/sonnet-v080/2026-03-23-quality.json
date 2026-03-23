@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "quality",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": { "languages": ["claude-plugin"], "frameworks": [] },
+    "mode": "plugin",
+    "duration_seconds": 0
+  },
+  "summary": {
+    "total_findings": 6,
+    "by_severity": {
+      "critical": 0,
+      "high": 0,
+      "medium": 4,
+      "low": 2,
+      "info": 0
+    }
+  },
+  "score": 5.0,
+  "raw_penalty": 5.0,
+  "findings": [
+    {
+      "id": "QUAL-000000-3109",
+      "dimension": "quality",
+      "title": "Duplicated Produce Findings boilerplate across 10 scan skills",
+      "severity": "medium",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "An 18-line 'Compile findings array' instruction block with JSON example template appears in all 10 scan-* skills. Each also includes the identical lines 'Always populate snippet with the relevant code lines' and 'Return the findings array to the orchestrator'. This constitutes a repeated instruction block exceeding the 5-line threshold across 10 skills.",
+      "recommendation": "Extract the Produce Findings boilerplate into a shared reference document (e.g., references/findings-template.md) and reference it from each scan skill, similar to how scanner-protocol.md is already referenced.",
+      "effort": "medium",
+      "tags": ["duplication", "DRY-violation", "boilerplate"]
+    },
+    {
+      "id": "QUAL-000000-c4ae",
+      "dimension": "quality",
+      "title": "Duplicated Scanner Protocol reference across 10 scan skills",
+      "severity": "medium",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "All 10 scan skills contain a '## Scanner Protocol' section with identical text (verified: 1 unique variant across 10 files) instructing the reader to read scanner-protocol.md. This 6-line section is copy-pasted verbatim — only the section heading is reproduced, the body is completely identical.",
+      "recommendation": "Consider whether the code-analyzer agent could inject this reference automatically, removing the need for each skill to declare it. Alternatively, accept this as intentional redundancy for skill self-containment.",
+      "effort": "low",
+      "tags": ["duplication", "cross-cutting-concern"]
+    },
+    {
+      "id": "QUAL-000000-bbc9",
+      "dimension": "quality",
+      "title": "Duplicated Success Checklist pattern across 13 skills",
+      "severity": "medium",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "13 of 18 skills include a '## Success Checklist' section with a markdown checkbox list. While checklist content is skill-specific, the structural framing is duplicated across all of them.",
+      "recommendation": "The Success Checklist is a useful self-validation tool for each skill. The duplication is structural rather than content-based. Low-priority to address.",
+      "effort": "low",
+      "tags": ["duplication", "structural-pattern"]
+    },
+    {
+      "id": "QUAL-725ae5-478d",
+      "dimension": "quality",
+      "title": "Stale deprecated output-schemas.md references in 15 skill files",
+      "severity": "medium",
+      "file_path": "skills/scan-quality/SKILL.md",
+      "line_start": 238,
+      "line_end": 238,
+      "snippet": "Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`:",
+      "description": "15 skill files reference `output-schemas.md` in their 'Produce Findings' steps (e.g., scan-quality, scan-security, critique-plan, generate-refactoring-plan, reconcile-report, etc.). The file `references/output-schemas.md` is marked DEPRECATED as of v0.8.0 and its header instructs agents to use split schema fragments from `references/schemas/` instead. The code-analyzer AGENT.md correctly loads `finding-schema.md` and `scoring-schema.md`, but the skill bodies haven't been updated to match. This creates ambiguous guidance: the agent protocol says to load split schemas, but the skill workflow text still points to the deprecated monolith.",
+      "recommendation": "Update all 15 affected skill files to reference the appropriate split schema file: scan-* skills should reference `references/schemas/finding-schema.md`, critique skills should reference `references/schemas/critic-schema.md`, and plan-generator skills should reference `references/schemas/plan-schema.md`. Remove the deprecated pointer.",
+      "effort": "medium",
+      "tags": ["tech-debt", "stale-reference", "deprecated-api"]
+    },
+    {
+      "id": "QUAL-725ae5-f463",
+      "dimension": "quality",
+      "title": "Inconsistent heading hierarchy in scan-quality SKILL.md",
+      "severity": "low",
+      "file_path": "skills/scan-quality/SKILL.md",
+      "line_start": 61,
+      "line_end": 236,
+      "snippet": "### Step 1 — Map Source Files\n...\n### Sub-Section: Tech Debt\n#### Step 7 — Grep for TODO Markers\n...\n### Sub-Section: Performance\n#### Step 11 — Scan Data Access Patterns\n...\n### Step 16 — Produce Findings",
+      "description": "Steps 1–6 are at H3 level (### Step N) directly under ## Workflow, while Steps 7–15 are at H4 level (#### Step N) nested under H3 'Sub-Section' groupings (Tech Debt, Performance). Step 16 returns to H3. This creates an inconsistent step numbering depth where some steps are peers and others are children.",
+      "recommendation": "Either promote Steps 7–15 to H3 like Steps 1–6 (removing or repurposing the Sub-Section groupings), or demote Steps 1–6 under their own H3 grouping (e.g., '### Sub-Section: Code Health').",
+      "effort": "low",
+      "tags": ["markdown-quality", "heading-hierarchy"]
+    },
+    {
+      "id": "QUAL-000000-c1de",
+      "dimension": "quality",
+      "title": "Large inline JSON example blocks in Produce Findings sections",
+      "severity": "low",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "description": "Each of the 10 scan skills contains a 15-line JSON example block inside the Produce Findings section. The examples are dimension-specific (different ID prefixes, titles, descriptions) but follow the same schema structure. The examples consume significant word count in each skill.",
+      "recommendation": "Reference finding-schema.md for the schema definition and provide only a 3-4 line abbreviated example in each skill, or move full examples to a shared reference with per-dimension variants.",
+      "effort": "low",
+      "tags": ["content-size", "examples"]
+    }
+  ],
+  "carry_forward_summary": {
+    "carried_forward": 5,
+    "resolved": 0,
+    "new": 1,
+    "unverified": 0,
+    "resolved_ids": []
+  }
+}

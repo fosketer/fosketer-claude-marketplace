@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "hook-correctness",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": { "languages": ["claude-plugin"], "frameworks": [] },
+    "duration_seconds": 2
+  },
+  "summary": {
+    "total_findings": 0,
+    "by_severity": { "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0 }
+  },
+  "findings": [],
+  "carry_forward_summary": {
+    "carried_forward": 0,
+    "resolved": 0,
+    "new": 0,
+    "unverified": 0,
+    "resolved_ids": []
+  }
+}

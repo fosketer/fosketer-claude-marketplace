@@ -1,0 +1,123 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "skill-quality",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": {
+      "languages": ["claude-plugin"],
+      "frameworks": []
+    },
+    "duration_seconds": 0,
+    "skill_count": 18
+  },
+  "dimension": "skill-quality",
+  "score": 4.0,
+  "raw_penalty": 6.0,
+  "summary": {
+    "total": 6,
+    "critical": 0,
+    "high": 0,
+    "medium": 6,
+    "low": 0,
+    "info": 0
+  },
+  "findings": [
+    {
+      "id": "SKL-b7874c-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "medium",
+      "file_path": "skills/refactor-plan/SKILL.md",
+      "line_start": 10,
+      "line_end": 213,
+      "snippet": "# Refactor Plan — Generate Refactoring Plans from Analysis\n\nGenerate refactoring plans from existing analysis findings without re-scanning the codebase.",
+      "description": "The refactor-plan SKILL.md body contains approximately 1,205 words, below the 1,500-word target minimum. The skill delegates most work to the refactoring-planner agent, but the body's flag documentation, edge cases, and error handling sections are thin. The flag-behavior.md reference file exists but the body provides insufficient inline summary of the Phase 1–3 execution flow.",
+      "recommendation": "Expand the critic feedback loop documentation and inline a condensed summary of how each flag affects agent behavior. The references/flag-behavior.md can retain full detail. Target adding approximately 300 words to the Phase 2 and edge-case sections.",
+      "effort": "small",
+      "tags": ["word-count", "body-length", "below-target"],
+      "previous_id": null
+    },
+    {
+      "id": "SKL-4d66d6-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "medium",
+      "file_path": "skills/scan-security/SKILL.md",
+      "line_start": 12,
+      "line_end": 226,
+      "snippet": "# Scan Security\n\n## Purpose\n\nAnalyze the codebase for security vulnerabilities aligned with the OWASP Top 10...",
+      "description": "The scan-security SKILL.md body contains approximately 1,415 words, below the 1,500-word target minimum. The skill covers 11 steps but Steps 6 (path traversal), 7 (SSRF), and 8 (sensitive logging) are compressed to 3–4 lines each. The plugin security steps (P1–P4) are also terse and lack example grep command patterns.",
+      "recommendation": "Expand Steps 6–8 with additional per-language grep pattern examples (Python, TypeScript, C#, Go). Add one concrete example grep command per plugin security step (P1–P4). Target adding approximately 90 words to reach the 1,500-word floor.",
+      "effort": "trivial",
+      "tags": ["word-count", "body-length", "below-target"],
+      "previous_id": null
+    },
+    {
+      "id": "SKL-725ae5-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "medium",
+      "file_path": "skills/scan-quality/SKILL.md",
+      "line_start": 12,
+      "line_end": 327,
+      "snippet": "# Scan Quality\n\n## Purpose\n\nEvaluate code quality across three sub-areas: **Code Health**, **Tech Debt**, and **Performance**.",
+      "description": "The scan-quality SKILL.md body contains approximately 2,333 words, above the 2,000-word target maximum. The skill covers 16 steps spanning code health, tech debt, and performance analysis. Performance-specific grep patterns in Steps 11–15 are detailed reference material that Claude does not need on every activation.",
+      "recommendation": "Create a references/ directory and extract the performance grep patterns (Steps 11–15) to references/performance-patterns.md. Update the body: 'Read references/performance-patterns.md when analyzing N+1 queries, pagination, memory patterns, frontend rendering, or caching.' This brings the body into the 1,700–1,900 word range.",
+      "effort": "small",
+      "tags": ["word-count", "body-length", "above-target"],
+      "previous_id": null
+    },
+    {
+      "id": "SKL-725ae5-f7f9",
+      "dimension": "skill-quality",
+      "title": "Skill body exceeds 2,000 words with no references/ directory",
+      "severity": "medium",
+      "file_path": "skills/scan-quality/SKILL.md",
+      "line_start": 12,
+      "line_end": 327,
+      "snippet": "# Scan Quality\n\n## Purpose\n\nEvaluate code quality across three sub-areas...",
+      "description": "The scan-quality skill has 2,333 body words but no references/ directory. The 16-step workflow loads entirely into context on every invocation. Performance analysis patterns (Steps 11–15) and deprecated API lists (Step 8) are reference material — they serve as look-up data rather than procedural instructions — and belong at Level 3 in the progressive disclosure hierarchy.",
+      "recommendation": "Create skills/scan-quality/references/ with at least: performance-patterns.md (Steps 11–15 grep patterns by language) and deprecated-apis.md (Step 8 deprecated pattern lists). In the SKILL.md body, add conditional references: 'Read references/performance-patterns.md when the scan reaches data access, rendering, or caching analysis' and 'Read references/deprecated-apis.md when scanning for deprecated API usage in Step 8.'",
+      "effort": "small",
+      "tags": ["progressive-disclosure", "references-missing", "word-count"],
+      "previous_id": null
+    },
+    {
+      "id": "SKL-5152db-9502",
+      "dimension": "skill-quality",
+      "title": "Skill body word count outside target range (target: 1,500-2,000)",
+      "severity": "medium",
+      "file_path": "skills/analyze-codebase/SKILL.md",
+      "line_start": 14,
+      "line_end": 331,
+      "snippet": "# Analyze Codebase — Orchestrator\n\nComprehensive codebase analysis across 4 standard dimensions (structure, quality, security, testing)...",
+      "description": "The analyze-codebase SKILL.md body contains approximately 2,070 words, slightly above the 2,000-word target ceiling. The skill correctly uses progressive disclosure via references/model-resolution.md and references/plugin-mode.md. The overage comes from the detailed flag alias table, per-stage model override syntax, and repeated model-passing instructions across Stages 3–8.",
+      "recommendation": "Extract the --dimensions alias mapping table and the --model per-stage syntax examples into a references/ file (e.g., references/flag-reference.md), or compress the model-passing instructions in Stages 3–8 into a single note: 'Pass model: MODEL_MAP.{stage} to each dispatched agent.' Target reducing by 70–100 words.",
+      "effort": "trivial",
+      "tags": ["word-count", "body-length", "above-target"],
+      "previous_id": null
+    },
+    {
+      "id": "SKL-d9bdde-753c",
+      "dimension": "skill-quality",
+      "title": "Large inline code block should be extracted to a supporting file",
+      "severity": "medium",
+      "file_path": "skills/scan-manifest-structure/SKILL.md",
+      "line_start": 69,
+      "line_end": 121,
+      "snippet": "```text\n# Standard plugin with skills and agents\nmy-plugin/\n├── .claude-plugin/\n│   └── plugin.json\n├── skills/\n│   └── my-skill/\n│       └── SKILL.md\n...\n```",
+      "description": "The scan-manifest-structure SKILL.md contains a fenced text block spanning approximately 31 lines (lines 69–121), showing acceptable and unacceptable directory structure examples. This exceeds the 30-line threshold for large inline content blocks. The examples are reference material (comparison diagrams) rather than procedural instructions, making them a candidate for Level 3 progressive disclosure.",
+      "recommendation": "Extract the directory structure examples (both acceptable and unacceptable patterns) into references/structure-examples.md. Instruct the skill to Read it conditionally in Step 3: 'Read references/structure-examples.md for acceptable and unacceptable plugin directory structure diagrams.' This reduces the body's prose-to-example ratio and enables selective loading.",
+      "effort": "trivial",
+      "tags": ["inline-content", "code-block", "progressive-disclosure"],
+      "previous_id": "SKL-d9bdde-3fb4"
+    }
+  ],
+  "carry_forward_summary": {
+    "carried_forward": 5,
+    "resolved": 0,
+    "new": 1,
+    "unverified": 0,
+    "resolved_ids": []
+  }
+}

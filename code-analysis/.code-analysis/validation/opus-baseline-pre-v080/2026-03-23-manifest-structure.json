@@ -1,0 +1,89 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "manifest-structure",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": { "languages": ["markdown", "json"], "frameworks": ["claude-plugin"] }
+  },
+  "summary": {
+    "total_findings": 5,
+    "by_severity": { "critical": 0, "high": 0, "medium": 2, "low": 2, "info": 1 }
+  },
+  "findings": [
+    {
+      "id": "MNF-a1b2c3-ver1",
+      "dimension": "manifest-structure",
+      "title": "Version mismatch plugin.json 0.7.0 vs package.json 0.6.1",
+      "description": "plugin.json declares version 0.7.0 but package.json declares 0.6.1. This inconsistency can cause confusion during installation and updates.",
+      "severity": "medium",
+      "file_path": "plugin.json",
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "recommendation": "Align version fields across plugin.json and package.json to a single source of truth.",
+      "effort": "trivial",
+      "tags": ["version", "consistency"],
+      "priority_tier": "sprint-2"
+    },
+    {
+      "id": "MNF-b3c4d5-name",
+      "dimension": "manifest-structure",
+      "title": "package.json scoped name @vooban/code-analysis vs plugin name code-analysis",
+      "description": "The npm scoped name in package.json does not match the unscoped plugin name in plugin.json.",
+      "severity": "low",
+      "file_path": "package.json",
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "recommendation": "Document the naming convention or align the names.",
+      "effort": "trivial",
+      "tags": ["naming"],
+      "priority_tier": "backlog"
+    },
+    {
+      "id": "MNF-c5d6e7-lice",
+      "dimension": "manifest-structure",
+      "title": "Missing recommended fields: license, homepage, repository",
+      "description": "plugin.json lacks license, homepage, and repository fields that improve discoverability and trust.",
+      "severity": "medium",
+      "file_path": "plugin.json",
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "recommendation": "Add license, homepage, and repository fields to plugin.json.",
+      "effort": "trivial",
+      "tags": ["metadata"],
+      "priority_tier": "sprint-2"
+    },
+    {
+      "id": "MNF-d7e8f9-peer",
+      "dimension": "manifest-structure",
+      "title": "Undocumented peerDependencies field in plugin.json",
+      "description": "plugin.json contains a peerDependencies field that is not part of the standard plugin schema.",
+      "severity": "low",
+      "file_path": "plugin.json",
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "recommendation": "Either document the field purpose or remove it.",
+      "effort": "trivial",
+      "tags": ["schema"],
+      "priority_tier": "backlog"
+    },
+    {
+      "id": "MNF-e9f0a1-dirs",
+      "dimension": "manifest-structure",
+      "title": "Non-standard top-level dirs (docs/, templates/, references/)",
+      "description": "The plugin contains directories not part of the standard plugin layout.",
+      "severity": "info",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "recommendation": "No action needed unless plugin registry enforces strict layout.",
+      "effort": "trivial",
+      "tags": ["structure"],
+      "priority_tier": "backlog"
+    }
+  ]
+}

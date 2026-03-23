@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "security",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": { "languages": ["markdown", "json"], "frameworks": ["claude-plugin"] }
+  },
+  "summary": {
+    "total_findings": 2,
+    "by_severity": { "critical": 0, "high": 0, "medium": 1, "low": 1, "info": 0 }
+  },
+  "findings": [
+    { "id": "SEC-7ae45a-b764", "dimension": "security", "title": "Version mismatch supply-chain risk", "severity": "medium", "effort": "trivial", "file_path": "plugin.json" },
+    { "id": "SEC-037fda-24a0", "dimension": "security", "title": "Author email exposed in plugin.json", "severity": "low", "effort": "trivial", "file_path": "plugin.json" }
+  ]
+}

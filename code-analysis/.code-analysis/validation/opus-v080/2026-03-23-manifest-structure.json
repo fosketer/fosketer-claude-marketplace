@@ -1,0 +1,108 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "manifest-structure",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": { "languages": ["claude-plugin"], "frameworks": [] },
+    "duration_seconds": 0
+  },
+  "summary": {
+    "total_findings": 6,
+    "by_severity": { "critical": 0, "high": 0, "medium": 1, "low": 2, "info": 3 }
+  },
+  "score": 8.0,
+  "raw_penalty": 2.0,
+  "findings": [
+    {
+      "id": "MNF-bfaaf6-b005",
+      "dimension": "manifest-structure",
+      "title": "Hardcoded absolute path detected",
+      "description": "The file .code-analysis/validation/run-comparison.sh contains hardcoded absolute paths (/Users/keven.foster/...) on lines 4 and 6. Hardcoded paths break portability across environments.",
+      "severity": "medium",
+      "file_path": ".code-analysis/validation/run-comparison.sh",
+      "line_start": 4,
+      "line_end": 6,
+      "snippet": "PLUGIN_PATH=\"/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis\"\nVALIDATION_DIR=\"$PLUGIN_PATH/.code-analysis/validation\"\ncd /Users/keven.foster/document-perso",
+      "recommendation": "Replace hardcoded paths with ${CLAUDE_PLUGIN_ROOT} or a relative path derived from the script's own location (e.g., SCRIPT_DIR=$(cd \"$(dirname \"$0\")\" && pwd)).",
+      "effort": "trivial",
+      "tags": ["hardcoded-path", "portability"]
+    },
+    {
+      "id": "MNF-037fda-7dbb",
+      "dimension": "manifest-structure",
+      "title": "Unrecognized field in plugin.json: peerDependencies",
+      "description": "plugin.json contains a 'peerDependencies' field that is not part of the recognized plugin manifest schema (name, version, description, author, keywords, license, homepage, repository, dependencies, hooks, mcp). This may be ignored by Claude Code.",
+      "severity": "low",
+      "file_path": ".claude-plugin/plugin.json",
+      "line_start": 23,
+      "line_end": 25,
+      "snippet": "\"peerDependencies\": {\n    \"superpowers\": \">=5.0.0\"\n  }",
+      "recommendation": "Move peerDependencies to package.json or document why this field exists in plugin.json. If Claude Code does not consume it, it adds noise.",
+      "effort": "trivial",
+      "tags": ["manifest", "schema", "unknown-field"]
+    },
+    {
+      "id": "MNF-7ae45a-7893",
+      "dimension": "manifest-structure",
+      "title": "package.json scoped name diverges from plugin name",
+      "description": "package.json declares name '@vooban/code-analysis' while plugin.json declares 'code-analysis'. The npm scoped prefix creates a naming inconsistency that could confuse tooling or users.",
+      "severity": "low",
+      "file_path": "package.json",
+      "line_start": 2,
+      "line_end": 2,
+      "snippet": "\"name\": \"@vooban/code-analysis\",",
+      "recommendation": "Align naming conventions: either use 'code-analysis' in both files, or document the scoped vs unscoped naming rationale.",
+      "effort": "trivial",
+      "tags": ["naming", "consistency"]
+    },
+    {
+      "id": "MNF-037fda-9985",
+      "dimension": "manifest-structure",
+      "title": "Description exceeds 200 characters",
+      "description": "The description field in plugin.json is 297 characters long. Marketplace listings may truncate descriptions beyond 200 characters, resulting in incomplete display.",
+      "severity": "info",
+      "file_path": ".claude-plugin/plugin.json",
+      "line_start": 4,
+      "line_end": 4,
+      "snippet": "\"description\": \"Comprehensive codebase analysis across 4 standard dimensions (structure, quality, security, testing) — produces scored reports with critic validation and focused refactoring plans. v0.8.0 adds token optimizations (split schemas, skip-clean ralph-loop passes, inline scoring, smart model defaults).\"",
+      "recommendation": "Shorten the description to under 200 characters by moving changelog details (v0.8.0 additions) to README.md or a CHANGELOG file.",
+      "effort": "trivial",
+      "tags": ["description", "metadata", "marketplace"]
+    },
+    {
+      "id": "MNF-000000-5e07",
+      "dimension": "manifest-structure",
+      "title": "Non-standard top-level directories: docs, templates",
+      "description": "The plugin contains top-level directories (docs/, templates/) not part of the standard plugin layout (skills/, agents/, hooks/, references/, mcp-servers/, commands/). These directories are not auto-discovered by Claude Code but may serve legitimate purposes (documentation, scaffolding).",
+      "severity": "info",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "recommendation": "No action required unless plugin registry enforces strict layout. Consider moving docs content into README.md and templates into references/ if applicable.",
+      "effort": "trivial",
+      "tags": ["structure", "layout"]
+    },
+    {
+      "id": "MNF-000000-3169",
+      "dimension": "manifest-structure",
+      "title": "Plugin uses 117 CLAUDE_PLUGIN_ROOT references across 30 files",
+      "description": "The plugin makes extensive use of ${CLAUDE_PLUGIN_ROOT} for path references. All usages follow the correct braces syntax. No malformed references ($CLAUDE_PLUGIN_ROOT without braces or parent traversal) were found in plugin source files.",
+      "severity": "info",
+      "file_path": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "recommendation": "No action needed. The plugin correctly uses ${CLAUDE_PLUGIN_ROOT} throughout.",
+      "effort": "trivial",
+      "tags": ["path-references", "metadata"]
+    }
+  ],
+  "carry_forward_summary": {
+    "carried_forward": 3,
+    "resolved": 2,
+    "new": 3,
+    "unverified": 0,
+    "resolved_ids": ["MNF-a1b2c3-ver1", "MNF-c5d6e7-lice"]
+  }
+}

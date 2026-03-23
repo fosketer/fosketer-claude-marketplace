@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "date": "2026-03-23",
+    "dimension": "security",
+    "project_path": "/Users/keven.foster/document-perso/local-claude-marketplace/code-analysis",
+    "stack": { "languages": ["claude-plugin"], "frameworks": [] },
+    "duration_seconds": 18
+  },
+  "summary": {
+    "total_findings": 1,
+    "by_severity": { "critical": 0, "high": 0, "medium": 0, "low": 1, "info": 0 }
+  },
+  "findings": [
+    {
+      "id": "SEC-037fda-24a0",
+      "dimension": "security",
+      "title": "Author email exposed in plugin.json",
+      "description": "The plugin.json manifest includes the author email 'dev@vooban.com' in plain text. While this is a team email rather than a personal one, it is distributed to every machine that installs the plugin and could be harvested for spam or social engineering.",
+      "severity": "low",
+      "file_path": ".claude-plugin/plugin.json",
+      "line_start": 7,
+      "line_end": 7,
+      "snippet": "    \"email\": \"dev@vooban.com\"",
+      "recommendation": "Remove the email field from plugin.json or replace it with a URL to a contact page. The author name alone is sufficient for attribution.",
+      "effort": "trivial",
+      "tags": ["pii-exposure", "plugin-metadata"]
+    }
+  ],
+  "carry_forward_summary": {
+    "carried_forward": 1,
+    "resolved": 1,
+    "new": 0,
+    "unverified": 0,
+    "resolved_ids": ["SEC-7ae45a-b764"]
+  }
+}
