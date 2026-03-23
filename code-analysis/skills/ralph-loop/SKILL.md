@@ -79,6 +79,13 @@ converged_at_iteration: {}
 > **Converged dimensions (v0.8.0):** Dimensions whose score has reached the target. Skipped during re-scans
 > except on safety-net iterations (every 5th). If a converged dimension regresses, it is removed from the list.
 
+```markdown
+mechanical_dimensions: [manifest-structure, skill-quality, agent-design, hook-correctness, marketplace-consistency, convention-adherence]
+```
+
+> **Mechanical dimensions (v0.8.0):** Only present when `--plugin` is set. Populated automatically from the
+> Mechanical Dimensions list. Findings from these dimensions always skip the superpowers pipeline.
+
 > **Note on finding ID format:** `completed_finding_ids` uses the scanner's fingerprint ID format: `{DIM}-{file_hash6}-{title_hash4}` (e.g., `STRC-8f3a21-a1b2`). Title-hash IDs are stable across code shifts, unlike the deprecated line-bucket format.
 
 > **Scoring formula:** `current_score` and `target` use the authoritative formula from `skills/reconcile-report/SKILL.md`: `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×critical + 2×high + 1×medium + 0.5×low`. The floor is **1.0**, not 0.
@@ -121,6 +128,26 @@ Then stop. Do nothing else.
 
 For multi-dimension variant of Step 3, Read `${CLAUDE_PLUGIN_ROOT}/skills/ralph-loop/references/multi-dimension.md`.
 
+### Mechanical Dimensions (v0.8.0)
+
+Plugin dimensions where ALL fixes are known to be mechanical edits (markdown, JSON, frontmatter, file moves/renames).
+Findings from mechanical dimensions skip the superpowers pipeline (Step 4) and go directly to Step 5 (implement directly),
+regardless of effort level.
+
+**Mechanical by default (when `--plugin`):**
+- `manifest-structure` — JSON edits, file moves
+- `skill-quality` — markdown edits, frontmatter additions
+- `agent-design` — markdown edits, examples additions
+- `hook-correctness` — JSON schema fixes, script edits
+- `marketplace-consistency` — JSON alignment, README edits
+- `convention-adherence` — pattern replacements, file renames
+
+**Non-mechanical (even in `--plugin` mode):**
+- `quality` — may require code refactoring
+- `security` — may require architectural changes
+
+**Standard codebase dimensions** (structure, testing): follow existing effort-based gating (unchanged).
+
 ### Step 4 — Brainstorm & Plan the Next Batch
 
 Write `phase: planning` and `last_updated_at` to state.
@@ -129,7 +156,9 @@ Write `phase: planning` and `last_updated_at` to state.
 
 **Multi-dimension:** Use gap-weighted priority algorithm across all dimensions' plans. Read `${CLAUDE_PLUGIN_ROOT}/skills/ralph-loop/references/multi-dimension.md` for the batch selection algorithm.
 
-**Gate:** If every finding in the batch is XS-effort mechanical, skip Steps 4a-4c and go directly to Step 5.
+**Gate:** Skip Steps 4a-4c and go directly to Step 5 if ANY of:
+- Every finding in the batch is XS-effort mechanical (existing behavior), OR
+- Every finding in the batch comes from a mechanical dimension (v0.8.0; see Mechanical Dimensions above)
 
 Otherwise, run the superpowers design pipeline:
 
