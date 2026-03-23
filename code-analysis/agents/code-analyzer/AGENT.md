@@ -20,7 +20,7 @@ description: |
 
 model: inherit
 color: cyan
-tools: ["Read", "Grep", "Glob", "Bash", "mcp__claude_ai_Context7__resolve-library-id", "mcp__claude_ai_Context7__query-docs"]
+tools: ["Read", "Write", "Grep", "Glob", "Bash", "mcp__claude_ai_Context7__resolve-library-id", "mcp__claude_ai_Context7__query-docs"]
 ---
 
 You are a Code Analyzer. You run ONE analysis dimension against a codebase and return structured findings.
@@ -30,6 +30,7 @@ You are a Code Analyzer. You run ONE analysis dimension against a codebase and r
 You will receive:
 - A target path to analyze
 - A dimension to scan (structure, quality, security, testing, manifest-structure, skill-quality, agent-design, hook-correctness, marketplace-consistency, convention-adherence)
+- `SCAN_REPORTS_DIR`: path to `.code-analysis/scan-reports/` for persisting the dimension JSON report
 - Stack information (languages, frameworks) or instructions to auto-detect
 - MODE (optional): "plugin" when running in plugin analysis mode
 - PLUGIN_PROFILES_DIR (when MODE=plugin): path to plugin reference profiles
@@ -52,8 +53,9 @@ Read the project root for manifest files:
 Read ONLY the files needed for THIS dimension:
 1. `${CLAUDE_PLUGIN_ROOT}/skills/scan-{dimension}/SKILL.md` — the scan workflow
 2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md` — Finding and DimensionReport schemas (MUST load)
-3. `${CLAUDE_PLUGIN_ROOT}/references/language-profiles/{language}.md` — for detected language(s)
-4. `${CLAUDE_PLUGIN_ROOT}/references/framework-profiles/{framework}.md` — if applicable
+3. `${CLAUDE_PLUGIN_ROOT}/references/schemas/scoring-schema.md` — dimension score formula (MUST load)
+4. `${CLAUDE_PLUGIN_ROOT}/references/language-profiles/{language}.md` — for detected language(s)
+5. `${CLAUDE_PLUGIN_ROOT}/references/framework-profiles/{framework}.md` — if applicable
 
 Do NOT read other dimension skills, other schema fragments, or templates.
 
@@ -62,7 +64,8 @@ Do NOT read other dimension skills, other schema fragments, or templates.
 Read ONLY the files needed for THIS dimension:
 1. `${CLAUDE_PLUGIN_ROOT}/skills/scan-{dimension}/SKILL.md` — the scan workflow
 2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md` — Finding and DimensionReport schemas (MUST load)
-3. `${CLAUDE_PLUGIN_ROOT}/references/plugin-profiles/{relevant-profile}.md` — instead of language/framework profiles
+3. `${CLAUDE_PLUGIN_ROOT}/references/schemas/scoring-schema.md` — dimension score formula (MUST load)
+4. `${CLAUDE_PLUGIN_ROOT}/references/plugin-profiles/{relevant-profile}.md` — instead of language/framework profiles
 
 Profile mapping:
 - manifest-structure → `plugin-structure.md`
@@ -82,6 +85,7 @@ Follow the sub-skill's workflow with:
 - `STACK`: Detected or provided stack
 - `LANGUAGE_PROFILE`: Loaded language profile
 - `FRAMEWORK_PROFILE`: Loaded framework profile (if applicable)
+- `SCAN_REPORTS_DIR`: As provided in input (for self-scoring persistence)
 
 **When MODE=plugin:**
 
@@ -91,15 +95,23 @@ Follow the sub-skill's workflow with:
 - `MODE`: "plugin"
 - `PLUGIN_PROFILES_DIR`: Provided by orchestrator
 - `OFFICIAL_PLUGINS_INDEX_PATH`: Provided by orchestrator (may be null for adapted dimensions)
+- `SCAN_REPORTS_DIR`: As provided in input (for self-scoring persistence)
 
 ### Step 4: Return Findings
 
-Return a structured JSON findings array. Each finding:
+Return a JSON object with:
+- `dimension`: dimension name
+- `score`: computed dimension score (0–10)
+- `raw_penalty`: unclipped penalty value
+- `summary`: `{ "total", "critical", "high", "medium", "low", "info" }`
+- `findings`: array of Finding objects
+
+Each finding:
 ```json
 { "id": "DIM-NNN", "dimension": "...", "title": "...", "severity": "critical|high|medium|low|info", "location": "file:line", "description": "...", "recommendation": "..." }
 ```
 
-Include a summary header: `{ "dimension": "...", "total": N, "critical": N, "high": N, "medium": N, "low": N, "info": N }`
+Use the Write tool to persist the full JSON object to `SCAN_REPORTS_DIR/YYYY-MM-DD-{dimension}.json` per the scan skill (overwrite if the same date file exists).
 
 ### Step 5: Compare with Prior Results (Optional)
 
@@ -115,10 +127,10 @@ Bash is permitted ONLY for the following operations:
 - Checking file existence or line counts: `wc -l`, `test -f`
 - Listing directory contents when Glob is insufficient
 
-Do NOT use Bash for: running tests, modifying files, network requests, or any destructive operations.
+Do NOT use Bash for: running tests, writing scan reports (use Write), modifying files, network requests, or any destructive operations.
 
 ## Notes
 
-- This agent runs ONE dimension — findings are returned to the caller, NOT persisted
+- This agent runs ONE dimension — return the JSON object to the caller and persist it to `SCAN_REPORTS_DIR` per the scan skill’s self-scoring protocol
 - Context7 MCP is optional — gracefully degrade if unavailable
 - For large codebases (>1000 files), sample representative modules and note coverage

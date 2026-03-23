@@ -208,3 +208,16 @@ Return the findings array to the orchestrator.
 Read and follow the shared scanner protocol at `${CLAUDE_PLUGIN_ROOT}/references/scanner-protocol.md` for:
 - Finding ID generation (deterministic fingerprint IDs)
 - Carry-forward protocol (verify previous findings, discover new ones)
+
+## Self-Scoring & Persistence (v0.8.0)
+
+After generating all findings, compute and include the dimension score in the response:
+
+1. Count findings by severity (exclude info): critical, high, medium, low
+2. Compute raw penalty: `raw = 3×critical + 2×high + 1×medium + 0.5×low`
+3. Compute score: `score = max(1.0, 10 - min(raw, 9))`
+4. Include in response header alongside findings:
+   ```json
+   { "dimension": "convention-adherence", "score": <score>, "raw_penalty": <raw>, "summary": {...}, "findings": [...] }
+   ```
+5. Persist findings to `SCAN_REPORTS_DIR/YYYY-MM-DD-convention-adherence.json` (overwrite if same date exists)
