@@ -13,7 +13,11 @@ Highest priority wins:
 
 ## Resolution Steps
 
-1. Initialize all 4 stage keys (`scanning`, `reconciliation`, `critique`, `planning`) to `"inherit"`
+1. Initialize stage keys with smart defaults:
+   - `scanning`: `"sonnet"` — pattern matching and structured output; Sonnet sufficient
+   - `reconciliation`: `"inherit"` — cross-dimension reasoning benefits from session model
+   - `critique`: `"sonnet"` — checklist validation and formula verification
+   - `planning`: `"inherit"` — complex dependency analysis benefits from session model
 2. If global config exists and contains valid JSON with a `models` key, merge its values (stage-level merge)
 3. If project config exists and contains valid JSON with a `models` key, merge its values on top
 4. If `--model` flag is present:
@@ -23,6 +27,12 @@ Highest priority wins:
    - Apply blanket values before per-stage values within the same flag
 5. Validate all resolved values are in `{haiku, sonnet, opus, inherit}`. If any invalid value found, abort with: `"Invalid model '{value}' for stage '{stage}'. Valid values: haiku, sonnet, opus, inherit"`
 6. If a config file exists but contains malformed JSON, abort with: `"Malformed JSON in config file: {path}"`
+
+## Model Quality Floor
+
+Haiku MUST NOT be used as a default for any stage. When `--model haiku` is explicitly
+provided by the user, it is honored (user override takes precedence), but the plugin's
+own defaults never go below Sonnet.
 
 ## MODEL_MAP Structure
 
