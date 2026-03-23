@@ -19,7 +19,6 @@
     "plugin-analysis"
   ],
   "skills": "./skills",
-  "agents": "./agents",
   "peerDependencies": {
     "superpowers": ">=5.0.0"
   }
