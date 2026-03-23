@@ -37,35 +37,77 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 For each SKILL.md discovered in Step 1:
 
 1. Read the file and extract YAML frontmatter (content between the first `---` delimiters)
-2. Validate `name` field:
-   - MUST be present — **high** if missing
-   - MUST match kebab-case: `/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/` — **medium** if not
+2. If the YAML block fails to parse (invalid syntax, unclosed quotes, bad indentation): emit **high** finding for that file and skip remaining checks for it
+3. Validate **required** fields — `name` and `description`:
+   - Both MUST be present — **high** if either is missing
+4. Validate **recommended** fields — `version` and `allowed-tools`:
+   - `version`, if present, MUST follow semver `MAJOR.MINOR.PATCH` (pre-release suffixes permitted) — **medium** if malformed
+   - `version` absent: emit **info** finding — "No version field; recommended for change tracking"
+   - `allowed-tools`, if present, MUST be a JSON array of strings — **medium** if malformed
+5. Validate `name` field format:
+   - MUST match kebab-case regex: `/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/` — **medium** if not
+   - MUST NOT use generic identifiers (`helper`, `utils`, `misc`, `skill1`) — **medium** if detected
    - SHOULD match the parent directory name — **info** if they differ
-3. Validate `description` field:
-   - MUST be present — **high** if missing
+6. Validate `description` field — trigger phrase analysis:
    - MUST start with "Use when..." or "This skill should be used when..." — **medium** if not
-   - MUST be written in third person (no first-person "I" subject) — **medium** if violated
-   - Total frontmatter length (name + description + any other fields) MUST be < 1,024 chars — **high** if exceeded
+   - MUST be written in third person (no first-person "I" subject, no second-person "you" address) — **medium** if violated
+   - MUST contain at least one specific quoted trigger phrase (text in double quotes representing user intent) — **medium** if absent
+   - SHOULD contain three or more distinct trigger phrases to cover phrasing variations — **info** if fewer
+   - MUST NOT use vague trigger phrases like "working with code", "help with files", or "general tasks" — **medium** if detected
+   - Total frontmatter character length (all fields combined) MUST be < 1,024 chars — **high** if exceeded
+
+**Good vs bad description examples for reference during analysis**:
+
+Good — dense trigger phrases, third person, specific intent:
+```yaml
+description: This skill should be used when the user asks to "scan skill quality", "validate SKILL.md", "check frontmatter compliance", or "audit plugin skills".
+```
+
+Bad — vague, no triggers, wrong person:
+```yaml
+description: Provides guidance for working with skills.
+# No trigger phrases, not third person, too vague to activate reliably
+```
+
+Bad — second person, missing quoted triggers:
+```yaml
+description: Use this skill when you want to check skill files.
+# Second person "you", no specific quoted trigger phrases
+```
 
 ### Step 3 — Count Body Words and Check Size
 
 For each SKILL.md:
 
-1. Extract the body (content after the closing `---` of frontmatter)
-2. Count words in the body
-3. Apply thresholds:
+1. Extract the body: all content after the closing `---` delimiter of the frontmatter block. The frontmatter consists of exactly two `---` lines; the body begins on the line following the second `---`.
+2. Count words in the body. "Body" includes all prose, headings, list items, and text inside code blocks. Exclude:
+   - The frontmatter block itself (between the two `---` delimiters)
+   - Fenced code block delimiters (the ` ``` ` lines themselves, but count the code content within)
+   - Pure whitespace lines
+3. For multi-part SKILL.md files that contain both instructional prose and large embedded JSON/YAML examples: count all words including those inside code blocks. Large examples inflate word count and SHOULD be extracted to supporting files regardless.
+4. Apply thresholds:
    - **Target range**: 1,500–2,000 words — no finding
    - **Outside range** (< 1,500 or > 2,000): **medium** finding — "Skill body word count outside target range (target: 1,500–2,000)"
    - **Below 500 words**: **high** finding — "Skill body is too short to be useful (< 500 words)"
+   - **Above 3,000 words without a `references/` directory**: **medium** finding — "Skill body exceeds 3,000 words with no references/ directory — extract detailed content"
    - **Above 5,000 words**: **high** finding — "Skill body is excessively long (> 5,000 words) — split or extract to supporting files"
+5. Include the exact word count in every finding's `description` field for actionability
 
-### Step 4 — Check for @file Anti-Pattern
+### Step 4 — Check for @file Anti-Pattern and Validate Progressive Disclosure
 
 For each SKILL.md:
 
-1. Grep the body for `@file` references (e.g., `@path/to/file.md`, `@references/`)
+1. Grep the body for `@file` references using the pattern `@[a-zA-Z0-9_./-]+` (e.g., `@path/to/file.md`, `@references/`, `@skill-name`)
 2. For each match: emit **high** finding — "@file reference in SKILL.md body burns context on every invocation"
 3. Recommendation: "Move referenced content to supporting files in references/ or examples/ and instruct the skill to Read them conditionally"
+4. Validate progressive disclosure compliance — check that the three-level loading model is respected:
+   - **Level 1 (metadata)**: Verify frontmatter description is self-contained and does not depend on body content to determine activation
+   - **Level 2 (body)**: Verify the body contains only what Claude needs on every invocation. Detect inline content that belongs at Level 3 by scanning for these patterns:
+     - Configuration templates or schema definitions embedded directly in the body (detect by fenced blocks with `json`, `yaml`, `toml`, `xml` language hints exceeding 15 lines)
+     - API endpoint listings or parameter tables exceeding 10 rows
+     - Step-by-step tutorials longer than 500 words that serve reference rather than procedural purposes
+   - **Level 3 (bundled resources)**: If the skill directory contains `references/` or `examples/`, verify the SKILL.md body includes conditional load instructions (e.g., "Read `references/patterns.md` when..." or "Consult `references/advanced.md` for...")
+5. For Level 2 violations (content that belongs at Level 3): emit **medium** finding — "Inline content better suited to references/ — extract to preserve progressive disclosure"
 
 ### Step 5 — Validate allowed-tools
 
@@ -80,13 +122,24 @@ For each SKILL.md:
 
 For each SKILL.md:
 
-1. Check sibling supporting directories: `references/`, `examples/`, `scripts/`
-2. Grep the SKILL.md body for large inline content candidates:
-   - Code blocks longer than 30 lines
-   - Tables with more than 15 rows
-   - JSON or YAML blocks larger than 20 lines
+1. Check sibling supporting directories: `references/`, `examples/`, `scripts/`, `assets/`
+2. Grep the SKILL.md body for large inline content candidates using these detection patterns:
+   - **Code blocks**: Count lines between matching ` ``` ` fences. Flag blocks longer than 30 lines.
+   - **Tables**: Count rows containing `|` pipe characters in contiguous sequences. Flag tables with more than 15 data rows (excluding the header separator row).
+   - **JSON or YAML blocks**: Identify fenced blocks with `json`, `yaml`, or `yml` language hints. Flag blocks larger than 20 lines.
+   - **Repeated patterns**: Detect three or more structurally similar code blocks (same language hint, similar length) that could be consolidated into a single reference file with sections.
 3. For each large inline content block found: emit **medium** finding — "Large inline content block should be extracted to a supporting file in references/ or examples/"
 4. Check if supporting directories exist but are empty: emit **info** finding per empty directory
+5. Verify that every existing supporting directory is referenced in the SKILL.md body. An unreferenced `references/` or `examples/` directory is a compliance failure — emit **medium** finding: "Supporting directory exists but is not referenced in SKILL.md body"
+6. Verify that every file path referenced in SKILL.md actually exists on disk. A reference to a nonexistent file: emit **high** finding — "Referenced supporting file does not exist"
+
+**When `references/` is needed**: Create a `references/` directory when the SKILL.md body exceeds 2,000 words and contains detailed reference material (API specs, schema definitions, pattern catalogs, configuration templates) that Claude does not need on every invocation. The `references/` directory enables Level 3 progressive disclosure — content loads only when Claude determines it is needed.
+
+**Naming conventions for supporting files**:
+- Use kebab-case with `.md` extension for documentation: `patterns.md`, `api-reference.md`, `advanced-techniques.md`
+- Use descriptive kebab-case with appropriate extension for scripts: `validate-schema.sh`, `parse-frontmatter.py`
+- Use purpose-first naming: `output-schemas.md` not `schemas-for-output.md`
+- Avoid generic names: `notes.md`, `misc.md`, `temp.md` — **info** finding if detected
 
 ### Step 7 — Compare Against Official Plugins
 
@@ -136,11 +189,14 @@ Return the findings array to the orchestrator.
 ## Success Checklist
 
 - [ ] All SKILL.md files inventoried
-- [ ] Frontmatter parsed and validated (name, description, trigger phrase, char budget)
+- [ ] Frontmatter parsed and validated (required: name, description; recommended: version, allowed-tools)
+- [ ] Description trigger phrases analyzed (person, specificity, quoted triggers, vagueness)
 - [ ] Body word counts checked against thresholds (target 1,500–2,000)
 - [ ] @file anti-patterns detected and flagged
+- [ ] Progressive disclosure levels validated (metadata, body, bundled resources)
 - [ ] allowed-tools validated for presence and scope
-- [ ] Large inline content blocks identified for extraction
+- [ ] Large inline content blocks identified for extraction (code, tables, JSON/YAML)
+- [ ] Supporting file organization verified (existence, references, naming conventions)
 - [ ] Official plugins index consulted for word count and pattern comparison
 - [ ] Plugin profile ground truth applied
 - [ ] All findings use dimension: "skill-quality" and ID prefix SKL

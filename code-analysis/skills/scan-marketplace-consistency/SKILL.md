@@ -45,35 +45,73 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 
 ### Step 3 — Compare Metadata: marketplace.json vs plugin.json
 
-Using the marketplace entry found in Step 2:
+Using the marketplace entry found in Step 2, perform a field-by-field comparison against the plugin manifest. Each field has its own divergence detection rule.
 
-1. Compare `description` field:
-   - If description in marketplace.json differs from description in plugin.json: emit **medium** finding — "Plugin description in marketplace.json does not match plugin.json"
-   - Include both values in the finding description for easy comparison
-2. Compare `name` field:
-   - If name in marketplace entry differs from plugin.json `name`: emit **high** finding — "Plugin name mismatch between marketplace.json and plugin.json"
-3. Compare any `tags` or `keywords` fields if both sources provide them:
-   - Significant divergence (different items): **info** finding
+#### 3a — `name` field
+
+Compare the `name` value in the marketplace entry against `name` in plugin.json using exact string equality (case-sensitive).
+
+- Exact match: no finding.
+- Case-only difference (e.g., `Code-Analysis` vs `code-analysis`): emit **high** finding — "Plugin name casing mismatch between marketplace.json and plugin.json". Kebab-case is the canonical form; the marketplace entry MUST match the plugin manifest exactly.
+- Completely different value: emit **high** finding — "Plugin name mismatch between marketplace.json and plugin.json". Include both values verbatim.
+
+#### 3b — `description` field
+
+Compare `description` in both sources. Apply the following divergence detection rules:
+
+- If the marketplace description is a strict substring of the plugin.json description (or vice versa): emit **medium** finding — "Plugin description is a truncated version in one source". This commonly occurs when an author updates the plugin manifest but forgets the marketplace entry.
+- If both descriptions exist but differ in wording beyond trivial whitespace: emit **medium** finding — "Plugin description in marketplace.json does not match plugin.json". Include both values in the finding description for easy comparison.
+- If the marketplace entry has a description but plugin.json does not (or vice versa): emit **medium** finding — "Description present in one source but missing in the other".
+
+#### 3c — `author` field
+
+Compare `author` (or `maintainer`) if present in both sources.
+
+- If both exist and differ: emit **info** finding — "Author metadata diverges between marketplace.json and plugin.json".
+- If the marketplace entry specifies an author but plugin.json omits it: no finding (marketplace MAY carry additional metadata).
+
+#### 3d — `tags` / `keywords` field
+
+Compare `tags` or `keywords` arrays if both sources provide them.
+
+- Compute the symmetric difference (items in one array but not the other).
+- If the symmetric difference is non-empty: emit **info** finding — "Tag/keyword sets diverge between marketplace.json and plugin.json". List the differing items.
+- If one source has tags and the other does not: emit **info** finding — "Tags present in one source but absent in the other".
+
+#### 3e — `path` or `directory` field
+
+If the marketplace entry contains a `path` or `directory` field pointing to the plugin location:
+
+- Verify the path resolves to `PROJECT_PATH` relative to the marketplace root. If it does not: emit **high** finding — "Marketplace entry path does not resolve to the actual plugin directory".
 
 ### Step 4 — Check Version Consistency
 
-1. Read `PROJECT_PATH/.claude-plugin/plugin.json` — extract `version` field (may be absent)
-2. Read `PROJECT_PATH/package.json` (if it exists) — extract `version` field
-3. If both `plugin.json` and `package.json` have version fields:
-   - If versions differ: emit **medium** finding — "Version mismatch between plugin.json and package.json"
-4. If marketplace.json entry has a `version` field:
-   - Compare against plugin.json version — if they differ: emit **medium** finding — "Version in marketplace.json does not match plugin.json"
-5. If no version field exists in plugin.json: emit **info** finding — "plugin.json has no version field — consider adding semantic versioning"
+Validate that version strings are consistent across all three potential sources: `plugin.json`, `package.json`, and the marketplace entry.
+
+1. Read `PROJECT_PATH/.claude-plugin/plugin.json` — extract `version` field (may be absent).
+2. Read `PROJECT_PATH/package.json` (if it exists) — extract `version` field.
+3. If the marketplace entry has a `version` field, extract it as the third source.
+4. For each pair of sources where both have a version field, compare using exact string equality:
+   - `plugin.json` vs `package.json`: if versions differ, emit **medium** finding — "Version mismatch between plugin.json and package.json".
+   - `plugin.json` vs marketplace entry: if versions differ, emit **medium** finding — "Version in marketplace.json does not match plugin.json".
+   - `package.json` vs marketplace entry: if versions differ, emit **info** finding — "Version in marketplace.json does not match package.json".
+5. If all three sources exist and all three disagree (three distinct version strings): escalate to **high** finding — "Three-way version mismatch across plugin.json, package.json, and marketplace.json". This indicates a release process failure.
+6. Validate that each version string follows semantic versioning (MAJOR.MINOR.PATCH). If a version field exists but is not valid semver: emit **info** finding — "Version field does not follow semantic versioning format".
+7. If no version field exists in plugin.json: emit **info** finding — "plugin.json has no version field — consider adding semantic versioning".
 
 ### Step 5 — Check for Cross-Plugin Naming Conflicts
 
-1. Glob sibling plugin directories: `PROJECT_PATH/../*/` (all directories at the same level as this plugin)
-2. For each sibling: read its `.claude-plugin/plugin.json` and extract the `name` field
-3. Compare against this plugin's `name`:
-   - Exact match: emit **high** finding — "Naming conflict: another plugin has the same name"
-   - Similar name (same prefix or 1-character edit distance): emit **info** finding — "Potential naming conflict with sibling plugin '{sibling_name}'"
-4. Collect all skill names from `PROJECT_PATH/skills/*/SKILL.md` frontmatter
-5. Check whether any sibling plugin has skills with identical names — emit **medium** finding if duplicates found
+1. Glob sibling plugin directories: `PROJECT_PATH/../*/` (all directories at the same level as this plugin).
+2. For each sibling that contains `.claude-plugin/plugin.json`: read the file and extract the `name` field.
+3. Compare each sibling name against this plugin's `name` using the following tiered approach:
+   - **Exact match** (case-sensitive): emit **high** finding — "Naming conflict: another plugin has the same name '{sibling_name}'".
+   - **Case-insensitive match** (e.g., `Code-Analysis` vs `code-analysis`): emit **high** finding — "Case-insensitive naming conflict with '{sibling_name}'".
+   - **Levenshtein edit distance of 1** (single insertion, deletion, or substitution): emit **medium** finding — "Near-duplicate plugin name: '{plugin_name}' vs '{sibling_name}' (edit distance 1)".
+   - **Shared prefix of 70% or more of the shorter name's length** (e.g., `code-analysis` and `code-analysis-pro`): emit **info** finding — "Potential naming conflict with sibling plugin '{sibling_name}' — shared prefix detected".
+   - Edit distance of 2 or more with no shared prefix above threshold: no finding.
+4. Collect all skill names from `PROJECT_PATH/skills/*/SKILL.md` frontmatter (the `name` field in the YAML block).
+5. For each sibling plugin, collect its skill names from `<sibling>/skills/*/SKILL.md` frontmatter.
+6. Compare skill name sets: if any skill name appears in both this plugin and a sibling, emit **medium** finding — "Skill name collision: skill '{skill_name}' exists in both '{plugin_name}' and '{sibling_name}'". Include the directory paths of both conflicting skills.
 
 ### Step 6 — Check README Presence and Content
 
@@ -111,6 +149,22 @@ Compile findings array with each finding matching the Finding schema from `${CLA
 Always populate `snippet` with the relevant lines when `line_start` is provided.
 
 Return the findings array to the orchestrator.
+
+## Common Marketplace Misconfigurations
+
+The following patterns occur frequently and SHOULD be checked proactively:
+
+1. **Stale marketplace entry after plugin rename.** A plugin directory is renamed (e.g., `code-scanner` to `code-analysis`) but marketplace.json still references the old name and path. Symptoms: Step 2 fails to find the entry, and a ghost entry persists.
+
+2. **Description drift after iterative development.** The plugin.json description is updated during development, but the marketplace entry retains the original one-liner. Symptoms: Step 3b detects substring or wording divergence.
+
+3. **Version bump in package.json only.** Running `npm version patch` updates package.json but not plugin.json or the marketplace entry. Symptoms: Step 4 detects a two-way or three-way version mismatch.
+
+4. **Duplicate plugin name across forks.** Two plugins forked from the same template retain the template's default name. Symptoms: Step 5 detects an exact name match between siblings.
+
+5. **Missing path field in marketplace entry.** The marketplace entry omits the `path` or `directory` field, making automated resolution impossible. Symptoms: Step 3e cannot validate path resolution.
+
+6. **Empty or placeholder README.** A plugin is registered with a README.md containing only a template heading. Symptoms: Step 6 detects fewer than 10 non-blank lines.
 
 ## Error Handling
 

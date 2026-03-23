@@ -35,6 +35,14 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
    - `name`: MUST be present — **high** if missing
 5. Check recommended fields — **medium** if any of the following are missing:
    - `version`, `description`, `author`, `keywords`
+6. Validate field formats when the field is present:
+   - `version`: MUST follow semver format (`/^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/`). Emit **high** if the value is present but does not match (e.g., `"v1.0"`, `"1.0"`, `"latest"`)
+   - `description`: SHOULD be between 10 and 200 characters. Emit **info** if shorter than 10 characters (likely a placeholder). Emit **info** if longer than 200 characters (may be truncated in marketplace listings)
+   - `author`: SHOULD be a non-empty string. MAY contain an email in angle brackets (`Author Name <email@example.com>`)
+   - `keywords`: MUST be an array of strings if present. Each keyword SHOULD be lowercase and SHOULD NOT contain spaces (use hyphens instead). Emit **medium** if `keywords` is not an array. Emit **info** if any keyword contains uppercase letters or spaces
+   - `license`: SHOULD be a valid SPDX identifier if present (e.g., `"MIT"`, `"Apache-2.0"`). Emit **info** if unrecognized
+   - `homepage`, `repository`: SHOULD be valid URLs if present (starting with `https://` or `http://`). Emit **info** if malformed
+7. Check for unknown top-level fields in plugin.json that are not part of the recognized schema (`name`, `version`, `description`, `author`, `keywords`, `license`, `homepage`, `repository`, `dependencies`, `hooks`, `mcp`). Emit **info** for each unknown field — "Unrecognized field in plugin.json: <field>"
 
 ### Step 2 — Validate Plugin Name Format
 
@@ -49,23 +57,94 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
    - `skills/` — expected, note if absent (info)
    - `agents/` — optional, note count if present
    - `hooks/` — optional, note if present
+   - `references/` — optional, commonly used for shared schemas and documentation
+   - `mcp-servers/` — optional, note if present (indicates plugin bundles an MCP server)
    - `commands/` — **deprecated**, emit **info** finding if present: "commands/ directory is deprecated — migrate to skills/"
 2. Check that `.claude-plugin/` is placed directly under `PROJECT_PATH` (not nested deeper)
 3. Flag unexpected top-level directories that are neither conventional nor documented
+
+Acceptable directory structures:
+
+```text
+# Standard plugin with skills and agents
+my-plugin/
+├── .claude-plugin/
+│   └── plugin.json
+├── skills/
+│   └── my-skill/
+│       └── SKILL.md
+├── agents/
+│   └── my-agent.md
+├── references/
+└── README.md
+
+# Hooks-only plugin (no skills or agents required — see Step 4 exception)
+git-hooks-plugin/
+├── .claude-plugin/
+│   └── plugin.json
+├── hooks/
+│   ├── pre-commit.sh
+│   └── post-checkout.sh
+└── README.md
+
+# Plugin bundling an MCP server
+mcp-plugin/
+├── .claude-plugin/
+│   └── plugin.json
+├── skills/
+│   └── query-data/
+│       └── SKILL.md
+├── mcp-servers/
+│   └── server.py
+└── README.md
+```
+
+Unacceptable structures (emit findings):
+
+```text
+# BAD: .claude-plugin nested inside a subdirectory
+my-plugin/
+├── src/
+│   └── .claude-plugin/    # WRONG — must be at PROJECT_PATH root
+│       └── plugin.json
+└── README.md
+
+# BAD: Mixed flat files instead of organized directories
+my-plugin/
+├── .claude-plugin/
+│   └── plugin.json
+├── skill-one.md           # WRONG — skills must be in skills/<name>/SKILL.md
+├── skill-two.md
+└── README.md
+```
 
 ### Step 4 — Check Required Files
 
 1. Check `README.md` exists in `PROJECT_PATH` — emit **medium** finding if absent
 2. Glob for at least one `skills/*/SKILL.md` OR one `agents/*.md` OR one `agents/*/AGENT.md`
-   - If none found: emit **high** finding — "Plugin has no skills or agents"
+   - If none found AND `hooks/` directory exists: downgrade to **info** — "Plugin provides hooks only, no skills or agents"
+   - If none found AND no `hooks/` directory: emit **high** finding — "Plugin has no skills, agents, or hooks"
 3. If `version` field is present in plugin.json, check whether `package.json` also exists and whether versions are in sync (info-level divergence)
+4. For each skill directory under `skills/`, verify the `SKILL.md` file contains valid YAML frontmatter (delimited by `---` markers). Emit **medium** if frontmatter is missing or unparseable
+5. Check that `SKILL.md` frontmatter includes `name` and `version` fields. Emit **info** if either is absent
 
-### Step 5 — Check for Hardcoded Absolute Paths
+### Step 5 — Check for Hardcoded Absolute Paths and Path Detection
 
 1. Grep all files under `PROJECT_PATH` for hardcoded absolute path patterns:
    - `/Users/`, `/home/`, `/root/`, `C:\\Users\\`, `C:/Users/`
 2. For each match: emit **high** finding — "Hardcoded absolute path detected — use \${CLAUDE_PLUGIN_ROOT} instead"
-3. Exclude `.git/` and `node_modules/` from the search
+3. Exclude `.git/`, `node_modules/`, and binary files from the search
+4. Verify correct `${CLAUDE_PLUGIN_ROOT}` usage across plugin files. Grep for the following patterns:
+   - `${CLAUDE_PLUGIN_ROOT}/references/` — valid, standard reference path
+   - `${CLAUDE_PLUGIN_ROOT}/skills/` — valid, cross-skill reference
+   - `${CLAUDE_PLUGIN_ROOT}/agents/` — valid, agent reference
+   - `${CLAUDE_PLUGIN_ROOT}/hooks/` — valid, hooks reference
+   - `${CLAUDE_PLUGIN_ROOT}/mcp-servers/` — valid, MCP server reference
+5. Flag malformed plugin root references as **medium**:
+   - `$CLAUDE_PLUGIN_ROOT` without braces — MUST use `${CLAUDE_PLUGIN_ROOT}`
+   - `${CLAUDE_PLUGIN_ROOT}` pointing to paths outside the plugin tree (e.g., `${CLAUDE_PLUGIN_ROOT}/../../other-plugin/`)
+   - Relative paths that assume a specific working directory instead of using `${CLAUDE_PLUGIN_ROOT}` (e.g., `./references/` in a SKILL.md that should be `${CLAUDE_PLUGIN_ROOT}/references/`)
+6. Count total `${CLAUDE_PLUGIN_ROOT}` references and report as info-level metadata in findings
 
 ### Step 6 — Compare Against Official Plugins
 
@@ -102,6 +181,36 @@ Always populate `snippet` with the relevant lines when `line_start` is provided.
 
 Return the findings array to the orchestrator.
 
+## Edge Cases
+
+### Hooks-Only Plugins
+
+Some plugins provide only Git hooks or lifecycle hooks without any skills or agents. For these plugins:
+- The `hooks/` directory MUST exist and contain at least one hook file
+- Step 4 MUST NOT emit a high-severity finding for missing skills/agents — downgrade to **info**
+- Verify that hook files are executable (`chmod +x`) — emit **medium** if not
+
+### Plugins Bundling MCP Servers
+
+Plugins MAY include an `mcp-servers/` directory containing one or more MCP server implementations. When this directory is present:
+- Check that `plugin.json` includes an `mcp` top-level field describing the server configuration. Emit **medium** if the directory exists but the `mcp` field is absent
+- Verify the MCP server entry point file exists at the path declared in `plugin.json`'s `mcp` field
+- Check for a `requirements.txt` (Python) or `package.json` (Node.js) within `mcp-servers/` if the server has dependencies. Emit **info** if dependencies appear to be missing
+
+### Multi-Language Plugins
+
+Plugins MAY contain files in multiple languages (e.g., Python MCP server alongside Markdown skills). When mixed languages are detected:
+- Do NOT flag the presence of multiple languages as a structural issue
+- Verify that each language ecosystem's dependency file is present where expected (e.g., `requirements.txt` for Python files, `package.json` for JavaScript/TypeScript files)
+- Check that `.gitignore` covers build artifacts for all detected languages. Emit **info** if common ignore patterns appear to be missing (e.g., `__pycache__/`, `node_modules/`, `dist/`)
+
+### Monorepo-Style Plugin Collections
+
+When `PROJECT_PATH` appears to be part of a larger monorepo (parent directory contains multiple sibling plugin directories):
+- Validate only the plugin at `PROJECT_PATH` — do NOT traverse into sibling plugins
+- Check that `.claude-plugin/plugin.json` references are self-contained and do not depend on sibling plugin paths
+- Emit **medium** if any file references a sibling plugin via relative path (e.g., `../other-plugin/skills/`)
+
 ## Error Handling
 
 | Scenario | Resolution |
@@ -110,7 +219,9 @@ Return the findings array to the orchestrator.
 | Invalid JSON in plugin.json | Emit critical finding, skip all further validation steps |
 | `OFFICIAL_PLUGINS_INDEX_PATH` is null or unreadable | Skip Step 6 comparison, note as info finding |
 | `PLUGIN_PROFILES_DIR/plugin-structure.md` not found | Skip profile cross-reference in Step 6, proceed without it |
-| Plugin has no skills/ or agents/ directory at all | Emit high finding in Step 4, continue checking other dimensions |
+| Plugin has no skills/ or agents/ directory at all | Emit high finding in Step 4 (unless hooks-only plugin), continue checking other dimensions |
+| `mcp-servers/` exists but `mcp` field is absent in plugin.json | Emit medium finding, continue validation |
+| Mixed-language plugin detected | Validate each language ecosystem independently, do not flag as structural issue |
 
 ## Success Checklist
 
