@@ -17,7 +17,6 @@
     "scoring",
     "plugin-analysis"
   ],
-  "skills": "./skills",
   "license": "MIT",
   "repository": "https://github.com/fosketer/fosketer-claude-marketplace",
   "peerDependencies": {

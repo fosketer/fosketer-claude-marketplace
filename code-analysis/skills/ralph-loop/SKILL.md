@@ -8,6 +8,7 @@ description: |
   Applies when the user wants to fix findings across one or more dimensions,
   run a score improvement loop, or automate refactoring until quality thresholds are reached.
   Supports --plugin flag for Claude Code plugin analysis dimensions.
+  Use when the user asks to "run ralph loop", "improve dimension scores", "iterate until score reaches target", or "automate refactoring until targets".
 allowed-tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "Agent", "Skill"]
 ---
 

@@ -9,7 +9,7 @@ description: |
   "scan for security issues", "find tech debt", or similar dimension-specific requests.
   When used with --plugin flag, analyzes Claude Code plugins across 8 plugin-specific
   dimensions including manifest structure, skill quality, agent design, and conventions.
-allowed-tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "Agent", "AskUserQuestion", "mcp__plugin_context7_context7__resolve-library-id", "mcp__plugin_context7_context7__query-docs", "mcp__claude_ai_Context7__resolve-library-id", "mcp__claude_ai_Context7__query-docs"]
+allowed-tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "Agent", "AskUserQuestion", "mcp__claude_ai_Context7__resolve-library-id", "mcp__claude_ai_Context7__query-docs"]
 ---
 
 # Analyze Codebase — Orchestrator

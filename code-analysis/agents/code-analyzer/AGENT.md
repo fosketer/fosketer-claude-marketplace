@@ -20,7 +20,7 @@ description: |
 
 model: inherit
 color: cyan
-tools: ["Read", "Grep", "Glob", "Bash", "mcp__plugin_context7_context7__resolve-library-id", "mcp__plugin_context7_context7__query-docs", "mcp__claude_ai_Context7__resolve-library-id", "mcp__claude_ai_Context7__query-docs"]
+tools: ["Read", "Grep", "Glob", "Bash", "mcp__claude_ai_Context7__resolve-library-id", "mcp__claude_ai_Context7__query-docs"]
 ---
 
 You are a Code Analyzer. You run ONE analysis dimension against a codebase and return structured findings.
