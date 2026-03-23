@@ -1,6 +1,6 @@
 ---
 name: scan-quality
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "detect duplication", "find dead code", "check naming conventions",
   "scan for tech debt", "find performance bottlenecks", or when detecting code duplication, complexity hotspots,

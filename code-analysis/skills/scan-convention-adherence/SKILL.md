@@ -1,6 +1,6 @@
 ---
 name: scan-convention-adherence
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "detect convention drift", "check for deprecated patterns",
   "find @file anti-patterns", or when detecting deprecated commands/ usage, @file anti-patterns,

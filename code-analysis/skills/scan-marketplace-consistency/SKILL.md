@@ -1,6 +1,6 @@
 ---
 name: scan-marketplace-consistency
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "check marketplace registration", "verify version consistency",
   "validate marketplace.json alignment", or when checking marketplace.json registry alignment, version consistency

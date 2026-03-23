@@ -8,7 +8,7 @@
 
 # Output Schemas
 
-> schema_version: 0.7.0 — 8→4 standard dimension consolidation (structure, quality, security, testing)
+> schema_version: 0.8.0 — token optimization (split role-specific schemas, inline scoring, skip-clean dimensions); still reflects 8→4 dimension consolidation
 
 > The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 

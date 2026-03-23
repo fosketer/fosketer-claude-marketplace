@@ -1,6 +1,6 @@
 ---
 name: scan-manifest-structure
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "validate plugin.json", "check plugin manifest",
   "verify plugin directory layout", or when validating Claude plugin manifest (plugin.json), directory layout,

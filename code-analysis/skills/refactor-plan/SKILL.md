@@ -1,6 +1,6 @@
 ---
 name: refactor-plan
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "generate refactoring plans", "create a refactoring plan",
   "plan refactoring from analysis", or wants to produce refactoring plans from

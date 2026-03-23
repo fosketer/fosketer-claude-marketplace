@@ -1,6 +1,6 @@
 ---
 name: scan-security
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "find hardcoded secrets", "check for injection vulnerabilities",
   "scan for XSS", "OWASP top 10 audit", or when detecting hardcoded secrets, injection vectors, XSS, auth gaps,

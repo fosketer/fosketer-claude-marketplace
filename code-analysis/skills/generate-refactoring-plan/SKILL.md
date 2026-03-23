@@ -1,6 +1,6 @@
 ---
 name: generate-refactoring-plan
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when generating a focused refactoring plan for a single dimension's findings
   as part of the analyze-codebase pipeline. Dispatched internally by the orchestrator — not for direct user invocation.

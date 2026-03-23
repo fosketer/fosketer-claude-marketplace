@@ -1,6 +1,6 @@
 ---
 name: scan-testing
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "check test coverage", "find flaky tests", "analyze test quality",
   "scan for test isolation issues", or when analyzing test coverage gaps, assertion quality, test isolation,

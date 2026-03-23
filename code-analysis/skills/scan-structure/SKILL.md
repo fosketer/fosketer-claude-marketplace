@@ -1,6 +1,6 @@
 ---
 name: scan-structure
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "analyze module structure", "find circular dependencies",
   "check layering violations", "detect anti-patterns", or when analyzing module structure, dependency graph,

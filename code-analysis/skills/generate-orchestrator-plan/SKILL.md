@@ -1,6 +1,6 @@
 ---
 name: generate-orchestrator-plan
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "generate orchestrator plan", "create master execution plan",
   "sequence refactoring phases", or when generating a master orchestrator plan that ties together all per-dimension

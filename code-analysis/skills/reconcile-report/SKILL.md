@@ -1,6 +1,6 @@
 ---
 name: reconcile-report
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "reconcile findings", "deduplicate cross-dimension results",
   "assemble unified report", or when performing cross-dimension deduplication, scoring, and unified report assembly.

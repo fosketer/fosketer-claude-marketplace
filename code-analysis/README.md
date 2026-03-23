@@ -223,7 +223,7 @@ Multi-language projects (e.g., Tauri = Rust + TypeScript) supported with multipl
 
 ```
 code-analysis/
-├── .claude-plugin/plugin.json    # v0.7.0
+├── .claude-plugin/plugin.json    # v0.8.0
 ├── skills/                       # 18 skills
 │   ├── analyze-codebase/         # Orchestrator (10-stage pipeline)
 │   ├── ralph-loop/               # Iterative fix loop with crash recovery
@@ -261,6 +261,17 @@ code-analysis/
 ```
 
 ## Changelog
+
+### v0.8.0 (2026-03-23) — Token optimization
+
+Six features to reduce token consumption by 5-8x while maintaining analysis quality:
+
+1. **Skip-clean dimensions** — dimensions at/above target are skipped during ralph-loop re-scans (safety-net every 5th iteration)
+2. **Inline scanner scoring** — scanners self-score and persist to disk; reconciler bypassed on `--draft-only` re-scans
+3. **Reference file splitting** — `output-schemas.md` split into 5 role-specific fragments (~7KB per agent vs 26KB)
+4. **Smart model defaults** — scanners and critics default to Sonnet; reconciliation and planning inherit session model
+5. **Mechanical fix bypass** — plugin structural dimensions skip the superpowers brainstorm/plan pipeline
+6. **Per-dimension tracking** — stall detection with progressive model escalation (Sonnet → Opus)
 
 ### v0.7.0 (2026-03-23)
 - **Dimension consolidation**: 8 standard dimensions merged to 4 (structure, quality, security, testing)

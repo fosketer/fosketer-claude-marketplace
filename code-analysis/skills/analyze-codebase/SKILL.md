@@ -1,6 +1,6 @@
 ---
 name: analyze-codebase
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when the user asks to "analyze this codebase", "scan for issues",
   "find refactoring opportunities", "code analysis", "audit this project",
