@@ -158,6 +158,18 @@ Additional parameters for each code-analyzer agent:
 
 ### Stage 3 — Reconcile (report-reconciler agent)
 
+**When `--draft-only` is set (re-scan mode, v0.8.0):**
+
+Since scanners now self-score and self-persist (v0.8.0), the orchestrator SHOULD compute the overall score inline instead of dispatching a reconciler agent:
+
+1. Collect `{ dimension, score, raw_penalty }` from each scanner response
+2. Compute overall weighted score: `overall = Σ(score × weight) / Σ(weights)` using weights from `--weights` flag (default all 1.0)
+3. Build a minimal `scores.json` from scanner outputs and persist to `.code-analysis/reports/YYYY-MM-DD-scores.json`
+4. Skip reconciler dispatch entirely
+5. Present dimension scores summary to user. Exit.
+
+**When `--draft-only` is NOT set (full analysis mode):**
+
 Dispatch the `report-reconciler` agent with:
 - All dimension findings arrays
 - Stack information
@@ -175,7 +187,7 @@ The agent will:
 5. Auto-persist scores to `.code-analysis/reports/YYYY-MM-DD-scores.json`
 6. Auto-persist raw scan reports to `.code-analysis/scan-reports/YYYY-MM-DD-{dimension}.json`
 
-**If `--draft-only`**: Stop here. Present the overall score and dimension scores summary to the user. Exit.
+**If `--draft-only`**: The inline scoring above already handled this. Stop here.
 
 ### Stage 4 — Critique Report (report-critic agent)
 
