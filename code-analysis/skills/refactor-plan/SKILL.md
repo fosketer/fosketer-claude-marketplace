@@ -36,7 +36,7 @@ Examples:
 
 ```
 /myapp --priority=security-first
-/myapp --from-analysis=2026-03-01 --dimensions=security,architecture
+/myapp --from-analysis=2026-03-01 --dimensions=security,structure
 /myapp --skip-critics
 ```
 
@@ -48,11 +48,11 @@ If the target path is relative, resolve it from the current working directory be
   - `latest` — use the most recent scan reports (highest-date directory or file prefix)
   - `YYYY-MM-DD` — use reports from a specific date; fail with a clear message if that date has no reports
 - `--dimensions` (optional): Comma-separated list of dimensions to generate plans for. Defaults to all dimensions that have findings.
-  - Valid values: `architecture`, `quality`, `dependencies`, `patterns`, `testing`, `performance`, `security`, `tech-debt`
+  - Valid values: `structure`, `quality`, `security`, `testing`. Aliases: `arch`→structure, `patterns`→structure, `deps`→testing+security, `perf`→quality, `debt`→quality
   - Any unrecognized dimension name SHOULD generate a warning, not a hard failure
 - `--priority` (optional): Override the default phase assignment strategy.
-  - `security-first` (default) — security in Phase 1, then architecture, then rest
-  - `architecture-first` — architecture in Phase 1, security and deps in Phase 2
+  - `security-first` (default) — security in Phase 1, then structure, then rest
+  - `architecture-first` — structure in Phase 1, security alongside
   - `quick-wins-first` — all low-effort findings in Phase 1 regardless of dimension
 - `--skip-critics` (optional): Skip the plan-critic feedback loop. Default: false.
 - `--critic-iterations=N` (optional): Max critic feedback iterations. Default: 3. Must be between 1 and 5 inclusive; values outside this range MUST be clamped with a warning.
@@ -170,19 +170,18 @@ Example summary:
 ```
 Refactoring plans generated for /myapp
 
-Dimensions planned: 4 (security, architecture, quality, tech-debt)
+Dimensions planned: 3 (security, structure, quality)
 Total findings addressed: 31
 
 Execution phases:
-  Phase 1 — Quick Wins & Security (security, tech-debt quick): ~0.5d
-  Phase 2 — Foundation (architecture): ~1.5d
-  Phase 3 — Deep Refactoring (quality, tech-debt deep): ~2d
+  Phase 1 — Security (security): ~0.5d
+  Phase 2 — Foundation (structure): ~1.5d
+  Phase 3 — Deep Refactoring (quality): ~2d
 
 Plans written:
   .code-analysis/plans/2026-03-20-security-plan.md
-  .code-analysis/plans/2026-03-20-architecture-plan.md
+  .code-analysis/plans/2026-03-20-structure-plan.md
   .code-analysis/plans/2026-03-20-quality-plan.md
-  .code-analysis/plans/2026-03-20-tech-debt-plan.md
   .code-analysis/plans/2026-03-20-orchestrator-plan.md
 
 Critic: passed on iteration 1
@@ -207,7 +206,7 @@ When the `plan-critic` runs, it will check whether excluded dimensions have find
 
 ### --priority and critic ordering checks
 
-The `--priority` flag affects only the `generate-orchestrator-plan` sub-skill's phase assignment logic. The `plan-critic` agent is aware of the active priority override and adjusts its ordering checks accordingly: for example, with `--priority=architecture-first`, the critic will not flag architecture being in Phase 1 as an ordering error.
+The `--priority` flag affects only the `generate-orchestrator-plan` sub-skill's phase assignment logic. The `plan-critic` agent is aware of the active priority override and adjusts its ordering checks accordingly: for example, with `--priority=architecture-first`, the critic will not flag structure being in Phase 1 as an ordering error.
 
 The one exception is the security rule: `plan-critic` ALWAYS flags security being outside Phase 1 regardless of the `--priority` setting. This check cannot be overridden.
 

@@ -15,7 +15,7 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 
 ## Input
 
-- `DIMENSION`: The dimension name (e.g., `"architecture"`, `"quality"`)
+- `DIMENSION`: The dimension name (e.g., `"structure"`, `"quality"`)
 - `FINDINGS`: Array of Finding objects from the corresponding scan skill (see the Finding schema in `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`)
 - `STACK`: Detected language/framework object with `languages` and `frameworks` arrays
 - `PROJECT_PATH`: Root directory of the project

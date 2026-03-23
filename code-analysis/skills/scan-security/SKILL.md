@@ -141,7 +141,17 @@ If `MODE=plugin`:
 3. Check for other security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`
 4. Severity: **high** for wildcard CORS on authenticated endpoints, **medium** for missing security headers
 
-### Step 10 — Produce Findings
+### Step 10 — Check for Known Vulnerabilities (CVE)
+
+1. Use Context7 MCP (resolve-library-id then query-docs) to query for known security advisories on detected dependencies
+2. If Context7 is unavailable, use Bash to run ecosystem-specific audit commands:
+   - **Node.js**: `npm audit --json` (if package-lock.json exists)
+   - **Python**: `pip-audit --format=json` or `safety check --json` (if available)
+   - **C#**: `dotnet list package --vulnerable --format json` (if SDK is available)
+3. For each vulnerability found, record: CVE ID (if available), affected package, severity from advisory, fixed version
+4. Severity: Map from advisory severity — **critical**, **high**, **medium**, **low**
+
+### Step 11 — Produce Findings
 
 Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`:
 
@@ -188,6 +198,7 @@ Return the findings array to the orchestrator.
 - [ ] SSRF vectors checked
 - [ ] Sensitive data in logs detected
 - [ ] Security headers and CORS configuration reviewed
+- [ ] Known CVE vulnerabilities queried (via Context7 or CLI audit)
 - [ ] All findings match the Finding schema
 - [ ] Findings array returned to orchestrator
 

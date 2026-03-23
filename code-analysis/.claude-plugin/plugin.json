@@ -1,7 +1,7 @@
 {
   "name": "code-analysis",
-  "version": "0.6.1",
-  "description": "Comprehensive codebase analysis across any language/framework — produces scored reports with critic validation and focused refactoring plans.",
+  "version": "0.7.0",
+  "description": "Comprehensive codebase analysis across 4 standard dimensions (structure, quality, security, testing) — produces scored reports with critic validation and focused refactoring plans.",
   "author": {
     "name": "Vooban Developer Team",
     "email": "dev@vooban.com"
@@ -11,10 +11,9 @@
     "analysis",
     "refactoring",
     "code-quality",
-    "architecture",
+    "structure",
     "security",
-    "performance",
-    "tech-debt",
+    "testing",
     "scoring",
     "plugin-analysis"
   ],

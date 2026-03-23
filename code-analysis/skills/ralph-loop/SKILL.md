@@ -36,10 +36,10 @@ The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×crit
 - `--targets` flag → multi-dimension mode (2+ dimensions)
 - `--targets` with a single dimension → auto-converted to single-dimension mode for state file consistency
 - Cannot mix positional args and `--targets` — error if both provided
-- Dimension shorthand: `arch` → architecture, `deps` → dependencies, `perf` → performance, `debt` → tech-debt
+- Dimension shorthand: `struct` → structure, `quality`, `security`, `testing`. Backwards-compat aliases: `arch` → structure, `patterns` → structure, `deps` → (adds both security + testing), `perf` → quality, `debt` → quality
 - Plugin dimension shorthand (requires `--plugin`): `mnf` → manifest-structure, `skl` → skill-quality, `agt` → agent-design, `hkc` → hook-correctness, `mkt` → marketplace-consistency, `cvn` → convention-adherence
-- When `--plugin` is set, only plugin-valid dimensions are accepted: quality, deps/dependencies, debt/tech-debt, security, mnf/manifest-structure, skl/skill-quality, agt/agent-design, hkc/hook-correctness, mkt/marketplace-consistency, cvn/convention-adherence
-- Non-plugin dimensions (arch, patterns, perf, testing) with `--plugin` flag → error: "Dimension '{name}' is not available in plugin mode"
+- When `--plugin` is set, only plugin-valid dimensions are accepted: quality, security, mnf/manifest-structure, skl/skill-quality, agt/agent-design, hkc/hook-correctness, mkt/marketplace-consistency, cvn/convention-adherence
+- Non-plugin dimensions (struct, testing) with `--plugin` flag → error: "Dimension '{name}' is not available in plugin mode"
 - `--model` flag → stored as-is, passed through verbatim to all `/analyze-codebase` invocations. Ralph-loop does not resolve model config — resolution happens inside analyze-codebase.
 
 ### Validation
@@ -53,12 +53,12 @@ The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×crit
 
 ```markdown
 # Ralph-Loop State
-dimension: architecture
+dimension: structure
 target: 10
 current_score: 6.0
 starting_score: 1.0
-plan_path: .code-analysis/plans/2026-03-19-arch-plan.md
-completed_finding_ids: [arch-001, arch-003, arch-005]
+plan_path: .code-analysis/plans/2026-03-19-structure-plan.md
+completed_finding_ids: [STRC-8f3a21-a1b2, STRC-000000-c3d4, STRC-2b4e6a-e5f6]
 last_commit_sha: 2614d94a
 starting_commit_sha: a1b2c3d4
 phase: committed
@@ -69,7 +69,7 @@ last_updated_at: 2026-03-19T14:26:48Z
 mode: plugin  # only present when --plugin was passed
 ```
 
-> **Note on finding ID format:** `completed_finding_ids` uses the scanner's fingerprint ID format: `{DIM}-{file_hash6}-{title_hash4}` (e.g., `ARCH-8f3a21-a1b2`). Title-hash IDs are stable across code shifts, unlike the deprecated line-bucket format.
+> **Note on finding ID format:** `completed_finding_ids` uses the scanner's fingerprint ID format: `{DIM}-{file_hash6}-{title_hash4}` (e.g., `STRC-8f3a21-a1b2`). Title-hash IDs are stable across code shifts, unlike the deprecated line-bucket format.
 
 > **Scoring formula:** `current_score` and `target` use the authoritative formula from `skills/reconcile-report/SKILL.md`: `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×critical + 2×high + 1×medium + 0.5×low`. The floor is **1.0**, not 0.
 
@@ -99,19 +99,19 @@ When running in multi-dimension mode, `.claude/loop-state.md` uses an extended f
 ```markdown
 # Ralph-Loop State
 mode: multi
-targets: { architecture: 8, patterns: 9 }
-current_scores: { architecture: 1.0, patterns: 1.0 }
-starting_scores: { architecture: 1.0, patterns: 1.0 }
-plan_paths: { architecture: .code-analysis/plans/2026-03-19-architecture-plan.md, patterns: .code-analysis/plans/2026-03-19-patterns-plan.md }
-completed_finding_ids: [ARCH-1ec634-0000, PAT-8d5fec-0020]
+targets: { structure: 8, quality: 9 }
+current_scores: { structure: 1.0, quality: 1.0 }
+starting_scores: { structure: 1.0, quality: 1.0 }
+plan_paths: { structure: .code-analysis/plans/2026-03-19-structure-plan.md, quality: .code-analysis/plans/2026-03-19-quality-plan.md }
+completed_finding_ids: [STRC-1ec634-0000, QUAL-8d5fec-0020]
 last_commit_sha: 2614d94a
 starting_commit_sha: a1b2c3d4
 phase: committed
 iteration: 3
 score_history:
-  - { architecture: 1.0, patterns: 1.0 }
-  - { architecture: 4.5, patterns: 3.0 }
-  - { architecture: 6.0, patterns: 5.5 }
+  - { structure: 1.0, quality: 1.0 }
+  - { structure: 4.5, quality: 3.0 }
+  - { structure: 6.0, quality: 5.5 }
 started_at: 2026-03-19T06:25:42Z
 last_updated_at: 2026-03-19T14:26:48Z
 ```
@@ -126,6 +126,8 @@ last_updated_at: 2026-03-19T14:26:48Z
 - `starting_commit_sha` — recorded at first run, used for accumulated diff scope (same in both modes)
 
 **Backward compatibility:** If `mode` key is absent, treat as single-dimension (existing format). Old state files work unchanged.
+
+**v0.6→v0.7 state migration:** If a state file contains old dimension names (`architecture`, `patterns`, `performance`, `tech-debt`, `dependencies`), map them automatically: `architecture`→structure, `patterns`→structure, `performance`→quality, `tech-debt`→quality, `dependencies`→security+testing. Clear `completed_finding_ids` containing old prefixes (`ARCH-`, `PAT-`, `PERF-`, `DEBT-`, `DEP-`) since those IDs no longer exist. Log migration: `"Migrated state from v0.6 dimension '{old}' to v0.7 dimension '{new}'"`.
 
 **Exit condition:** Loop exits when `current_scores[dim] >= targets[dim]` for **every** dimension.
 
@@ -266,7 +268,7 @@ Then stop. Do nothing else.
   ```
   ```
   mode: multi
-  targets: { architecture: 8, patterns: 9 }
+  targets: { structure: 8, quality: 9 }
   starting_commit_sha: <captured SHA>
   phase: scanning
   started_at: <ISO 8601 now>
@@ -274,7 +276,7 @@ Then stop. Do nothing else.
   ```
 - Invoke analyze-codebase with all target dimensions:
   ```
-  /analyze-codebase --dimensions=arch,patterns --skip-critics [--model MODEL_SPEC if provided]
+  /analyze-codebase --dimensions=struct,quality --skip-critics [--model MODEL_SPEC if provided]
   ```
   When `--plugin` is set, pass `--plugin` to all `/analyze-codebase` invocations.
   **Note:** The initial scan does not use `--changed-files-hint` since there is no prior commit SHA to diff against.
@@ -287,17 +289,17 @@ Then stop. Do nothing else.
 - After scan completes, update `.claude/loop-state.md`:
   ```
   mode: multi
-  targets: { architecture: 8, patterns: 9 }
-  current_scores: { architecture: <score>, patterns: <score> }
-  starting_scores: { architecture: <score>, patterns: <score> }
-  plan_paths: { architecture: <path>, patterns: <path> }
+  targets: { structure: 8, quality: 9 }
+  current_scores: { structure: <score>, quality: <score> }
+  starting_scores: { structure: <score>, quality: <score> }
+  plan_paths: { structure: <path>, quality: <path> }
   completed_finding_ids: []
   last_commit_sha:
   starting_commit_sha: <preserved from above>
   phase: planning
   iteration: 0
   score_history:
-    - { architecture: <score>, patterns: <score> }
+    - { structure: <score>, quality: <score> }
   started_at: <preserved from above>
   last_updated_at: <ISO 8601 now>
   ```
@@ -318,9 +320,9 @@ When in multi-dimension mode, findings are selected across ALL dimensions' plans
 4. Sort by priority descending, pick top 3-5 (not yet in `completed_finding_ids`)
 5. Effort tiebreaker: among equal-priority findings, prefer smaller effort (trivial → small → medium → large → xl)
 
-**Example:** Architecture at 1.0 (target 8, gap=7), patterns at 5.0 (target 9, gap=4). A high-severity architecture finding scores `2 × 7 = 14`, a high-severity patterns finding scores `2 × 4 = 8`. Architecture findings get picked first.
+**Example:** Structure at 1.0 (target 8, gap=7), quality at 5.0 (target 9, gap=4). A high-severity structure finding scores `2 × 7 = 14`, a high-severity quality finding scores `2 × 4 = 8`. Structure findings get picked first.
 
-**Cross-dimension fixes:** When a fix resolves findings in multiple dimensions (e.g., refactoring a god struct that spans architecture and patterns), add ALL affected finding IDs to `completed_finding_ids` regardless of dimension. The re-scan naturally drops resolved findings from all dimensions.
+**Cross-dimension fixes:** When a fix resolves findings in multiple dimensions (e.g., refactoring a god struct that spans structure and quality), add ALL affected finding IDs to `completed_finding_ids` regardless of dimension. The re-scan naturally drops resolved findings from all dimensions.
 
 **Single-dimension mode:** Unchanged — select next 3-5 findings from the plan, prioritizing trivial → small → medium effort.
 
@@ -489,7 +491,7 @@ Before outputting `<promise>SCORE_REACHED</promise>`, run a final verification s
 If all plan steps are completed but score < TARGET, the codebase has changed enough to warrant a fresh scan. Clear `completed_finding_ids` and delete `loop-state.md`, then on the next iteration a new plan will be generated (Step 3).
 
 **Multi-dimension:**
-- **One dimension's plan exhausted, score below target:** Clear its IDs from `completed_finding_ids` using the finding ID prefix (e.g., `ARCH-*` belongs to architecture, `PAT-*` to patterns). Next scan generates a fresh plan for that dimension. Other dimensions continue using their existing plans.
+- **One dimension's plan exhausted, score below target:** Clear its IDs from `completed_finding_ids` using the finding ID prefix (e.g., `STRC-*` belongs to structure, `QUAL-*` to quality). Next scan generates a fresh plan for that dimension. Other dimensions continue using their existing plans.
 - **All plans exhausted, any score below target:** Clear all `completed_finding_ids`, delete `loop-state.md`. Next iteration starts fresh (Step 3).
 
 ## How to Run
@@ -509,7 +511,7 @@ minimum score (e.g. 6 for a quick win, 9 for full quality):
 ### Multi-dimension
 
 ```bash
-/code-analysis:ralph-loop --targets="arch:8,patterns:9,security:10" --completion-promise "SCORE_REACHED" --max-iterations 10
+/code-analysis:ralph-loop --targets="struct:8,quality:9,security:10" --completion-promise "SCORE_REACHED" --max-iterations 10
 ```
 
 All target dimensions are scanned together each iteration, preserving cross-scanner context. Findings are selected across all dimensions using a gap-weighted priority algorithm. The loop exits when every dimension reaches its own target.
@@ -520,8 +522,8 @@ All target dimensions are scanned together each iteration, preserving cross-scan
 
 ```
 Ralph-loop stopped after 6 iterations (max reached)
-  architecture: 1.0 -> 7.5 (target: 8) -- not reached
-  patterns: 1.0 -> 9.0 (target: 9) -- reached
+  structure: 1.0 -> 7.5 (target: 8) -- not reached
+  quality: 1.0 -> 9.0 (target: 9) -- reached
 ```
 
 ### Error Handling (multi-dimension)
@@ -537,14 +539,10 @@ Ralph-loop stopped after 6 iterations (max reached)
 
 | Flag | Dimension | Why First |
 |------|-----------|-----------|
-| `arch` | Architecture | Fewest findings, fastest win |
-| `debt` | Tech-debt | Many XS/S effort items |
+| `struct` | Structure | Fewest findings, fastest win |
 | `security` | Security | 1 critical clears fast |
-| `perf` | Performance | Mostly medium items |
-| `patterns` | Patterns | Many low-effort structural fixes |
-| `deps` | Dependencies | Cargo.toml updates, mostly XS |
-| `quality` | Quality | 20 findings, largest batch |
-| `testing` | Testing | 2 criticals, largest effort, do last |
+| `quality` | Quality | Many items spanning code health, debt, and perf |
+| `testing` | Testing | Coverage gaps + dependency hygiene, largest effort, do last |
 
 ## Verification After Each Dimension
 

@@ -29,7 +29,7 @@ You are a Code Analyzer. You run ONE analysis dimension against a codebase and r
 
 You will receive:
 - A target path to analyze
-- A dimension to scan (architecture, quality, dependencies, patterns, testing, performance, security, tech-debt, manifest-structure, skill-quality, agent-design, hook-correctness, marketplace-consistency, convention-adherence)
+- A dimension to scan (structure, quality, security, testing, manifest-structure, skill-quality, agent-design, hook-correctness, marketplace-consistency, convention-adherence)
 - Stack information (languages, frameworks) or instructions to auto-detect
 - MODE (optional): "plugin" when running in plugin analysis mode
 - PLUGIN_PROFILES_DIR (when MODE=plugin): path to plugin reference profiles
@@ -69,7 +69,7 @@ Profile mapping:
 - hook-correctness → `hook-conventions.md`
 - marketplace-consistency → `marketplace-conventions.md`
 - convention-adherence → all profiles
-- quality, dependencies, tech-debt, security → no profile needed (adapted dimensions use their scan skill's built-in plugin logic)
+- quality, security → no profile needed (adapted dimensions use their scan skill's built-in plugin logic)
 
 Do NOT load language-profiles or framework-profiles in plugin mode.
 

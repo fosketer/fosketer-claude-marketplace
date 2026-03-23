@@ -44,11 +44,11 @@ Compare `expected_score` with `dimension_scores[].score`. Tolerance: ±0.1 (roun
 
 **Example**:
 ```
-architecture dimension raw findings: 2 critical, 3 high, 1 medium, 0 low
+structure dimension raw findings: 2 critical, 3 high, 1 medium, 0 low
 Penalty = 2*3 + 3*2 + 1*1 + 0*0.5 = 6 + 6 + 1 = 13 → min(13, 9) = 9
 Expected score = max(1.0, 10 - 9) = max(1.0, 1) = 1.0
 
-scores.json says architecture score = 2.5 → deviation = 1.5 → BLOCKING
+scores.json says structure score = 2.5 → deviation = 1.5 → BLOCKING
 ```
 
 **Cross-dimension consistency** (skip if `dimensions_analyzed` has < 2 entries):
@@ -101,9 +101,9 @@ For each flagged case, raise a `coverage-gap` warning. This check is advisory �
 **Dimension balance** (skip entirely if < 2 dimensions were analyzed):
 
 Among analyzed dimensions only, flag if one dimension has 20+ findings while a semantically related analyzed dimension has 0. Related pairs:
-- `architecture` ↔ `patterns` (high architecture issues with zero pattern issues is suspicious)
+- `structure` ↔ `quality` (high structure issues with zero quality issues is suspicious)
 - `quality` ↔ `testing` (many quality issues with zero testing issues suggests test scan may have been shallow)
-- `security` ↔ `dependencies` (security issues with zero dependency findings is worth flagging for CVE checks)
+- `security` ↔ `testing` (security CVE findings with zero testing/dependency-hygiene findings is worth flagging)
 
 **Issue category**: `coverage-gap`
 **Severity**: always `warning`
@@ -224,8 +224,8 @@ Rules:
       "category": "score-calibration",
       "severity": "blocking",
       "description": "Architecture score in scores.json is 2.5, but formula yields 1.0 for the observed finding profile (2 critical, 3 high, 1 medium).",
-      "suggestion": "Recompute the architecture score using: max(1.0, 10 - min(2*3 + 3*2 + 1*1, 9)) = 1.0",
-      "context": "architecture dimension"
+      "suggestion": "Recompute the structure score using: max(1.0, 10 - min(2*3 + 3*2 + 1*1, 9)) = 1.0",
+      "context": "structure dimension"
     },
     {
       "category": "coverage-gap",

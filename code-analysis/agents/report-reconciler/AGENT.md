@@ -5,7 +5,7 @@ description: |
   unified, deduplicated, scored report. Also used with --deep for root cause analysis.
 
   <example>
-  Context: Orchestrator has collected all dimension findings
+  Context: Orchestrator has collected all 4 dimension findings
   user: "Analyze this codebase"
   assistant: "All scans complete. Dispatching report-reconciler to deduplicate and score."
   <commentary>Deduplicates, scores, produces unified draft report.</commentary>

@@ -1,5 +1,7 @@
 # Output Schemas
 
+> schema_version: 0.7.0 — 8→4 standard dimension consolidation (structure, quality, security, testing)
+
 > The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 JSON schemas for all structured outputs produced by the code-analysis plugin. All scan skills and plan generators MUST conform to these schemas.
@@ -19,11 +21,11 @@ Each individual finding produced by a scan dimension.
       "type": "string",
       "pattern": "^[A-Z]{3,4}-(000000-[0-9a-f]{4}|[0-9a-f]{6}-[0-9a-f]{4})(-[2-9]\\d*)?$",
       "description": "Deterministic fingerprint: {DIM}-{file_hash6}-{title_hash4} for file findings, {DIM}-000000-{title_hash4} for null-file findings. Collision suffix starts at -2.",
-      "examples": ["ARCH-8f3a21-a1b2", "SEC-000000-a7f2", "QUAL-8f3a21-a1b2-2"]
+      "examples": ["STRC-8f3a21-a1b2", "SEC-000000-a7f2", "QUAL-8f3a21-a1b2-2"]
     },
     "dimension": {
       "type": "string",
-      "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"],
+      "enum": ["structure", "quality", "security", "testing", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"],
       "description": "The scan dimension that produced this finding"
     },
     "title": {
@@ -111,7 +113,7 @@ Output of a single scan dimension execution.
         },
         "dimension": {
           "type": "string",
-          "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"]
+          "enum": ["structure", "quality", "security", "testing", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"]
         },
         "project_path": {
           "type": "string",
@@ -190,7 +192,7 @@ Output of the plan generator for a single dimension's findings.
         },
         "dimension": {
           "type": "string",
-          "enum": ["architecture", "quality", "dependencies", "patterns", "testing", "performance", "security", "tech-debt", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"]
+          "enum": ["structure", "quality", "security", "testing", "manifest-structure", "skill-quality", "agent-design", "hook-correctness", "marketplace-consistency", "convention-adherence"]
         },
         "project_path": {
           "type": "string"

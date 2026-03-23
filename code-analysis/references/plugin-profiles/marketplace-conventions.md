@@ -178,7 +178,7 @@ Based on the `fosketer-claude-marketplace` implementation:
     {
       "name": "code-analysis",
       "source": "./code-analysis",
-      "description": "Multi-dimensional codebase analysis — architecture, dependencies, patterns, performance, quality, security, tech debt, and testing scans with refactoring plan generation"
+      "description": "Multi-dimensional codebase analysis — structure, quality, security, and testing scans with scored reports, critic validation, and refactoring plan generation"
     }
   ]
 }

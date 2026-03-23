@@ -49,7 +49,7 @@ Apply hard deduplication rules (do NOT use LLM-based title similarity judgment):
 
 **When merging:**
 - Keep the higher severity
-- Combine dimension tags: `"dimensions": ["architecture", "patterns"]`
+- Combine dimension tags: `"dimensions": ["structure", "quality"]`
 - Keep the finding with the most specific line numbers
 - Merge recommendations (deduplicate identical ones)
 - Assign the merged finding to the dimension with the highest weight
@@ -59,7 +59,7 @@ Apply hard deduplication rules (do NOT use LLM-based title similarity judgment):
 
 | Finding ID | Absorbed By | Reason |
 |-----------|-------------|--------|
-| ARCH-a1b2c3-0140  | QUAL-d4e5f6-0080    | Same file + overlapping lines (Rule 1) |
+| STRC-a1b2c3-0140  | QUAL-d4e5f6-0080    | Same file + overlapping lines (Rule 1) |
 
 ### Step 2 — Compute Dimension Scores
 
@@ -162,7 +162,7 @@ Scan the deduplicated findings for patterns:
 - Dimensions where score < 5.0 → flag as critical areas
 - Dimensions with 0 findings → note as clean
 - Clusters of findings in the same file across dimensions → note as hotspot files
-- Significant score gaps between related dimensions (e.g., architecture 3/10 but patterns 9/10) → note inconsistency
+- Significant score gaps between related dimensions (e.g., structure 3/10 but quality 9/10) → note inconsistency
 
 Write 3-5 bullet points summarizing these observations.
 
@@ -186,8 +186,8 @@ Produce a "Root Cause Analysis" section in the report:
 
 | Cluster | Module | Findings | Dimensions | Effort | Recommendation |
 |---------|--------|----------|------------|--------|----------------|
-| C1 | src/commands.rs | 8 | arch, quality, testing, perf | large | Refactor into dispatcher + handlers |
-| C2 | storage/redis_store.rs | 5 | perf, security, quality | medium | Extract storage trait, fix KEYS usage |
+| C1 | src/commands.rs | 8 | structure, quality, testing | large | Refactor into dispatcher + handlers |
+| C2 | storage/redis_store.rs | 5 | quality, security | medium | Extract storage trait, fix KEYS usage |
 ```
 
 If no hot modules exist, omit this section.
@@ -199,8 +199,8 @@ Produce `RootCauseCluster` objects matching the schema in `output-schemas.md`.
 After scoring, assign `priority_tier` to every finding (excluding `wont_fix`) using the rules in `analysis-dimensions.md`:
 
 - `immediate`: security critical, injection/auth-bypass/hardcoded-secrets
-- `sprint-1`: all other criticals, security high, architecture critical
-- `sprint-2`: high severity (non-security), medium severity (architectural/structural)
+- `sprint-1`: all other criticals, security high, structure critical
+- `sprint-2`: high severity (non-security), medium severity (structural)
 - `backlog`: medium severity (style/naming), low, info
 
 Then produce an "Action Plan" section in the report:
@@ -213,13 +213,13 @@ Then produce an "Action Plan" section in the report:
 - SEC-003: SSRF in fetch_url() — small
 
 ### 🟠 Sprint 1
-- ARCH-001: Circular dependency core ↔ workpackage — medium
+- STRC-001: Circular dependency core ↔ workpackage — medium
 
 ### 🟡 Sprint 2
 - QUAL-004: Duplicated validation logic — small
 
 ### ⚪ Backlog
-- DEBT-002: 12 TODO markers in auth module — medium
+- QUAL-002: 12 TODO markers in auth module — medium
 ```
 
 ### Step 4d — Delta Analysis (if PREVIOUS_SCORES provided)
@@ -244,6 +244,8 @@ carry_forward_summary correctly:
 **Old-format detection:** If ANY finding ID in PREVIOUS_SCORES matches `^[a-z-]+-\d{3}$`
 (old sequential format), treat the entire previous report as old-format and skip delta
 comparison (all findings treated as "new").
+
+**v0.6→v0.7 ID prefix migration:** If PREVIOUS_SCORES contains finding IDs with old dimension prefixes (`ARCH-`, `PAT-`, `DEBT-`, `PERF-`, `DEP-`), map them for delta comparison: `ARCH-*`→`STRC-*`, `PAT-*`→`STRC-*`, `DEBT-*`→`QUAL-*`, `PERF-*`→`QUAL-*`, `DEP-*`→`SEC-*` or `TST-*`. If old 8-dim dimension names appear in PREVIOUS_SCORES.dimension_scores, skip delta for those dimensions (dimension count mismatch).
 
 Add a "Run Delta" section to the report with new, resolved, unchanged counts and score deltas.
 
@@ -298,8 +300,8 @@ For each cluster of findings across 2+ dimensions that affect the same files:
 Look for:
 - Files that appear in 3+ dimension findings → "hotspot" pattern
 - Entire directories with consistent issues → "module-level" pattern
-- Missing abstraction layers (architecture + testing + quality issues in same area)
-- Dependency issues causing cascade effects (dependencies → performance → quality)
+- Missing abstraction layers (structure + testing + quality issues in same area)
+- Dependency issues causing cascade effects (testing → quality → security)
 
 ### Step 3 — Suggest Combined Fixes
 

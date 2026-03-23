@@ -44,20 +44,15 @@ For each non-empty plan, assign it to a phase using the table below. Apply `PRIO
 | Dimension | Default Phase | Override condition |
 |-----------|---------------|--------------------|
 | `security` | 1 | NEVER moved — always Phase 1 |
-| `tech-debt` with all steps effort trivial/small | 1 | — |
-| `tech-debt` with any step effort medium/large/xl | 3 | — |
-| `dependencies` | 2 | — |
-| `architecture` | 2 | — |
-| `patterns` | 2 | — |
+| `structure` | 2 | — |
 | `quality` | 3 | — |
-| `performance` | 3 | — |
 | `testing` | 3 | — |
 
-**Security rule**: Security findings MUST be placed in Phase 1 regardless of effort or any override flag. This is a non-negotiable ordering constraint. If `PRIORITY_OVERRIDE=architecture-first` is set, architecture moves to Phase 1 alongside security — it does not displace security.
+**Security rule**: Security findings MUST be placed in Phase 1 regardless of effort or any override flag. This is a non-negotiable ordering constraint. If `PRIORITY_OVERRIDE=architecture-first` is set, structure moves to Phase 1 alongside security — it does not displace security.
 
 **Override rules**:
 - `security-first` (default): no changes to the table above
-- `architecture-first`: move `architecture` to Phase 1; move `dependencies` to Phase 1; move `patterns` to Phase 2 (unchanged); push `quality`, `performance`, `testing`, `tech-debt` deep to Phase 3
+- `architecture-first`: move `structure` to Phase 1; push `quality`, `testing` to Phase 3
 - `quick-wins-first`: All plans where every step has effort `trivial` or `small` move to Phase 1. Remaining plans follow the default table. Security still MUST be in Phase 1.
 
 If `CRITIC_FEEDBACK` references `ordering-error` issues, apply the critic's suggested reordering before proceeding.
@@ -76,21 +71,19 @@ Build a matrix of file overlap between all pairs of non-empty plans:
    - If A is in a later phase than B and they share files: flag as a **phase ordering conflict** and consider moving A to B's phase or earlier.
 
 4. Add semantic dependency edges regardless of file overlap:
-   - `architecture → quality` (quality improvements depend on clean structure)
-   - `architecture → testing` (test structure mirrors module structure)
-   - `dependencies → performance` (performance optimizations may depend on updated library versions)
-   - `security → architecture` (security fixes may affect architectural boundaries)
-   - `patterns → quality` (pattern standardization enables quality improvements)
+   - `structure → quality` (quality improvements depend on clean structure)
+   - `structure → testing` (test structure mirrors module structure)
+   - `security → structure` (security fixes may affect structural boundaries)
 
    Only add these edges when both dimensions have non-empty plans.
 
 **Example file overlap detection**:
 
 Plans:
-- `architecture` file set: `{src/api/router.ts, src/api/handlers.ts, src/services/user.ts}`
+- `structure` file set: `{src/api/router.ts, src/api/handlers.ts, src/services/user.ts}`
 - `quality` file set: `{src/api/handlers.ts, src/utils/formatter.ts}`
 
-Intersection: `{src/api/handlers.ts}` — shared file. Architecture is Phase 2, quality is Phase 3 → correct order, add edge `architecture → quality`.
+Intersection: `{src/api/handlers.ts}` — shared file. Structure is Phase 2, quality is Phase 3 → correct order, add edge `structure → quality`.
 
 ### Step 3 — Build Dependency Graph
 
@@ -108,27 +101,20 @@ Format rules:
 
 ```mermaid
 graph TD
-    subgraph "Phase 1: Quick Wins & Security"
+    subgraph "Phase 1: Security"
         SEC[security]
-        DEBT1[tech-debt quick]
     end
     subgraph "Phase 2: Foundation"
-        ARCH[architecture]
-        DEPS[dependencies]
-        PAT[patterns]
+        STRC[structure]
     end
     subgraph "Phase 3: Deep Refactoring"
         QUAL[quality]
-        PERF[performance]
         TEST[testing]
-        DEBT2[tech-debt deep]
     end
-    SEC --> ARCH
-    ARCH --> QUAL
-    ARCH --> TEST
-    DEPS --> PERF
-    PAT --> QUAL
-    ARCH -.->|"file conflict: src/api/router.ts"| QUAL
+    SEC --> STRC
+    STRC --> QUAL
+    STRC --> TEST
+    STRC -.->|"file conflict: src/api/router.ts"| QUAL
 ```
 
 If only one phase is non-empty, emit a single-node diagram with no edges.
@@ -212,8 +198,8 @@ Compile the `OrchestratorPlan` object matching the schema in `${CLAUDE_PLUGIN_RO
       "phase": 1,
       "name": "Quick Wins & Security",
       "description": "Addresses all critical security findings and low-effort improvements.",
-      "plans": ["security", "tech-debt"],
-      "rationale": "Security findings are always urgent; quick tech-debt wins build momentum."
+      "plans": ["security"],
+      "rationale": "Security findings are always urgent and must be addressed first."
     }
   ],
   "dependency_graph": {

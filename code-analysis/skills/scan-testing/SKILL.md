@@ -109,7 +109,63 @@ Run the language-appropriate coverage command from the LANGUAGE_PROFILE's "Cover
    - Date/time-dependent assertions (`Date.now`, `datetime.now`, `DateTime.Now`)
 3. Severity: **high** for sleep-based waits in unit tests, **medium** for time-dependent assertions
 
-### Step 7 — Produce Findings
+### Sub-Section: Dependency Hygiene
+
+#### Step 7 — Locate and Read Manifests
+
+1. Use Glob to find all dependency manifests in the project:
+   - **Python**: `**/requirements*.txt`, `**/pyproject.toml`, `**/setup.py`, `**/setup.cfg`, `**/Pipfile`, `**/pixi.toml`
+   - **TypeScript/JS**: `**/package.json` (exclude `node_modules/`)
+   - **C#**: `**/*.csproj`, `**/Directory.Packages.props`, `**/global.json`
+   - **Rust**: `**/Cargo.toml`
+   - **Go**: `**/go.mod`, `**/go.sum`
+   - **Dart**: `**/pubspec.yaml`
+2. Read each manifest and extract: package name, declared version/range, whether it is a dev/test dependency
+3. Build a consolidated dependency list with source manifest path for each entry
+
+#### Step 8 — Cross-Reference Imports Against Declarations
+
+1. Grep all source files for import/require/using statements
+2. Map each imported package to its manifest declaration
+3. Identify **unused dependencies**: declared in manifest but never imported in any source file
+   - MUST exclude runtime-only dependencies that are not imported (e.g., plugins, CLI tools, type stubs)
+   - For TypeScript: check both `import` statements and `/// <reference types="..." />`
+   - For Python: check both `import X` and `from X import Y`, account for namespace differences (e.g., `python-dateutil` imports as `dateutil`)
+4. Severity: **medium** for unused dependencies (they add install weight and attack surface)
+
+#### Step 9 — Check for Outdated Dependencies
+
+1. Use Context7 MCP (resolve-library-id then query-docs) to look up current stable versions for key dependencies
+2. If Context7 is unavailable, use Bash to run ecosystem-specific audit commands:
+   - **Node.js**: `npm outdated --json` (if package-lock.json exists)
+   - **Python**: `pip list --outdated --format=json` (if virtual environment is available)
+   - **C#**: `dotnet list package --outdated --format json` (if SDK is available)
+3. Compare declared versions against latest stable versions
+4. Classify by staleness:
+   - **1 major version behind**: **medium** severity
+   - **2+ major versions behind**: **high** severity
+   - **Minor/patch behind only**: **low** severity
+
+#### Step 10 — Detect Duplicate Dependencies
+
+1. Check for multiple packages serving the same purpose:
+   - **HTTP clients**: `axios` + `node-fetch` + `got` (JS/TS); `requests` + `httpx` + `urllib3` (Python)
+   - **Testing**: `jest` + `mocha` + `vitest` (JS/TS); `pytest` + `unittest` + `nose` (Python)
+   - **Validation**: `joi` + `zod` + `yup` (JS/TS); `pydantic` + `marshmallow` + `cerberus` (Python)
+   - **Logging**: `winston` + `pino` + `bunyan` (JS/TS); `logging` + `loguru` + `structlog` (Python)
+   - **ORM**: `typeorm` + `prisma` + `sequelize` (JS/TS); `sqlalchemy` + `django.db` + `peewee` (Python)
+2. Read the language profile for known duplicate-purpose groups
+3. Severity: **low** for potential duplicates (may be intentional), **medium** if both are imported in similar contexts
+
+#### Step 11 — Detect Version Conflicts
+
+1. For monorepos or multi-manifest projects, check if the same package is declared at different versions across manifests
+2. For Node.js: check `package.json` across workspace packages for mismatched versions
+3. For Python: check for conflicting version specifiers across `requirements*.txt` files
+4. For C#: check for version mismatches when `Directory.Packages.props` is not used (central package management)
+5. Severity: **high** for conflicting ranges that cannot resolve, **medium** for mismatched but compatible versions
+
+### Step 12 — Produce Findings
 
 Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`:
 
@@ -143,6 +199,12 @@ Return the findings array to the orchestrator.
 | Very large test suite (>500 test files) | Sample representative modules, note coverage limitation |
 | Non-standard test file naming | Fall back to Grep for assertion keywords across all non-source files |
 | Monorepo with multiple test roots | Discover each test root independently and merge results |
+| No manifest files found | Report as critical finding — project has no declared dependencies |
+| Context7 unavailable | Fall back to local CLI audit tools; if also unavailable, skip version checks and note limitation |
+| CLI audit tools not installed | Skip automated audit, rely on manifest version analysis only, note limitation |
+| Lock file missing | Note as medium finding (non-reproducible builds), proceed with manifest versions |
+| Private/internal packages | Skip version checks for packages from private registries |
+| Monorepo with workspace protocol | Treat workspace references as internal, not external dependencies |
 
 ## Success Checklist
 
@@ -154,6 +216,11 @@ Return the findings array to the orchestrator.
 - [ ] Edge case coverage checked per tested API
 - [ ] Isolation issues detected (shared state, global mocks)
 - [ ] Flakiness indicators identified
+- [ ] All dependency manifests located and parsed
+- [ ] Unused dependencies identified via import cross-reference
+- [ ] Outdated dependencies checked against latest stable versions
+- [ ] Duplicate-purpose packages detected
+- [ ] Version conflicts across manifests identified
 - [ ] All findings match the Finding schema
 - [ ] Findings array returned to orchestrator
 

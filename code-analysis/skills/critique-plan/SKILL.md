@@ -34,8 +34,8 @@ Work through all six checks sequentially. Collect all issues before producing ou
 
 Verify that the orchestrator plan's phases follow the expected structure:
 - Phase 1 MUST contain `security` if a non-empty security plan exists
-- Phase 2 SHOULD contain `architecture`, `dependencies`, and `patterns`
-- Phase 3 SHOULD contain `quality`, `performance`, `testing`, and heavy `tech-debt`
+- Phase 2 SHOULD contain `structure`
+- Phase 3 SHOULD contain `quality` and `testing`
 
 For each deviation from these rules, create an issue with category `dependency-error`.
 
@@ -59,9 +59,9 @@ For each directed edge in the dependency graph (parse the Mermaid `mermaid_code`
 {
   "category": "dependency-error",
   "severity": "blocking",
-  "description": "quality plan is in Phase 1, but architecture plan (which quality depends on) is in Phase 2. Executing quality refactoring before architecture creates a foundation conflict.",
-  "suggestion": "Move quality to Phase 3 or move architecture to Phase 1.",
-  "context": "architecture → quality edge in dependency_graph"
+  "description": "quality plan is in Phase 1, but structure plan (which quality depends on) is in Phase 2. Executing quality refactoring before structure creates a foundation conflict.",
+  "suggestion": "Move quality to Phase 3 or move structure to Phase 1.",
+  "context": "structure → quality edge in dependency_graph"
 }
 ```
 
@@ -168,7 +168,7 @@ Exception: the `security` plan MAY have high risk in Phase 1 — this is expecte
 
 **Foundation before dependents**:
 
-For each edge `A → B` in the dependency graph where A is an architecture or patterns plan:
+For each edge `A → B` in the dependency graph where A is a structure plan:
 - Verify A is in an earlier phase than B
 - If A and B are in the same phase, verify A has a lower index in `execution_phases[].plans`
 
@@ -182,7 +182,7 @@ If `security` appears in `DIMENSIONS_ANALYZED` and a non-empty `security` plan e
   "category": "ordering-error",
   "severity": "blocking",
   "description": "The security plan is assigned to Phase 2. Security findings must always be in Phase 1.",
-  "suggestion": "Move the security plan to Phase 1. Shift architecture to Phase 2 if needed.",
+  "suggestion": "Move the security plan to Phase 1. Shift structure to Phase 2 if needed.",
   "context": "security plan in execution_phases[1]"
 }
 ```

@@ -4,16 +4,16 @@ description: |
   This skill should be used when the user asks to "analyze this codebase", "scan for issues",
   "find refactoring opportunities", "code analysis", "audit this project",
   or wants a comprehensive multi-dimension codebase analysis with refactoring plans.
-  Also use when the user asks to "analyze architecture", "check code quality",
+  Also use when the user asks to "analyze architecture", "analyze structure", "check code quality",
   "scan for security issues", "find tech debt", or similar dimension-specific requests.
-  When used with --plugin flag, analyzes Claude Code plugins across 10 plugin-specific
+  When used with --plugin flag, analyzes Claude Code plugins across 8 plugin-specific
   dimensions including manifest structure, skill quality, agent design, and conventions.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__claude_ai_Context7__resolve-library-id, mcp__claude_ai_Context7__query-docs
 ---
 
 # Analyze Codebase — Orchestrator
 
-Comprehensive codebase analysis across 8 dimensions with scoring, critic validation, and refactoring plans. Supports any language/framework.
+Comprehensive codebase analysis across 4 standard dimensions (structure, quality, security, testing) with scoring, critic validation, and refactoring plans. Supports any language/framework.
 
 The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
@@ -22,7 +22,7 @@ The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are t
 ```
 Stage 1:  Detect Stack (sequential) — or Detect Plugin Structure when --plugin
     |
-Stage 2:  Scan All Dimensions (ALL 8 in parallel, or 10 in --plugin mode)
+Stage 2:  Scan All Dimensions (ALL 4 in parallel, or 8 in --plugin mode)
     |
 Stage 3:  Reconcile (report-reconciler agent — dedup, score, draft report)
     |         -> Auto-persist draft reports to disk
@@ -53,7 +53,7 @@ Target path: $ARGUMENTS (default: current working directory)
 
 ### Optional Flags
 
-- `--dimensions=arch,quality,deps,patterns,testing,perf,security,debt` — restrict dimensions (default: all 8)
+- `--dimensions=struct,quality,security,testing` — restrict dimensions (default: all 4). Aliases: `arch`→structure, `patterns`→structure, `deps`→testing+security, `perf`→quality, `debt`→quality
 - `--stack=python|typescript|csharp|dart|rust|go` — override auto-detected language
 - `--framework=react|dotnet|flutter|tauri|electron|maui` — override auto-detected framework
 - `--weights=dim:N,...` — custom dimension weights for overall score (default: all 1.0). Partial overrides allowed (unspecified dimensions default to 1.0).
@@ -68,7 +68,7 @@ Target path: $ARGUMENTS (default: current working directory)
   - Valid model values: `haiku`, `sonnet`, `opus`, `inherit`
   - Stages: `scanning`, `reconciliation`, `critique`, `planning`
   - Unspecified stages fall through to config files or `inherit`
-- `--plugin` — activate plugin analysis mode. Swaps dimension set to 10 plugin-specific dimensions (4 adapted + 6 new). Requires target to contain `.claude-plugin/plugin.json`.
+- `--plugin` — activate plugin analysis mode. Swaps dimension set to 8 plugin-specific dimensions (2 adapted standard + 6 new). Requires target to contain `.claude-plugin/plugin.json`.
 
 ## Context Efficiency Rules
 
@@ -161,16 +161,16 @@ Stage 1 becomes **Detect Plugin Structure**:
 
 ### Stage 2 — Scan All Dimensions (Full Parallel)
 
-Parse `--dimensions` flag. Default: all 8.
+Parse `--dimensions` flag. Default: all 4.
 
-Dimension map: `arch` → architecture, `quality`, `deps` → dependencies, `patterns`, `testing`, `perf` → performance, `security`, `debt` → tech-debt.
+Dimension map: `struct` → structure, `quality`, `security`, `testing`. Backwards-compat aliases: `arch` → structure, `patterns` → structure, `deps` → (adds both security + testing if not already present), `perf` → quality, `debt` → quality.
 
 When `--plugin` is set, dimension map changes to:
-Plugin dimensions: `quality`, `deps` → dependencies, `debt` → tech-debt, `security`, `mnf` → manifest-structure, `skl` → skill-quality, `agt` → agent-design, `hkc` → hook-correctness, `mkt` → marketplace-consistency, `cvn` → convention-adherence. Default: all 10.
+Plugin dimensions: `quality`, `security`, `mnf` → manifest-structure, `skl` → skill-quality, `agt` → agent-design, `hkc` → hook-correctness, `mkt` → marketplace-consistency, `cvn` → convention-adherence. Default: all 8.
 
-Dimensions NOT available in plugin mode: architecture, patterns, performance, testing.
+Dimensions NOT available in plugin mode: structure, testing.
 
-**Validation**: If `--plugin` is set and `--dimensions` contains a non-plugin dimension (arch, patterns, perf, testing), abort with: `"Dimension '{name}' is not available in plugin mode. Valid plugin dimensions: quality, deps, debt, security, mnf, skl, agt, hkc, mkt, cvn"`
+**Validation**: If `--plugin` is set and `--dimensions` contains a non-plugin dimension (struct, testing), abort with: `"Dimension '{name}' is not available in plugin mode. Valid plugin dimensions: quality, security, mnf, skl, agt, hkc, mkt, cvn"`
 
 **Dispatch ALL `code-analyzer` subagents in parallel** (no batching):
 
@@ -200,7 +200,7 @@ Additional parameters for each code-analyzer agent:
 
 **When `--plugin` is set:**
 
-Parse `--dimensions` flag using plugin dimension map. Default: all 10.
+Parse `--dimensions` flag using plugin dimension map. Default: all 8.
 
 Dispatch ALL `code-analyzer` subagents in parallel with additional parameters:
 - MODE: "plugin"
@@ -365,7 +365,7 @@ Reports and scores were already persisted at Stage 3/5 — do NOT overwrite.
 | Very large project (>5000 files) | Warn, suggest `--dimensions` to focus |
 | Stage 3/5 directory has today's reports | If `--draft-only` is set: always overwrite (automated context, no user to ask). Otherwise: ask user to overwrite or append timestamp suffix |
 | `.code-analysis/overrides.json` references non-existent finding ID | Log warning in report: "Override ID X not found in current findings"; proceed normally |
-| Previous scores.json found but dimensions don't match | Generate partial delta (compare matching dimensions only), note discrepancy |
+| Previous scores.json found but dimensions don't match | Generate partial delta (compare matching dimensions only), note discrepancy. If previous scores use old 8-dim names, skip delta (backwards compat). |
 | Critic loop exhausted | Present all issues to user, ask proceed or abort |
 | Platform limits concurrent agents | Fall back to batches of 4 |
 | report-reconciler fails | Retry once, then surface error to user |

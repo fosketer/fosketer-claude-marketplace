@@ -2,13 +2,26 @@
 
 > The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
-Reference for the 8 scan dimensions used by the code-analysis plugin. Each dimension has a description, what it checks, severity levels, and language-specific considerations.
+Reference for the 4 standard scan dimensions used by the code-analysis plugin. Each dimension has a description, what it checks, severity levels, and language-specific considerations.
+
+> **v0.7.0 migration**: 8 standard dimensions consolidated to 4. Migration table:
+>
+> | Old Dimension | New Dimension | Notes |
+> |---------------|---------------|-------|
+> | architecture | structure | Merged with patterns |
+> | patterns | structure | Merged with architecture |
+> | quality | quality | Absorbed tech-debt + performance |
+> | tech-debt | quality | Absorbed into quality |
+> | performance | quality | Absorbed into quality |
+> | dependencies | security + testing | CVE checks → security; hygiene → testing |
+> | testing | testing | Absorbed dependency hygiene |
+> | security | security | Absorbed CVE vulnerability checks |
 
 ## Dimensions
 
-### 1. Architecture (`scan-architecture`)
+### 1. Structure (`scan-structure`)
 
-- **Purpose**: Module structure, dependency graph, layering violations, circular dependencies
+- **Purpose**: Module structure, dependency graph, layering violations, circular dependencies, design patterns, anti-patterns, pattern consistency, framework idiom adherence, error handling patterns
 - **Checks**:
   - Module boundary violations (cross-layer imports)
   - Circular dependency detection
@@ -16,11 +29,16 @@ Reference for the 8 scan dimensions used by the code-analysis plugin. Each dimen
   - Package/namespace cohesion
   - Entry point clarity
   - Configuration separation
-- **Severity**: critical (circular deps, layer violations), high (cohesion issues), medium (naming)
+  - Design pattern detection (repository, factory, observer, strategy, DI, CQRS, mediator)
+  - Anti-pattern detection (god class, spaghetti, golden hammer, magic numbers, shotgun surgery)
+  - Pattern consistency (same problem solved differently across codebase)
+  - Framework idiom adherence
+  - Error handling patterns (consistent or mixed)
+- **Severity**: critical (circular deps, layer violations), high (anti-patterns in core, inconsistency, cohesion issues), medium (naming, missing patterns, idiom violations)
 
 ### 2. Quality (`scan-quality`)
 
-- **Purpose**: Code duplication, complexity, dead code, naming conventions
+- **Purpose**: Code duplication, complexity, dead code, naming conventions, tech debt, performance anti-patterns
 - **Checks**:
   - Duplicated code blocks (>10 lines or 3+ occurrences)
   - Cyclomatic complexity (>10 per function = warning, >20 = critical)
@@ -29,48 +47,10 @@ Reference for the 8 scan dimensions used by the code-analysis plugin. Each dimen
   - File length (>300 lines = warning, >500 = high)
   - Function length (>50 lines = warning, >100 = high)
   - Parameter count (>5 = warning, >8 = high)
-- **Severity**: critical (dead code in production paths), high (complexity, duplication), medium (naming, length)
-
-### 3. Dependencies (`scan-dependencies`)
-
-- **Purpose**: Outdated, vulnerable, unused, conflicting packages
-- **Checks**:
-  - Outdated dependencies (minor, major, security-critical)
-  - Known vulnerabilities (CVE database via Context7 when available)
-  - Unused dependencies (declared but never imported)
-  - Duplicate dependencies (same purpose, different packages)
-  - Version conflicts (peer dependency mismatches)
-  - License compatibility
-- **Severity**: critical (known CVEs), high (major outdated, unused), medium (minor outdated)
-
-### 4. Patterns (`scan-patterns`)
-
-- **Purpose**: Design pattern usage, anti-patterns, consistency
-- **Checks**:
-  - Design pattern detection (repository, factory, observer, strategy, DI, CQRS, mediator)
-  - Anti-pattern detection (god class, spaghetti, golden hammer, magic numbers, shotgun surgery)
-  - Pattern consistency (same problem solved differently across codebase)
-  - Framework idiom adherence
-  - Error handling patterns (consistent or mixed)
-- **Severity**: critical (anti-patterns in core), high (inconsistency), medium (missing patterns)
-
-### 5. Testing (`scan-testing`)
-
-- **Purpose**: Coverage gaps, test quality, missing edge cases
-- **Checks**:
-  - Untested public APIs/endpoints
-  - Test-to-code ratio
-  - Assertion quality (meaningful vs trivial)
-  - Missing edge case tests (null, empty, boundary)
-  - Test isolation (shared state, order-dependent)
-  - Integration test coverage for external dependencies
-  - Flaky test indicators (timeouts, sleep, race conditions)
-- **Severity**: critical (untested critical paths), high (missing integration tests), medium (assertion quality)
-
-### 6. Performance (`scan-performance`)
-
-- **Purpose**: N+1 queries, re-renders, memory leaks, bundle size
-- **Checks**:
+  - TODO/FIXME/HACK/XXX comments with age
+  - Deprecated API usage (framework and language)
+  - Legacy patterns that have modern replacements
+  - Commented-out code blocks
   - N+1 query patterns (ORM loops)
   - Missing pagination on list endpoints
   - Unbounded collections in memory
@@ -78,11 +58,11 @@ Reference for the 8 scan dimensions used by the code-analysis plugin. Each dimen
   - Bundle size concerns (large imports, no tree-shaking)
   - Missing caching for expensive operations
   - Synchronous blocking in async contexts
-- **Severity**: critical (N+1 in hot paths, memory leaks), high (missing pagination, re-renders), medium (bundle size)
+- **Severity**: critical (dead code in production paths, N+1 in hot paths, memory leaks), high (complexity, duplication, deprecated security APIs, missing pagination), medium (naming, length, TODOs, legacy patterns, bundle size)
 
-### 7. Security (`scan-security`)
+### 3. Security (`scan-security`)
 
-- **Purpose**: OWASP top 10, secrets, injection, auth gaps
+- **Purpose**: OWASP top 10, secrets, injection, auth gaps, CVE vulnerabilities
 - **Checks**:
   - Hardcoded secrets (API keys, passwords, tokens)
   - SQL/NoSQL injection vectors
@@ -94,23 +74,30 @@ Reference for the 8 scan dimensions used by the code-analysis plugin. Each dimen
   - Path traversal
   - SSRF vectors
   - Sensitive data in logs
-- **Severity**: critical (secrets, injection, auth bypass), high (XSS, CSRF), medium (logging, headers)
+  - Known CVE vulnerabilities in dependencies
+- **Severity**: critical (secrets, injection, auth bypass, known CVEs), high (XSS, CSRF), medium (logging, headers)
 
-### 8. Tech Debt (`scan-tech-debt`)
+### 4. Testing (`scan-testing`)
 
-- **Purpose**: TODOs, deprecated APIs, migration opportunities
+- **Purpose**: Coverage gaps, test quality, missing edge cases, dependency hygiene
 - **Checks**:
-  - TODO/FIXME/HACK/XXX comments with age
-  - Deprecated API usage (framework and language)
-  - Legacy patterns that have modern replacements
-  - Migration opportunities (framework version upgrades)
-  - Compatibility shims that can be removed
-  - Pinned versions that should be unpinned
-- **Severity**: critical (deprecated security APIs), high (deprecated core APIs), medium (TODOs, legacy patterns)
+  - Untested public APIs/endpoints
+  - Test-to-code ratio
+  - Assertion quality (meaningful vs trivial)
+  - Missing edge case tests (null, empty, boundary)
+  - Test isolation (shared state, order-dependent)
+  - Integration test coverage for external dependencies
+  - Flaky test indicators (timeouts, sleep, race conditions)
+  - Outdated dependencies (minor, major)
+  - Unused dependencies (declared but never imported)
+  - Duplicate dependencies (same purpose, different packages)
+  - Version conflicts (peer dependency mismatches)
+  - License compatibility
+- **Severity**: critical (untested critical paths), high (missing integration tests, major outdated, unused deps), medium (assertion quality, minor outdated)
 
 ## Plugin-Specific Dimensions (--plugin mode)
 
-These 6 dimensions are activated only when `MODE=plugin`. They validate Claude plugin structure, metadata, and marketplace consistency in addition to the 8 general dimensions above.
+These 6 dimensions are activated only when `MODE=plugin`. They validate Claude plugin structure, metadata, and marketplace consistency in addition to the standard dimensions. In plugin mode, 2 of the 4 standard dimensions are used (`quality` and `security`), giving a total of 8 dimensions.
 
 ### 5p. Manifest & Structure (`scan-manifest-structure`)
 
@@ -201,8 +188,8 @@ Every finding MUST be assigned a `priority_tier` during reconciliation using the
 | Tier | Assignment Rule |
 |------|-----------------|
 | `immediate` | Security critical (any), injection/auth-bypass/hardcoded-secrets findings |
-| `sprint-1` | All other critical findings, security high, architecture critical |
-| `sprint-2` | High severity (non-security), medium severity (architectural/structural) |
+| `sprint-1` | All other critical findings, security high, structure critical |
+| `sprint-2` | High severity (non-security), medium severity (structural) |
 | `backlog` | Medium severity (style/naming), low, info |
 
 **Application order**: Apply the first matching rule top-to-bottom. Security dimension findings use the top two tiers preferentially.
