@@ -1,6 +1,6 @@
 ---
 name: ralph-loop
-version: 0.7.0
+version: 0.8.0
 description: |
   This skill should be used when iteratively improving codebase dimension scores to target thresholds
   using analyze-codebase + ralph-loop. Supports single-dimension (positional args)
@@ -70,6 +70,14 @@ started_at: 2026-03-19T06:25:42Z
 last_updated_at: 2026-03-19T14:26:48Z
 mode: plugin  # only present when --plugin was passed
 ```
+
+```markdown
+converged_dimensions: []
+converged_at_iteration: {}
+```
+
+> **Converged dimensions (v0.8.0):** Dimensions whose score has reached the target. Skipped during re-scans
+> except on safety-net iterations (every 5th). If a converged dimension regresses, it is removed from the list.
 
 > **Note on finding ID format:** `completed_finding_ids` uses the scanner's fingerprint ID format: `{DIM}-{file_hash6}-{title_hash4}` (e.g., `STRC-8f3a21-a1b2`). Title-hash IDs are stable across code shifts, unlike the deprecated line-bucket format.
 
@@ -149,6 +157,16 @@ Write `phase: implementing` and `last_updated_at` to state.
 - Capture SHA, update state: `phase: committed`, `last_commit_sha`, increment `iteration`.
 
 ### Step 7 — Re-scan
+
+**Before dispatching re-scan (v0.8.0 skip-clean optimization):**
+
+For multi-dimension mode, check which dimensions have converged:
+1. For each dimension in targets: if `current_scores[dim] >= targets[dim]` AND dimension is not already in `converged_dimensions`, add it with `converged_at_iteration: <current iteration>`
+2. If `iteration % 5 != 0` (not a safety-net iteration): exclude `converged_dimensions` from the `--dimensions` list passed to analyze-codebase
+3. If `iteration % 5 == 0` (safety-net iteration): scan ALL target dimensions including converged ones. Log: `"Safety-net iteration {N}: scanning all dimensions including converged"`
+4. After re-scan: if any converged dimension's score dropped below its target, remove from `converged_dimensions` and log: `"Regression detected: {dim} dropped to {score} (target {target}), resuming scanning"`
+
+**Single-dimension mode:** Skip-clean does not apply (only one dimension to scan).
 
 For full re-scan logic (carry-forward vs full re-discovery, scan commands, post-scan update), Read `${CLAUDE_PLUGIN_ROOT}/skills/ralph-loop/references/verification-scan.md`.
 

@@ -25,11 +25,12 @@ Run a draft scan:
   ```
 - **Multi-dimension:**
   ```
-  /analyze-codebase --dimensions=dim1,dim2,... --draft-only --skip-critics \
+  /analyze-codebase --dimensions=<active-dims> --draft-only --skip-critics \
     --changed-files-hint="{comma-separated file list from git diff}" \
     [--model MODEL_SPEC if provided]
   ```
-  All target dimensions are scanned together (including dimensions already at target, for cross-dimension context).
+  Where `<active-dims>` excludes converged dimensions (except on safety-net iterations where `iteration % 5 == 0`).
+  Converged dimensions are still tracked in the state file for regression detection.
 
 **Note:** The `--model` flag is passed through verbatim from ralph-loop's input. When `--skip-critics` is active, any `critique` model override is silently unused since critique stages are skipped. This is expected — the flag is not consumed.
 
@@ -47,9 +48,11 @@ Run a draft scan **without** `--changed-files-hint`:
   ```
 - **Multi-dimension:**
   ```
-  /analyze-codebase --dimensions=dim1,dim2,... --draft-only --skip-critics \
+  /analyze-codebase --dimensions=<active-dims> --draft-only --skip-critics \
     [--model MODEL_SPEC if provided]
   ```
+  Where `<active-dims>` excludes converged dimensions (except on safety-net iterations where `iteration % 5 == 0`).
+  Converged dimensions are still tracked in the state file for regression detection.
 
 Force scanners to re-verify ALL previous findings and scan the full codebase for new ones, breaking the carry-forward ratchet effect where findings can be incorrectly marked as resolved and never rediscovered.
 

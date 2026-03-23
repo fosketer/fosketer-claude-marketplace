@@ -121,7 +121,8 @@ Run analyze-codebase with all target dimensions together:
   --changed-files-hint="{comma-separated file list from git diff}" \
   [--model MODEL_SPEC if provided]
 ```
-All target dimensions are scanned together (including dimensions already at target, for cross-dimension context). Update all entries in `current_scores`, append full score map to `score_history`.
+Active dimensions (excluding converged) are scanned. Converged dimensions are skipped unless this is a
+safety-net iteration (`iteration % 5 == 0`). See main skill Step 7 for convergence rules. Update all entries in `current_scores`, append full score map to `score_history`.
 
 ### Step 8 — Completion (Multi-Dimension)
 
@@ -132,7 +133,7 @@ If `current_scores[dim] >= targets[dim]` for every dimension:
 **Mid-loop dimension completion:** When a dimension reaches its target but others have not:
 - Log: `"{dimension} reached {score} (target {target}) — continuing for {remaining dimensions}"`
 - That dimension's findings are no longer selected in batch picks
-- Still scanned each iteration (cross-dimension context)
+- Added to `converged_dimensions`, skipped on non-safety-net iterations
 - If score drops below target due to another fix, re-enters fix pool
 
 ### Step 9 — Plan Refresh (Multi-Dimension)
