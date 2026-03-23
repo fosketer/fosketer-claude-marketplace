@@ -39,8 +39,10 @@ You operate in one of two modes based on input:
 
 Read:
 1. `${CLAUDE_PLUGIN_ROOT}/skills/reconcile-report/SKILL.md` — the reconciliation workflow
-2. `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md` — ScoresReport schema
-3. `${CLAUDE_PLUGIN_ROOT}/templates/analysis-draft.md` — report template
+2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md` — Finding and DimensionReport schemas
+3. `${CLAUDE_PLUGIN_ROOT}/references/schemas/scoring-schema.md` — ScoresReport, IterationTarget, RunDelta, scoring formula
+4. `${CLAUDE_PLUGIN_ROOT}/references/schemas/reconciler-schema.md` — CrossAnalysis, RootCauseCluster, OverrideFile
+5. `${CLAUDE_PLUGIN_ROOT}/templates/analysis-draft.md` — report template
 
 #### Step 2 — Execute Reconciliation
 
@@ -72,7 +74,9 @@ Return to orchestrator:
 
 Read:
 1. `${CLAUDE_PLUGIN_ROOT}/skills/reconcile-report/SKILL.md` — cross-analysis section
-2. `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md` — CrossAnalysis schema
+2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md` — Finding and DimensionReport schemas
+3. `${CLAUDE_PLUGIN_ROOT}/references/schemas/scoring-schema.md` — ScoresReport, IterationTarget, RunDelta, scoring formula
+4. `${CLAUDE_PLUGIN_ROOT}/references/schemas/reconciler-schema.md` — CrossAnalysis schema (and related reconciler outputs)
 
 #### Step 2 — Execute Deep Analysis
 

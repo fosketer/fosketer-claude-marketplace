@@ -47,11 +47,15 @@ You will receive:
 3. Otherwise, load the most recent reports
 4. Parse findings from each dimension report
 
-### Step 2: Read Plan Generation Skills
+### Step 2: Read Plan Generation Skills and Schemas
 
 Read the sub-skills:
 - `${CLAUDE_PLUGIN_ROOT}/skills/generate-refactoring-plan/SKILL.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/generate-orchestrator-plan/SKILL.md`
+
+Read output schemas:
+- `${CLAUDE_PLUGIN_ROOT}/references/schemas/plan-schema.md` — RefactoringPlan and OrchestratorPlan
+- `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md` — Finding schema (maps plans to finding IDs)
 
 ### Step 3: Generate Per-Dimension Plans
 

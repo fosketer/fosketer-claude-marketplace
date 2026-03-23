@@ -42,7 +42,8 @@ You will receive:
 
 Read:
 1. `${CLAUDE_PLUGIN_ROOT}/skills/critique-plan/SKILL.md` — evaluation criteria and workflow
-2. `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md` — CriticFeedback schema
+2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/critic-schema.md` — CriticFeedback schema
+3. `${CLAUDE_PLUGIN_ROOT}/references/schemas/plan-schema.md` — RefactoringPlan and OrchestratorPlan schemas
 
 ### Step 2 — Execute Evaluation
 

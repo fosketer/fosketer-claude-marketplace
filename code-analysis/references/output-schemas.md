@@ -1,3 +1,11 @@
+> **DEPRECATED (v0.8.0):** This file is kept for human reference only. Agents MUST load
+> role-specific fragments from `references/schemas/` instead. See:
+> - `finding-schema.md` — scanners, reconciler
+> - `scoring-schema.md` — scanners, reconciler
+> - `reconciler-schema.md` — reconciler only
+> - `critic-schema.md` — report-critic, plan-critic
+> - `plan-schema.md` — refactoring-planner only
+
 # Output Schemas
 
 > schema_version: 0.7.0 — 8→4 standard dimension consolidation (structure, quality, security, testing)

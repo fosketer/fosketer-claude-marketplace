@@ -41,7 +41,8 @@ You will receive:
 
 Read:
 1. `${CLAUDE_PLUGIN_ROOT}/skills/critique-report/SKILL.md` — evaluation criteria and workflow
-2. `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md` — CriticFeedback schema
+2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/critic-schema.md` — CriticFeedback schema
+3. `${CLAUDE_PLUGIN_ROOT}/references/schemas/scoring-schema.md` — ScoresReport and scoring formula (for score calibration checks)
 
 ### Step 2 — Execute Evaluation
 

@@ -51,16 +51,18 @@ Read the project root for manifest files:
 
 Read ONLY the files needed for THIS dimension:
 1. `${CLAUDE_PLUGIN_ROOT}/skills/scan-{dimension}/SKILL.md` — the scan workflow
-2. `${CLAUDE_PLUGIN_ROOT}/references/language-profiles/{language}.md` — for detected language(s)
-3. `${CLAUDE_PLUGIN_ROOT}/references/framework-profiles/{framework}.md` — if applicable
+2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md` — Finding and DimensionReport schemas (MUST load)
+3. `${CLAUDE_PLUGIN_ROOT}/references/language-profiles/{language}.md` — for detected language(s)
+4. `${CLAUDE_PLUGIN_ROOT}/references/framework-profiles/{framework}.md` — if applicable
 
-Do NOT read other dimension skills, output-schemas, or templates.
+Do NOT read other dimension skills, other schema fragments, or templates.
 
 **When MODE=plugin:**
 
 Read ONLY the files needed for THIS dimension:
 1. `${CLAUDE_PLUGIN_ROOT}/skills/scan-{dimension}/SKILL.md` — the scan workflow
-2. `${CLAUDE_PLUGIN_ROOT}/references/plugin-profiles/{relevant-profile}.md` — instead of language/framework profiles
+2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md` — Finding and DimensionReport schemas (MUST load)
+3. `${CLAUDE_PLUGIN_ROOT}/references/plugin-profiles/{relevant-profile}.md` — instead of language/framework profiles
 
 Profile mapping:
 - manifest-structure → `plugin-structure.md`
