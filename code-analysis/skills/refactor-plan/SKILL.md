@@ -5,7 +5,7 @@ description: |
   "plan refactoring from analysis", or wants to produce refactoring plans from
   existing codebase analysis results without re-scanning.
   Replaces the deprecated /refactor-plan command.
-allowed-tools: Read, Write, Glob, Grep, Agent
+allowed-tools: ["Read", "Write", "Glob", "Grep", "Agent"]
 ---
 
 # Refactor Plan — Generate Refactoring Plans from Analysis
