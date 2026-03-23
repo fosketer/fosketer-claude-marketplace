@@ -84,70 +84,7 @@ For each dimension, after dedup:
 
 ### Step 2b — Estimate Ralph-Loop Iterations
 
-For each dimension, after computing the score in Step 2, estimate how many ralph-loop iterations would be needed to reach three target scores.
-
-#### 2b.1 — Aggregate findings by effort
-
-For each dimension, count scoreable findings (severity != `info`, excluding `wont_fix`) by effort level:
-```
-by_effort = { trivial: 0, small: 0, medium: 0, large: 0, xl: 0 }
-```
-Count each finding's `effort` field into the corresponding bucket.
-
-#### 2b.2 — Compute true_raw
-
-```
-true_raw = 3 × criticals + 2 × highs + 1 × mediums + 0.5 × lows
-```
-
-This is the **unclipped** penalty — it is NOT capped at 9 like the score formula. `true_raw` reveals the actual penalty magnitude: two dimensions both scoring 1.0 may have `true_raw` of 9 vs 50, requiring very different effort.
-
-#### 2b.3 — Compute iteration estimates for each target
-
-Three targets: `quick_win` (5/10), `full_quality` (8/10), `perfect` (10/10).
-
-For each target:
-```
-target_raw = 10 - target_score           # e.g., 10 - 8 = 2
-raw_to_remove = max(0, true_raw - target_raw)
-
-# If dimension already at or above target, estimated = 0
-if raw_to_remove == 0:
-    estimated = 0
-    range = [0, 0]
-else:
-    # Effort cost: how many "iteration slots" each effort level consumes
-    EFFORT_COST = { trivial: 0.20, small: 0.25, medium: 0.40, large: 0.67, xl: 1.00 }
-
-    scoreable_findings = sum(by_effort.values())
-    total_cost = sum(by_effort[level] × EFFORT_COST[level] for level in EFFORT_COST)
-    findings_per_iter = scoreable_findings / total_cost
-    avg_penalty = true_raw / scoreable_findings
-    raw_per_iter = findings_per_iter × avg_penalty
-
-    estimated = ceil(1.4 × raw_to_remove / raw_per_iter)
-    estimated = max(1, min(estimated, scoreable_findings))
-    range = [max(1, estimated - 1), estimated + 1]
-```
-
-**Edge cases**:
-- If `scoreable_findings == 0`: all estimates are 0 (nothing to fix)
-- If dimension already at or above target score: `estimated = 0`, `range = [0, 0]`
-
-#### 2b.4 — Store results
-
-Attach to each dimension score entry:
-```json
-{
-  "by_effort": { "trivial": 2, "small": 3, "medium": 1, "large": 0, "xl": 0 },
-  "iteration_estimates": {
-    "true_raw": 12.5,
-    "quick_win":    { "target_score": 5,  "estimated_iterations": 3, "range": [2, 4] },
-    "full_quality": { "target_score": 8,  "estimated_iterations": 5, "range": [4, 6] },
-    "perfect":      { "target_score": 10, "estimated_iterations": 7, "range": [6, 8] }
-  }
-}
-```
+Compute iteration estimates per `${CLAUDE_PLUGIN_ROOT}/skills/reconcile-report/references/iteration-estimates.md`.
 
 ### Step 3 — Compute Overall Score
 
@@ -227,32 +164,7 @@ Then produce an "Action Plan" section in the report:
 
 ### Step 4d — Delta Analysis (if PREVIOUS_SCORES provided)
 
-If `PREVIOUS_SCORES` is not null:
-
-With fingerprint-based IDs, delta analysis is reliable:
-
-- **Resolved**: IDs in PREVIOUS_SCORES findings but not in current → genuinely fixed
-- **New**: IDs in current but not in PREVIOUS_SCORES → genuinely new issues
-- **Unchanged**: IDs present in both → persistent issues
-
-**Handling merged IDs:**
-During dedup (Step 1), findings may be merged. To handle resolved_ids from
-carry_forward_summary correctly:
-1. Build mapping: {original_scanner_id → merged_id} from dedup table
-2. Check both original and merged IDs when computing deltas
-3. A finding is "resolved" if its scanner ID is in carry_forward_summary.resolved_ids,
-   even if PREVIOUS_SCORES stored a different merged ID
-4. Include both scanner ID and mapped merged ID in resolved_finding_ids
-
-**Old-format detection:** If ANY finding ID in PREVIOUS_SCORES matches `^[a-z-]+-\d{3}$`
-(old sequential format), treat the entire previous report as old-format and skip delta
-comparison (all findings treated as "new").
-
-**v0.6→v0.7 ID prefix migration:** If PREVIOUS_SCORES contains finding IDs with old dimension prefixes (`ARCH-`, `PAT-`, `DEBT-`, `PERF-`, `DEP-`), map them for delta comparison: `ARCH-*`→`STRC-*`, `PAT-*`→`STRC-*`, `DEBT-*`→`QUAL-*`, `PERF-*`→`QUAL-*`, `DEP-*`→`SEC-*` or `TST-*`. If old 8-dim dimension names appear in PREVIOUS_SCORES.dimension_scores, skip delta for those dimensions (dimension count mismatch).
-
-Add a "Run Delta" section to the report with new, resolved, unchanged counts and score deltas.
-
-Produce a `RunDelta` object matching the schema in `output-schemas.md`.
+Perform delta analysis per `${CLAUDE_PLUGIN_ROOT}/skills/reconcile-report/references/delta-analysis.md`.
 
 ### Step 5 — Assemble Report
 

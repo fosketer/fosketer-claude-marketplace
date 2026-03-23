@@ -101,29 +101,7 @@ Before detecting the stack, check for previous scan data and user overrides:
    - If not found: `OVERRIDES = null`
    - Create the file with empty arrays if the user wants to add overrides later — do NOT create it automatically
 
-3. **Model resolution** (per-stage model map): Resolve which model each pipeline stage uses.
-
-   Resolution order (highest priority wins):
-   1. `--model` CLI flag
-   2. Project config: `.code-analysis/config.json` → `models.*`
-   3. Global config: `~/.claude/code-analysis-config.json` → `models.*`
-   4. Default: `"inherit"` (omit `model` parameter — agent inherits parent model)
-
-   Resolution steps:
-   - Initialize all 4 stage keys (`scanning`, `reconciliation`, `critique`, `planning`) to `"inherit"`
-   - If global config exists and contains valid JSON with a `models` key, merge its values (stage-level merge)
-   - If project config exists and contains valid JSON with a `models` key, merge its values on top
-   - If `--model` flag is present:
-     - Tokenize by comma. For each token:
-       - If token contains `:` (e.g., `scanning:haiku`): set that stage key
-       - If token has no `:` (e.g., `opus`): set ALL 4 stage keys to that value (blanket)
-     - Blanket values are applied before per-stage values within the same flag
-   - Validate all resolved values are in `{haiku, sonnet, opus, inherit}`. If any invalid value found, abort with: `"Invalid model '{value}' for stage '{stage}'. Valid values: haiku, sonnet, opus, inherit"`
-   - If a config file exists but contains malformed JSON, abort with: `"Malformed JSON in config file: {path}"`
-
-   Result: `MODEL_MAP = { scanning: "...", reconciliation: "...", critique: "...", planning: "..." }`
-
-   The orchestrator uses `MODEL_MAP` at every agent dispatch site. If a stage's value is `"inherit"`, the `model` parameter is omitted from the Agent tool call (preserving current behavior). Otherwise, the resolved model name is passed as the `model` parameter.
+3. **Model resolution** (per-stage model map): Resolve model overrides per `${CLAUDE_PLUGIN_ROOT}/skills/analyze-codebase/references/model-resolution.md`.
 
 ### Stage 1 — Detect Stack
 
@@ -141,24 +119,7 @@ Check for multi-language projects (e.g., Tauri = Rust + TypeScript). Read `CLAUD
 
 **Output**: `STACK = { languages: [], frameworks: [] }`
 
-**When `--plugin` is set:**
-
-Stage 1 becomes **Detect Plugin Structure**:
-
-1. Verify `.claude-plugin/plugin.json` exists — abort with error if missing: "Target directory is not a Claude plugin (no .claude-plugin/plugin.json found)"
-2. Read `plugin.json` — extract name, version, description
-3. Glob `skills/*/SKILL.md` — count and list skills
-4. Glob `agents/*.md` and `agents/*/AGENT.md` — count and list agents
-5. Glob `hooks/hooks.json` — note if hooks exist
-6. Glob `commands/*.md` — note if deprecated commands exist
-7. Detect parent marketplace: check `../.claude-plugin/marketplace.json`
-8. Build official plugins comparison index:
-   a. Read `~/.claude/plugins/cache/claude-plugins-official/` directory listing
-   b. For each official plugin, find the active version dir and catalog: skill count, agent count, hook presence, frontmatter patterns, word count ranges
-   c. Create directory if absent: `mkdir -p .code-analysis/plugin-analysis-cache`
-   d. Write index to `.code-analysis/plugin-analysis-cache/official-plugins-index.json`
-   e. Add `.code-analysis/plugin-analysis-cache/` to `.gitignore` if not already present (runtime cache, not committed)
-9. Output: `STACK = { languages: ["claude-plugin"], frameworks: [] }`, `PLUGIN_INVENTORY`, `OFFICIAL_PLUGINS_INDEX_PATH`
+**When `--plugin` is set:** Stage 1 becomes Detect Plugin Structure. Follow `${CLAUDE_PLUGIN_ROOT}/skills/analyze-codebase/references/plugin-mode.md` — Stage 1 section.
 
 ### Stage 2 — Scan All Dimensions (Full Parallel)
 
@@ -166,12 +127,7 @@ Parse `--dimensions` flag. Default: all 4.
 
 Dimension map: `struct` → structure, `quality`, `security`, `testing`. Backwards-compat aliases: `arch` → structure, `patterns` → structure, `deps` → (adds both security + testing if not already present), `perf` → quality, `debt` → quality.
 
-When `--plugin` is set, dimension map changes to:
-Plugin dimensions: `quality`, `security`, `mnf` → manifest-structure, `skl` → skill-quality, `agt` → agent-design, `hkc` → hook-correctness, `mkt` → marketplace-consistency, `cvn` → convention-adherence. Default: all 8.
-
-Dimensions NOT available in plugin mode: structure, testing.
-
-**Validation**: If `--plugin` is set and `--dimensions` contains a non-plugin dimension (struct, testing), abort with: `"Dimension '{name}' is not available in plugin mode. Valid plugin dimensions: quality, security, mnf, skl, agt, hkc, mkt, cvn"`
+When `--plugin` is set, use plugin dimension map and validation from `${CLAUDE_PLUGIN_ROOT}/skills/analyze-codebase/references/plugin-mode.md` — Plugin Dimension Map section.
 
 **Dispatch ALL `code-analyzer` subagents in parallel** (no batching):
 
@@ -199,26 +155,7 @@ Additional parameters for each code-analyzer agent:
 
 **IMPORTANT**: Findings MUST be kept as compact JSON — do NOT expand into verbose descriptions in the main context.
 
-**When `--plugin` is set:**
-
-Parse `--dimensions` flag using plugin dimension map. Default: all 8.
-
-Dispatch ALL `code-analyzer` subagents in parallel with additional parameters:
-- MODE: "plugin"
-- PLUGIN_PROFILES_DIR: "${CLAUDE_PLUGIN_ROOT}/references/plugin-profiles/"
-- OFFICIAL_PLUGINS_INDEX_PATH: path from Stage 1 step 8d
-- SCAN_REPORTS_DIR: ".code-analysis/scan-reports"
-- CHANGED_FILES: from --changed-files-hint or null
-- Model: `MODEL_MAP.scanning`
-
-The dispatch message template for plugin mode:
-```
-Analyze the plugin at [PROJECT_PATH] for the [DIMENSION] dimension.
-Mode: plugin
-Plugin Profiles Dir: ${CLAUDE_PLUGIN_ROOT}/references/plugin-profiles/
-Official Plugins Index Path: [OFFICIAL_PLUGINS_INDEX_PATH]
-Return ONLY a structured JSON findings array.
-```
+**When `--plugin` is set:** Follow plugin dispatch parameters and message template from `${CLAUDE_PLUGIN_ROOT}/skills/analyze-codebase/references/plugin-mode.md` — Stage 2 section.
 
 ### Stage 3 — Reconcile (report-reconciler agent)
 
