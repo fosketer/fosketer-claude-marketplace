@@ -20,6 +20,9 @@ score_history:
   - { structure: 1.0, quality: 1.0 }
   - { structure: 4.5, quality: 3.0 }
   - { structure: 6.0, quality: 5.5 }
+dimension_progress:
+  structure: {iterations: 3, score_history: [1.0, 4.5, 6.0], status: active}
+  quality: {iterations: 3, score_history: [1.0, 3.0, 5.5], status: active}
 started_at: 2026-03-19T06:25:42Z
 last_updated_at: 2026-03-19T14:26:48Z
 ```
@@ -31,6 +34,7 @@ last_updated_at: 2026-03-19T14:26:48Z
 - `plan_paths` — map of dimension to plan path (replaces `plan_path`)
 - `completed_finding_ids` — flat list (unchanged; IDs contain dimension prefix e.g. `ARCH-`, `PAT-`)
 - `score_history` — entries are maps (replace scalar values)
+- `dimension_progress` — per-dimension iteration tracking with status and model escalation (v0.8.0)
 - `starting_commit_sha` — recorded at first run, used for accumulated diff scope (same in both modes)
 
 **Backward compatibility:** If `mode` key is absent, treat as single-dimension (existing format). Old state files work unchanged.

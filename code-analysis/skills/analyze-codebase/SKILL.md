@@ -150,6 +150,16 @@ Additional parameters for each code-analyzer agent:
    Scanners use this for diff-scoped carry-forward.)
 - Model: `MODEL_MAP.scanning` (pass as `model` parameter if not "inherit")
 
+**Per-dimension model override (v0.8.0):**
+
+When ralph-loop provides per-dimension model overrides (via escalation), the orchestrator
+SHOULD honor them by passing the specific model for each scanner agent dispatch. The override
+is conveyed via the `--model` flag using per-dimension syntax:
+`--model scanning:sonnet,scanning.quality:opus` (dimension-specific override).
+
+If the platform does not support per-dimension model routing, fall back to the highest
+model specified across all dimensions for the scanning stage.
+
 **Fallback**: If the platform limits concurrent agents, dispatch in batches of 4. Prefer full parallelism.
 
 **IMPORTANT**: Findings MUST be kept as compact JSON — do NOT expand into verbose descriptions in the main context.

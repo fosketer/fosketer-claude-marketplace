@@ -80,6 +80,17 @@ converged_at_iteration: {}
 > except on safety-net iterations (every 5th). If a converged dimension regresses, it is removed from the list.
 
 ```markdown
+dimension_progress:
+  manifest-structure: {iterations: 5, score_history: [1.0, 4.0, 7.0, 8.5, 9.0], status: converged}
+  quality: {iterations: 5, score_history: [1.0, 1.0, 2.0, 3.5, 4.0], status: active}
+  security: {iterations: 5, score_history: [1.0, 5.0, 8.0, 8.0, 8.0], status: stalled}
+```
+
+> **Per-dimension progress (v0.8.0):** Tracks each dimension's iteration count, score history, and status.
+> Status values: `active` (default), `stalled` (no improvement for 2 iterations), `converged` (score ≥ target),
+> `escalated` (model bumped to Opus). Supplements `converged_dimensions` with richer tracking.
+
+```markdown
 mechanical_dimensions: [manifest-structure, skill-quality, agent-design, hook-correctness, marketplace-consistency, convention-adherence]
 ```
 
@@ -198,6 +209,22 @@ For multi-dimension mode, check which dimensions have converged:
 **Single-dimension mode:** Skip-clean does not apply (only one dimension to scan).
 
 For full re-scan logic (carry-forward vs full re-discovery, scan commands, post-scan update), Read `${CLAUDE_PLUGIN_ROOT}/skills/ralph-loop/references/verification-scan.md`.
+
+After re-scan, update `current_score` / `current_scores` and append to `score_history` per `verification-scan.md`.
+
+**Stall detection (v0.8.0):**
+
+After updating `current_scores`, check each active dimension:
+1. Get last 2 scores from `dimension_progress[dim].score_history`
+2. If `score_history[-1] <= score_history[-2]` (no improvement): increment stall count
+3. If stalled for 2 consecutive iterations AND current scanner model for this dimension is Sonnet:
+   - Set `dimension_progress[dim].status: escalated`
+   - Log: `"Dimension {dim} stalled at {score} for 2 iterations — escalating scanner to Opus"`
+   - On next scan dispatch, override this dimension's scanner model to `opus`
+4. If stalled for 2 more iterations at Opus:
+   - Log: `"Dimension {dim} stalled at {score} even with Opus. Remaining findings may require manual intervention."`
+   - Continue scanning but surface warning to user
+5. If score improves after escalation: keep model at Opus (don't downgrade mid-loop)
 
 ### Step 8 — Check Completion
 
