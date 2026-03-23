@@ -14,7 +14,6 @@ allowed-tools: ["Read", "Grep", "Glob"]
 
 Evaluate an orchestrator refactoring plan for dependency correctness, effort realism, completeness, risk assessment, and ordering. Return structured feedback.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

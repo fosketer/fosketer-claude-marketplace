@@ -106,6 +106,15 @@ If `.code-analysis/scan-reports/` exists:
 2. Compare and highlight new, resolved, or unchanged findings
 3. Include delta in output
 
+## Bash Usage Constraints
+
+Bash is permitted ONLY for the following operations:
+- Computing SHA fingerprints for finding IDs: `python3 -c "import hashlib; ..."`
+- Checking file existence or line counts: `wc -l`, `test -f`
+- Listing directory contents when Glob is insufficient
+
+Do NOT use Bash for: running tests, modifying files, network requests, or any destructive operations.
+
 ## Notes
 
 - This agent runs ONE dimension — findings are returned to the caller, NOT persisted

@@ -15,7 +15,6 @@ allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 
 Validate the structural integrity of a Claude plugin: the `.claude-plugin/plugin.json` manifest, directory layout, naming conventions, required files, and alignment with official plugin patterns.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

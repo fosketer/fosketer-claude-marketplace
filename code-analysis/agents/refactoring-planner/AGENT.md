@@ -100,6 +100,26 @@ Report:
 - Execution phases and their scope
 - File paths of all written plans
 
+## Output Format
+
+After persisting plans (Step 5), return a structured summary to the orchestrator:
+
+```json
+{
+  "plans_generated": ["structure", "quality"],
+  "plan_paths": {
+    "structure": ".code-analysis/plans/2026-03-23-structure-plan.md",
+    "quality": ".code-analysis/plans/2026-03-23-quality-plan.md",
+    "orchestrator": ".code-analysis/plans/2026-03-23-orchestrator-plan.md"
+  },
+  "findings_addressed": { "structure": 12, "quality": 8 },
+  "phases": [
+    { "phase": 1, "dimensions": ["structure"], "effort": "medium", "file_count": 5 },
+    { "phase": 2, "dimensions": ["quality"], "effort": "large", "file_count": 12 }
+  ]
+}
+```
+
 ## Notes
 
 - This agent does NOT re-scan the codebase — it works from existing findings

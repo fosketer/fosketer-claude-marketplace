@@ -18,6 +18,7 @@
     "plugin-analysis"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/fosketer/fosketer-claude-marketplace/tree/main/code-analysis",
   "repository": "https://github.com/fosketer/fosketer-claude-marketplace",
   "peerDependencies": {
     "superpowers": ">=5.0.0"

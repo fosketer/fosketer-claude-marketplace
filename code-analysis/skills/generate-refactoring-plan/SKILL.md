@@ -15,7 +15,6 @@ allowed-tools: ["Read", "Glob", "Grep"]
 
 Read one dimension's findings and produce a focused, actionable refactoring plan with prioritized steps, risk assessment, and verification criteria.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

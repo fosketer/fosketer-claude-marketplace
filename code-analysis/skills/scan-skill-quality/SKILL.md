@@ -15,7 +15,6 @@ allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 
 Evaluate the quality of every SKILL.md in a Claude plugin: frontmatter completeness, description trigger phrasing, body word counts, progressive disclosure practices, allowed-tools scoping, and whether large inline content has been appropriately externalized.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

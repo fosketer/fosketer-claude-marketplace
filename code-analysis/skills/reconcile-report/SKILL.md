@@ -14,7 +14,6 @@ allowed-tools: ["Read", "Write", "Glob", "Grep"]
 
 Deduplicate findings across dimensions, compute numeric scores, and produce a unified analysis report with a codebase health score.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

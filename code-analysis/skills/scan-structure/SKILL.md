@@ -16,7 +16,6 @@ allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 
 Analyze the codebase's module structure, dependency graph, layering, circular dependencies, design patterns, anti-patterns, pattern consistency, framework idiom adherence, and error handling patterns.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

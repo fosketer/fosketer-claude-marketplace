@@ -15,7 +15,6 @@ allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 
 Evaluate the design quality of every agent definition in a Claude plugin: frontmatter validity, example block presence and format, model and color field correctness, system prompt quality, and tool scoping appropriateness.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

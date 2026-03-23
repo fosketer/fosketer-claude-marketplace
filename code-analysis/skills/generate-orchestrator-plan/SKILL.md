@@ -15,7 +15,6 @@ allowed-tools: ["Read", "Glob"]
 
 Read all per-dimension refactoring plans and produce a single master plan with execution phases, cross-dimension dependencies, and a unified verification strategy.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

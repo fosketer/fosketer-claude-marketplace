@@ -17,7 +17,6 @@ allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 
 Evaluate code quality across three sub-areas: **Code Health** (duplication, complexity, dead code, naming, size), **Tech Debt** (TODOs, deprecated APIs, legacy patterns, commented-out code), and **Performance** (N+1 queries, pagination, memory, rendering, caching).
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

@@ -16,7 +16,6 @@ allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 
 Analyze the codebase for security vulnerabilities aligned with the OWASP Top 10, including hardcoded secrets, injection vectors, XSS, authentication/authorization gaps, insecure deserialization, and sensitive data exposure.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

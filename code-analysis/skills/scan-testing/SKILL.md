@@ -15,7 +15,6 @@ allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 
 Analyze the codebase's test suite for coverage gaps, assertion quality, isolation issues, and flakiness indicators.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Input
 

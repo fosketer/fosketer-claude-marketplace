@@ -15,7 +15,6 @@ allowed-tools: ["Read", "Grep", "Glob", "Bash"]
 
 Verify that a Claude plugin is correctly registered in its parent marketplace, that metadata is consistent between registry and manifest, that version fields are in sync, and that naming conflicts with sibling plugins are absent.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 **Note:** This skill does NOT use `OFFICIAL_PLUGINS_INDEX_PATH`. That parameter may be null or absent and MUST be ignored.
 

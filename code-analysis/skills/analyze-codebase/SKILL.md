@@ -16,7 +16,6 @@ allowed-tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "Agent", "AskUs
 
 Comprehensive codebase analysis across 4 standard dimensions (structure, quality, security, testing) with scoring, critic validation, and refactoring plans. Supports any language/framework.
 
-The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in RFC 2119.
 
 ## Pipeline
 
