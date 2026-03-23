@@ -1,5 +1,6 @@
 ---
 name: scan-testing
+version: 0.7.0
 description: |
   This skill should be used when analyzing test coverage gaps, assertion quality, test isolation, and flaky test indicators.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.

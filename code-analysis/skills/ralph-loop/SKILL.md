@@ -1,5 +1,6 @@
 ---
 name: ralph-loop
+version: 0.7.0
 description: |
   This skill should be used when iteratively improving codebase dimension scores to target thresholds
   using analyze-codebase + ralph-loop. Supports single-dimension (positional args)
@@ -16,7 +17,7 @@ Iteratively scan codebase dimensions, implement the generated refactoring plans,
 
 ## Why a Loop is Required
 
-The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×critical + 2×high + 1×medium + 0.5×low`. Because the penalty is capped at 9, **all dimensions with many findings sit at the 1.0 floor**. Individual scattered fixes appear invisible. You must clear enough findings to bring `raw < 9` before the score moves at all.
+The scoring formula is `score = max(1.0, 10 - min(raw, 9))` where `raw = 3×critical + 2×high + 1×medium + 0.5×low`. Because the penalty is capped at 9, **all dimensions with many findings sit at the 1.0 floor**. Individual scattered fixes appear invisible. Clear enough findings to bring `raw < 9` before the score moves at all.
 
 ## Input Parsing
 

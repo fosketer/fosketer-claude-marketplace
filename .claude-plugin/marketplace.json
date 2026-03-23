@@ -14,7 +14,7 @@
     {
       "name": "code-analysis",
       "source": "./code-analysis",
-      "description": "Multi-dimensional codebase analysis — architecture, dependencies, patterns, performance, quality, security, tech debt, and testing scans with refactoring plan generation"
+      "description": "Multi-dimensional codebase analysis across 4 standard dimensions (structure, quality, security, testing) with plugin-specific analysis mode, scored reports, critic validation, and refactoring plan generation"
     }
   ]
 }

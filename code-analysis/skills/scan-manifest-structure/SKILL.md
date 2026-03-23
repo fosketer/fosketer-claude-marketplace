@@ -1,5 +1,6 @@
 ---
 name: scan-manifest-structure
+version: 0.7.0
 description: |
   This skill should be used when validating Claude plugin manifest (plugin.json), directory layout, naming conventions, required files, and .claude-plugin/ placement.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.

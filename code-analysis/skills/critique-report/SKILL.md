@@ -1,5 +1,6 @@
 ---
 name: critique-report
+version: 0.7.0
 description: |
   This skill should be used when evaluating the quality of a reconciled analysis report.
   Loaded by the report-critic agent.

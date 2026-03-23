@@ -18,6 +18,8 @@
     "plugin-analysis"
   ],
   "skills": "./skills",
+  "license": "MIT",
+  "repository": "https://github.com/fosketer/fosketer-claude-marketplace",
   "peerDependencies": {
     "superpowers": ">=5.0.0"
   }

@@ -1,5 +1,6 @@
 ---
 name: refactor-plan
+version: 0.7.0
 description: |
   This skill should be used when the user asks to "generate refactoring plans", "create a refactoring plan",
   "plan refactoring from analysis", or wants to produce refactoring plans from
@@ -105,7 +106,7 @@ The `refactoring-planner` agent will:
 3. Combine them into a master orchestrator plan using the `generate-orchestrator-plan` sub-skill
 4. Write all plan files to `.code-analysis/plans/`
 
-You do not need to read the scan reports yourself before dispatching. The agent handles all file access.
+Do not read the scan reports before dispatching. The agent handles all file access.
 
 ### Phase 2 — Critic feedback loop (unless --skip-critics)
 

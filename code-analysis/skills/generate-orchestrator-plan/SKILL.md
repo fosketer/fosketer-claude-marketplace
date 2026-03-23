@@ -1,9 +1,11 @@
 ---
 name: generate-orchestrator-plan
+version: 0.7.0
 description: |
   This skill should be used when generating a master orchestrator plan that ties together all per-dimension refactoring plans
   into a prioritized execution sequence with dependency tracking.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
+allowed-tools: ["Read", "Glob"]
 ---
 
 # Generate Orchestrator Plan

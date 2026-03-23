@@ -1,8 +1,10 @@
 ---
 name: critique-plan
+version: 0.7.0
 description: |
   This skill should be used when evaluating the quality and feasibility of an orchestrator refactoring plan.
   Loaded by the plan-critic agent.
+allowed-tools: ["Read", "Grep", "Glob"]
 ---
 
 # Critique Plan

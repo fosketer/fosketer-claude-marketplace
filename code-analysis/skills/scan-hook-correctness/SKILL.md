@@ -1,5 +1,6 @@
 ---
 name: scan-hook-correctness
+version: 0.7.0
 description: |
   This skill should be used when validating hooks.json schema, event names, matcher patterns, script existence, and security in Claude plugin hook configurations.
   Sub-skill of analyze-codebase — executed inline by the orchestrator in --plugin mode.

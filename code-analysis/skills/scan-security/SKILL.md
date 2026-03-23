@@ -1,5 +1,6 @@
 ---
 name: scan-security
+version: 0.7.0
 description: |
   This skill should be used when detecting hardcoded secrets, injection vectors, XSS, auth gaps, and OWASP top 10 vulnerabilities.
   Sub-skill of analyze-codebase — executed inline by the orchestrator.
