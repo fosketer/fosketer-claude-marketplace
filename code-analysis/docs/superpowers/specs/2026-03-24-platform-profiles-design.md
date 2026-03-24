@@ -36,7 +36,12 @@ references/platform-profiles/
 
 ### Core Profile Format
 
-Each core file follows the established profile convention with adaptations for platform tools:
+Platform profiles are modeled on **framework profiles** (react.md, electron.md) rather than language profiles, because platform tools — like frameworks — define architecture expectations and deployment patterns rather than syntax or package management. The following deviations from the framework profile format are intentional:
+
+- **"Common Integrations" added** — new section for cross-tool interaction notes (e.g., FluxCD Kustomization resources pointing to Kustomize overlays). No existing profile type has this; it is a deliberate extension for the platform category where tools are commonly used in combination.
+- **"Security Hotspots" instead of "Security Considerations"** — platform tools have specific, enumerable misconfigurations (not general considerations), making "Hotspots" more precise.
+- **"Complexity Indicators" omitted** — platform configs are declarative YAML; function length, nesting depth, and parameter count metrics do not apply. Complexity is captured via anti-patterns (e.g., deep overlay nesting) instead.
+- **"Performance Hotspots" expanded** — includes operational concerns (reconciliation loops, resource exhaustion) beyond code-level performance.
 
 ```
 # {Tool} Platform Profile
@@ -52,20 +57,20 @@ Each core file follows the established profile convention with adaptations for p
 ## Context7 Library IDs
 ```
 
-**Changes from existing language/framework format:**
-- "Common Integrations" added for cross-tool interaction notes (e.g., FluxCD Kustomization resources pointing to Kustomize overlays)
-- "Architecture Expectations" replaces "Package Manifests" (more relevant for infra tools)
-- "Performance Hotspots" expanded to include operational concerns (reconciliation loops, resource exhaustion)
-
 ### Advanced Profile Format
+
+Advanced profiles share a common skeleton but allow tool-specific section names where the content differs fundamentally. The `Loading Trigger`, `Security Deep-Dive`, and `Policy Validation Guide` sections are present in all three. The middle sections vary:
+
+- **kustomize-advanced.md:** "Generator/Transformer Pitfalls", "Operational Concerns"
+- **fluxcd-advanced.md:** "Per-CRD Misconfiguration Tables", "Multi-Tenancy Lockdown", "Reconciliation Tuning"
+- **k3s-advanced.md:** "CIS Benchmark Table", "Port Firewall Matrix", "HA Configuration", "Runtime Hardening"
 
 ```
 # {Tool} Advanced Profile
 
 ## Loading Trigger
 ## Security Deep-Dive
-## Hardening Checklist
-## CRD/Resource Misconfigs
+## {Tool-Specific Sections}
 ## Policy Validation Guide
 ```
 
@@ -89,7 +94,7 @@ Each core file follows the established profile convention with adaptations for p
 
 #### k3s.md (~100 lines)
 
-- **Detection:** `/etc/rancher/k3s/` paths, `helm.cattle.io` CRDs (HelmChart, HelmChartConfig), `+k3s` version suffix, `k3d-config.yaml`
+- **Detection:** `helm.cattle.io` CRDs (HelmChart, HelmChartConfig) in YAML files, `+k3s` version suffix in manifests, `k3d-config.yaml`, Ansible/Terraform references to k3s roles/providers, `curl -sfL https://get.k3s.io` in scripts. Note: system paths like `/etc/rancher/k3s/` are runtime markers not typically found in source repos — they are included only for live system audit scenarios, not codebase scanning.
 - **Patterns:** `/etc/rancher/k3s/config.yaml` over CLI flags, server node taints (`CriticalAddonsOnly`), WireGuard flannel backend for encrypted overlay, PSA namespace labels
 - **Anti-patterns:** default Traefik without auth/TLS/rate-limiting, Flannel without NetworkPolicy enforcement (silently ignores policies), single-server production, `local-path` StorageClass for stateful workloads, kubeconfig with loosened permissions
 - **Security:** `k3s.yaml` file permissions (must be 0600 root:root), node-token protection, secrets encryption at rest (`--secrets-encryption`), API server binding to specific interface
@@ -132,16 +137,24 @@ Each core file follows the established profile convention with adaptations for p
 
 Add platform detection to `code-analyzer` agent Step 1. After detecting language/framework, also detect platform tools:
 
-| Marker | Platform |
-|--------|----------|
-| `kustomization.yaml` anywhere in tree | kustomize |
-| Any YAML with `toolkit.fluxcd.io` apiVersion | fluxcd |
-| `k3s.yaml`, `config.yaml` under `rancher/k3s/`, `+k3s` in version strings, `helm.cattle.io` CRDs | k3s |
+| Marker | Platform | Disambiguation |
+|--------|----------|----------------|
+| `kustomization.yaml` with `apiVersion: kustomize.config.k8s.io` OR containing `resources:`/`bases:`/`patches:` fields (no `apiVersion` with `toolkit.fluxcd.io`) | kustomize | Distinguishes native Kustomize from FluxCD Kustomization CRDs |
+| Any YAML with `toolkit.fluxcd.io` apiVersion | fluxcd | — |
+| `helm.cattle.io` CRDs, `+k3s` version strings, `k3d-config.yaml`, k3s install scripts | k3s | System paths (`/etc/rancher/k3s/`) only for live audit mode |
 
 Stack info expands to include a `platforms` field:
 ```json
 { "languages": ["go"], "frameworks": ["react"], "platforms": ["kustomize", "fluxcd"] }
 ```
+
+#### Multi-Platform Detection
+
+All detected platforms are loaded — there is no precedence or mutual exclusion. In practice, these tools are commonly used together (e.g., k3s + FluxCD + Kustomize). Loading limits:
+
+- **Maximum 3 core profiles** loaded simultaneously (~310 lines total). This is comparable to loading a language + framework profile and stays within token budget.
+- **Advanced profiles are loaded individually** as triggers are met during scanning. At most one advanced profile per platform, adding ~150-180 lines each.
+- **Worst case** (all 3 core + all 3 advanced): ~800 lines of platform context. This is acceptable given that platform-heavy projects warrant deeper analysis and the profiles are loaded across multiple agent dispatches (one per dimension), not all at once in a single context.
 
 #### Resource Loading Changes
 
@@ -152,7 +165,25 @@ Add to `code-analyzer` agent Step 2, after loading language/framework profiles:
 5. (Conditional) ${CLAUDE_PLUGIN_ROOT}/references/platform-profiles/{platform}-advanced.md — when loading triggers are met
 ```
 
-Advanced profile loading triggers are evaluated by the agent during Step 3 (scan execution), not during Step 2. If during scanning the agent encounters patterns matching an advanced trigger, it loads the advanced profile and continues.
+Advanced profile loading triggers are evaluated **during Step 2** (resource loading), not mid-scan. The agent performs a quick pre-scan check before loading:
+- Count `kustomization.yaml` files and check for `components/`/`helmCharts` → kustomize-advanced
+- Count Flux CRDs and grep for `spec.serviceAccountName`/`spec.decryption` → fluxcd-advanced
+- Grep for `HelmChartConfig`, `k3d-config.yaml`, etcd markers → k3s-advanced
+
+This keeps all resource loading in Step 2, avoiding mid-scan context loading that would break the current agent workflow.
+
+#### Dimension Mapping
+
+Platform profile content maps to existing scan dimensions. Each dimension's sub-skill uses the relevant sections from loaded platform profiles:
+
+| Dimension | Platform Profile Sections Used |
+|-----------|-------------------------------|
+| **structure** | Architecture Expectations, Common Patterns, Common Anti-Patterns (structural: overlay nesting, directory layout, resource organization) |
+| **security** | Security Hotspots, Security Deep-Dive, Hardening Checklist (misconfigurations, RBAC, secrets, CIS items) |
+| **quality** | Common Anti-Patterns (code quality: duplication, drift, naming), Performance Hotspots (operational concerns) |
+| **testing** | Testing Conventions, Policy Validation Guide (validation tools, CI patterns) |
+
+The agent does not need explicit routing — the sub-skill for each dimension naturally picks up relevant content from the loaded profiles, just as it does with language/framework profiles today.
 
 #### No Changes Required
 
