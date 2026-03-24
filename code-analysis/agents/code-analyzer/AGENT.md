@@ -48,6 +48,14 @@ Read the project root for manifest files:
 - `go.mod` → Go
 - `pyproject.toml` / `requirements.txt` → Python
 
+Also detect platform tools:
+- `kustomization.yaml` with `apiVersion: kustomize.config.k8s.io` or containing `resources:`/`bases:`/`patches:` (NOT `toolkit.fluxcd.io`) → kustomize
+- Any YAML with `toolkit.fluxcd.io` apiVersion → fluxcd
+- `helm.cattle.io` CRDs, `+k3s` version strings, `k3d-config.yaml` → k3s
+
+Platform detection is additive to language/framework detection. Include detected platforms in the stack info:
+`{ "languages": ["go"], "frameworks": ["react"], "platforms": ["kustomize", "fluxcd"] }`
+
 ### Step 2: Load Resources
 
 Read ONLY the files needed for THIS dimension:
@@ -56,6 +64,17 @@ Read ONLY the files needed for THIS dimension:
 3. `${CLAUDE_PLUGIN_ROOT}/references/schemas/scoring-schema.md` — dimension score formula (MUST load)
 4. `${CLAUDE_PLUGIN_ROOT}/references/language-profiles/{language}.md` — for detected language(s)
 5. `${CLAUDE_PLUGIN_ROOT}/references/framework-profiles/{framework}.md` — if applicable
+6. `${CLAUDE_PLUGIN_ROOT}/references/platform-profiles/{platform}.md` — for detected platform(s)
+7. (Conditional) `${CLAUDE_PLUGIN_ROOT}/references/platform-profiles/{platform}-advanced.md` — see triggers below
+
+Advanced profile pre-scan triggers (evaluate before scanning):
+- kustomize-advanced: >3 overlay kustomization.yaml files, `components/` directory, or `helmCharts:` field
+- fluxcd-advanced: >5 Flux CRDs, `spec.serviceAccountName` in Kustomizations, or `spec.decryption` present
+- k3s-advanced: `HelmChartConfig` CRDs, `k3d-config.yaml`, or embedded etcd markers
+
+Maximum 3 platform profiles loaded simultaneously. Advanced profiles loaded individually per trigger.
+
+Do NOT load platform-profiles in plugin mode.
 
 Do NOT read other dimension skills, other schema fragments, or templates.
 
@@ -85,6 +104,7 @@ Follow the sub-skill's workflow with:
 - `STACK`: Detected or provided stack
 - `LANGUAGE_PROFILE`: Loaded language profile
 - `FRAMEWORK_PROFILE`: Loaded framework profile (if applicable)
+- `PLATFORM_PROFILES`: Loaded platform profile(s) (if applicable)
 - `SCAN_REPORTS_DIR`: As provided in input (for self-scoring persistence)
 
 **When MODE=plugin:**
