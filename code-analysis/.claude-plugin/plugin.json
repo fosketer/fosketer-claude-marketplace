@@ -1,6 +1,6 @@
 {
   "name": "code-analysis",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Comprehensive codebase analysis across 4 standard dimensions (structure, quality, security, testing) — produces scored reports with critic validation and focused refactoring plans.",
   "author": {
     "name": "Vooban Developer Team",
