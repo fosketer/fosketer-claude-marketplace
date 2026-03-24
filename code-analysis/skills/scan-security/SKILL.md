@@ -37,23 +37,27 @@ If `MODE=plugin`:
 ### Plugin Security Steps (MODE=plugin only)
 
 #### Step P1 — Scan Hook Scripts for Credentials
+In plugin contexts, hook scripts often handle CI/CD operations and may contain deployment credentials.
 1. Glob hooks/**/*.sh, hooks/**/*.js, hooks/**/*.py
 2. Grep for secret patterns: API_KEY, password, token, secret assignments
 3. Grep for hardcoded URLs with credentials
 4. Severity: **critical** for confirmed secrets
 
 #### Step P2 — Validate ${CLAUDE_PLUGIN_ROOT} Usage
+Hardcoded paths break plugin portability when installed on other machines.
 1. Grep all hook scripts and MCP configs for hardcoded absolute paths
 2. Flag any path that should use ${CLAUDE_PLUGIN_ROOT} instead
 3. Severity: **high** for hardcoded paths (portability and security risk)
 
 #### Step P3 — Check .local.md Credential Exposure
+The .local.md convention stores user-specific secrets that must never be committed.
 1. Grep for .local.md patterns — verify they're in .gitignore
 2. Check if any .local.md files are tracked in git (`git ls-files` with .local.md pattern)
 3. Verify .gitignore contains appropriate exclusions for credential files
 4. Severity: **critical** for tracked credential files, **high** for missing .gitignore entries
 
 #### Step P4 — Check MCP Security
+MCP servers may connect to external services — insecure transport exposes credentials in transit.
 1. Read MCP server configs (`.mcp.json`, plugin.json `mcp` field) for non-HTTPS/WSS URLs
 2. Flag HTTP/WS connections: severity **high** (data in transit exposure)
 3. Check for hardcoded auth tokens in MCP configs: severity **critical**

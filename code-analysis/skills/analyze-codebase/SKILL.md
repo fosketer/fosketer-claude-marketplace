@@ -53,22 +53,16 @@ Target path: $ARGUMENTS (default: current working directory)
 
 ### Optional Flags
 
-- `--dimensions=struct,quality,security,testing` — restrict dimensions (default: all 4). Aliases: `arch`→structure, `patterns`→structure, `deps`→testing+security, `perf`→quality, `debt`→quality
+- `--dimensions=struct,quality,security,testing` — restrict dimensions (default: all 4). See `references/flag-reference.md` for alias table.
 - `--stack=python|typescript|csharp|dart|rust|go` — override auto-detected language
 - `--framework=react|dotnet|flutter|tauri|electron|maui` — override auto-detected framework
-- `--weights=dim:N,...` — custom dimension weights for overall score (default: all 1.0). Partial overrides allowed (unspecified dimensions default to 1.0).
+- `--weights=dim:N,...` — custom dimension weights for overall score (default: all 1.0). Partial overrides allowed; unspecified dimensions default to 1.0.
 - `--critic-iterations=N` — max critic feedback loop iterations (default: 3)
 - `--skip-critics` — bypass critic loops entirely (skip Stages 4 and 8)
 - `--draft-only` — stop after Stage 3 (scan + reconcile + persist draft, no user interaction)
 - `--changed-files-hint=<comma-separated file paths>` — passed by ralph-loop to enable diff-scoped carry-forward. Optional. When absent, scanners do full scans.
-- `--model=<model-spec>` — override model for agent dispatch. Accepts:
-  - Blanket: `--model opus` (all stages use opus)
-  - Per-stage: `--model scanning:haiku,critique:opus` (override specific stages)
-  - Mixed: `--model opus,critique:sonnet` (blanket first, then per-stage overrides on top)
-  - Valid model values: `haiku`, `sonnet`, `opus`, `inherit`
-  - Stages: `scanning`, `reconciliation`, `critique`, `planning`
-  - Unspecified stages fall through to config files or `inherit`
-- `--plugin` — activate plugin analysis mode. Swaps dimension set to 8 plugin-specific dimensions (2 adapted standard + 6 new). Requires target to contain `.claude-plugin/plugin.json`.
+- `--model=<model-spec>` — override model for agent dispatch. For full syntax and stage keys, read `references/flag-reference.md`.
+- `--plugin` — activate plugin analysis mode. Uses 8 plugin-specific dimensions (2 adapted standard + 6 new). Requires target to contain `.claude-plugin/plugin.json`.
 
 ## Context Efficiency Rules
 
@@ -122,9 +116,7 @@ Check for multi-language projects (e.g., Tauri = Rust + TypeScript). Read `CLAUD
 
 ### Stage 2 — Scan All Dimensions (Full Parallel)
 
-Parse `--dimensions` flag. Default: all 4.
-
-Dimension map: `struct` → structure, `quality`, `security`, `testing`. Backwards-compat aliases: `arch` → structure, `patterns` → structure, `deps` → (adds both security + testing if not already present), `perf` → quality, `debt` → quality.
+Parse `--dimensions` flag. Default: all 4. For dimension aliases and model-passing syntax, read `references/flag-reference.md`.
 
 When `--plugin` is set, use plugin dimension map and validation from `${CLAUDE_PLUGIN_ROOT}/skills/analyze-codebase/references/plugin-mode.md` — Plugin Dimension Map section.
 
@@ -148,21 +140,13 @@ Additional parameters for each code-analyzer agent:
   (If --changed-files-hint flag was provided, split the comma-separated value
    into an array and pass it here. If the flag was not provided, pass null.
    Scanners use this for diff-scoped carry-forward.)
-- Model: `MODEL_MAP.scanning` (pass as `model` parameter if not "inherit")
+- Model: `MODEL_MAP.scanning`
 
-**Per-dimension model override (v0.8.0):**
-
-When ralph-loop provides per-dimension model overrides (via escalation), the orchestrator
-SHOULD honor them by passing the specific model for each scanner agent dispatch. The override
-is conveyed via the `--model` flag using per-dimension syntax:
-`--model scanning:sonnet,scanning.quality:opus` (dimension-specific override).
-
-If the platform does not support per-dimension model routing, fall back to the highest
-model specified across all dimensions for the scanning stage.
+**Per-dimension model override (v0.8.0):** When ralph-loop escalates with per-dimension overrides, honor them per scanner dispatch (`--model scanning:sonnet,scanning.quality:opus`). If the platform does not support per-dimension routing, fall back to the highest model across dimensions.
 
 **Fallback**: If the platform limits concurrent agents, dispatch in batches of 4. Prefer full parallelism.
 
-**IMPORTANT**: Findings MUST be kept as compact JSON — do NOT expand into verbose descriptions in the main context.
+**IMPORTANT**: Keep findings as compact JSON — do NOT expand into verbose descriptions in the main context.
 
 **When `--plugin` is set:** Follow plugin dispatch parameters and message template from `${CLAUDE_PLUGIN_ROOT}/skills/analyze-codebase/references/plugin-mode.md` — Stage 2 section.
 
@@ -187,8 +171,7 @@ Dispatch the `report-reconciler` agent with:
 - Weights from `--weights` flag (or default)
 - `PREVIOUS_SCORES` from Stage 0 (null if first scan)
 - `OVERRIDES` from Stage 0 (null if no override file)
-- Model: `MODEL_MAP.reconciliation` (pass as `model` parameter if not "inherit")
-
+- Model: `MODEL_MAP.reconciliation`
 The agent will:
 1. Deduplicate cross-dimension findings
 2. Compute per-dimension scores (0-10) and overall weighted score
@@ -220,14 +203,12 @@ loop:
     - stack, project path
     - iteration: attempt + 1
     - prior feedback (from previous iteration, null on first)
-    - model: MODEL_MAP.critique (pass as `model` parameter if not "inherit")
-  if critic returns verdict "pass":
+    - model: MODEL_MAP.critique  if critic returns verdict "pass":
     break
   dispatch report-reconciler agent with:
     - same findings
     - critic feedback
-    - model: MODEL_MAP.reconciliation (pass as `model` parameter if not "inherit")
-  attempt++
+    - model: MODEL_MAP.reconciliation  attempt++
 ```
 
 ### Stage 5 — User Checkpoint ← CHECKPOINT
@@ -248,7 +229,7 @@ Ask the user:
 
 **CRITICAL**: MUST pause and wait for user confirmation.
 
-**Finalize reports**: Rename draft to final (`analysis-draft.md` → `analysis.md`). `scores.json` requires no renaming — it is persisted in final form at Stage 3.
+**Finalize reports**: Rename draft to final (`analysis-draft.md` → `analysis.md`). `scores.json` needs no renaming — already persisted in final form at Stage 3.
 
 ### Stage 6 — Deep Cross-Analysis + Refactoring Plans
 
@@ -259,9 +240,9 @@ Ask the user:
 Dispatch `report-reconciler` agent with `--deep` flag:
 - All dimension findings
 - Stack, project path
-- Model: `MODEL_MAP.reconciliation` (pass as `model` parameter if not "inherit")
+- Model: `MODEL_MAP.reconciliation`
 
-The agent returns CrossAnalysis JSON (root causes, systemic patterns, combined fixes). This is NOT persisted — used as input to planning.
+The agent returns CrossAnalysis JSON (root causes, systemic patterns, combined fixes). Not persisted — used as planning input.
 
 #### Step 6b: Generate Refactoring Plans
 
@@ -269,8 +250,7 @@ Dispatch the `refactoring-planner` agent with:
 - All dimension findings (excluding user-skipped dimensions and info-only dimensions)
 - Cross-analysis results from Step 6a
 - Stack, project path
-- Model: `MODEL_MAP.planning` (pass as `model` parameter if not "inherit")
-
+- Model: `MODEL_MAP.planning`
 The agent loads `generate-refactoring-plan/SKILL.md` internally — the orchestrator MUST NOT read it.
 
 ### Stage 7 — Orchestrator Plan Generation
@@ -286,9 +266,7 @@ The orchestrator collects the master plan from the agent's output.
 Run the same critic feedback loop pattern as Stage 4, but with:
 - `plan-critic` agent instead of `report-critic`
 - `refactoring-planner` agent as the producer (re-dispatched with critic feedback)
-- Model for plan-critic: `MODEL_MAP.critique` (pass as `model` parameter if not "inherit")
-- Model for refactoring-planner re-dispatch: `MODEL_MAP.planning` (pass as `model` parameter if not "inherit")
-- Same max iterations from `--critic-iterations`
+- Model for plan-critic: `MODEL_MAP.critique`- Model for refactoring-planner re-dispatch: `MODEL_MAP.planning`- Same max iterations from `--critic-iterations`
 
 ### Stage 9 — User Approval Gate ← MANDATORY GATE
 
@@ -304,8 +282,7 @@ Present to user:
 ### Stage 10 — Persist All Final Outputs
 
 Dispatch the `refactoring-planner` agent for persistence (Step 5 in its agent definition):
-- Model: `MODEL_MAP.planning` (pass as `model` parameter if not "inherit")
-- It reads templates internally (`refactoring-plan.md`, `orchestrator-plan.md`) — the orchestrator MUST NOT read them
+- Model: `MODEL_MAP.planning`- It reads templates internally (`refactoring-plan.md`, `orchestrator-plan.md`) — the orchestrator MUST NOT read them
 - It writes to `.code-analysis/plans/`:
   - `YYYY-MM-DD-{dimension}-plan.md` — per-dimension plans
   - `YYYY-MM-DD-orchestrator-plan.md` — master plan

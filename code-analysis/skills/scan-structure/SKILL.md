@@ -58,6 +58,8 @@ Analyze the codebase's module structure, dependency graph, layering, circular de
 
 #### Step 4 — Detect Circular Dependencies
 
+Circular dependencies prevent clean module isolation and often indicate that two modules have grown too tightly coupled — a common precursor to god-class or shotgun-surgery anti-patterns.
+
 1. Using the adjacency list from Step 2, detect cycles using DFS
 2. For each cycle found, record: modules involved, specific import paths
 3. Severity: **critical** for all circular dependencies
@@ -98,6 +100,8 @@ Analyze the codebase's module structure, dependency graph, layering, circular de
 6. **Primitive obsession**: Grep for function signatures with >3 parameters of the same primitive type (string, int, bool). Severity: **low**
 
 #### Step 8 — Check Pattern Consistency
+
+Inconsistent use of patterns is often more harmful than choosing a suboptimal pattern uniformly — it forces developers to context-switch between multiple approaches when working in different parts of the codebase.
 
 1. For each design pattern detected in Step 6, check if the same problem is solved differently elsewhere:
    - If Repository pattern is used for some data access but raw queries elsewhere, flag inconsistency

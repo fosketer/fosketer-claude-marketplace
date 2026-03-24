@@ -135,23 +135,42 @@ After the `refactoring-planner` completes and returns an orchestrator plan:
    - Show the last version of the plan
    - Ask the user whether to accept the plan as-is or make manual corrections
 
-### Example: critic feedback loop (iteration 2)
+#### Annotated example: critic returns "fail" and loop repeats
+
+The following example shows a two-iteration loop where the critic catches a phase-ordering problem and the planner corrects it before the second critic pass succeeds.
 
 ```
-Iteration 1: plan-critic returns fail
-  issues:
-    - { category: "ordering-error", severity: "blocking",
-        description: "SEC findings in Phase 2, not Phase 1",
-        suggestion: "Move scan-security to Phase 1" }
+Iteration 1:
+  plan-critic receives: orchestrator plan with security steps in Phase 2
+  plan-critic returns: verdict = "fail"
+    issues:
+      - { category: "ordering-error", severity: "blocking",
+          description: "SEC findings scheduled in Phase 2, not Phase 1 as required",
+          suggestion: "Move scan-security steps to Phase 1 before all structural changes" }
 
-→ Re-dispatch refactoring-planner with critic feedback
-→ refactoring-planner corrects phase assignment for scan-security
+→ Re-dispatch refactoring-planner with CRITIC_FEEDBACK attached
+→ refactoring-planner reads the blocking issue, reorders phases:
+    Phase 1 now contains all SEC steps
+    Phase 2 contains structural refactoring
+    Phase 3 contains quality improvements
 
-Iteration 2: plan-critic returns pass
-  issues: []
+Iteration 2:
+  plan-critic receives: revised orchestrator plan
+  plan-critic returns: verdict = "pass"
+    issues: []        ← no blocking issues remain
 
-→ Plan accepted, proceed to summary
+→ Plan accepted; proceed to Phase 3 (summary presentation)
 ```
+
+The key invariant: the planner is always re-dispatched with the **full** original inputs plus the critic's feedback JSON. It does not receive a diff — it regenerates the plan from scratch, constrained by the feedback. This ensures internal consistency of the revised plan.
+
+If the loop exhausts all iterations and the critic still returns `fail`, the accumulated blocking issues from every iteration are surfaced to the user at once, giving them full context to decide whether to accept or correct the plan manually.
+
+### How flags affect Phase 2 behavior
+
+- **`--skip-critics`**: Bypasses Phase 2 entirely. The plan produced in Phase 1 is accepted as-is and presented directly in Phase 3. Use this when you trust the planner output or want faster turnaround.
+- **`--critic-iterations=N`**: Caps the feedback loop at N rounds (default: 3, clamped to 1–5). Lower values produce faster results at the cost of less validation. Higher values allow more refinement passes before escalating to the user.
+- **`--priority`**: Does not affect the critic loop mechanics, but shapes what the critic validates. When `--priority=security-first`, the critic checks that security findings appear in Phase 1. When `--priority=quick-wins-first`, the critic validates that low-effort findings are front-loaded regardless of dimension. The priority flag reorders plan steps before the critic sees the plan, so mismatches between priority and step ordering are the most common source of critic `fail` verdicts.
 
 ### Phase 3 — Present summary
 
