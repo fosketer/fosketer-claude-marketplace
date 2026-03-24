@@ -59,7 +59,7 @@ Read the user's Round 1 answers. Based on what they revealed, select 1-2 follow-
 | Learning/exploration intent | "Prefer broad coverage of many angles, or deep investigation of fewer?" |
 | Organizational context mentioned | "Who is the audience? What level of detail do they need?" |
 
-If Round 1 answers are already rich and specific, you may skip this step.
+Skip this step if Round 1 answers are already rich and specific.
 
 Use AskUserQuestion to ask the selected follow-up(s).
 
@@ -265,3 +265,18 @@ Update the project `README.md` with:
 - Date completed
 
 Present the final report location to the user and offer to make any revisions. Mention that angle-specific briefs are available for deeper perspective on each research angle.
+
+---
+
+## Error Handling
+
+- **Subagent failure**: If any agent fails or returns empty/insufficient results, retry once. If it fails again, continue with available data and note the gap in the research output.
+- **WebSearch returns no results**: If an angle or task yields no useful web results after 3 query variations, document the search gap and proceed. Do not block the pipeline.
+- **User non-response**: If the user does not respond to an AskUserQuestion within the conversation, proceed with the default option (e.g., proceed with proposed angles as-is, use all recommended directions).
+
+## Quality Criteria
+
+- **Brainstorm outputs**: Each angle brainstorm should contain at least 5 distinct ideas per section. Shallow brainstorms (fewer than 3 ideas per section) should be flagged by the critic.
+- **Angle briefs**: Target 1,500-2,500 words with at least 3 cited sources per brief. Briefs below 1,000 words are insufficient.
+- **Final report**: Must include all required sections (Executive Summary through Recommendations). The Perspectives Compared section is mandatory when multiple angles were used.
+- **Angle diversity**: No two angles should overlap by more than 30% in their key questions. If overlap is detected during angle generation, the angle-generator should refine or replace the overlapping angle.

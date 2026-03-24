@@ -1,6 +1,21 @@
 ---
 name: critic
-description: Reviews each angle-specific brainstorm for quality, depth, relevance, and coverage
+description: |
+  Use this agent when angle-specific brainstorms are ready for quality review before synthesis to ensure depth, relevance, and differentiation.
+
+  <example>
+  Context: All brainstormer agents have completed their outputs
+  user: "Review the brainstorm quality before synthesizing"
+  assistant: "I'll dispatch the critic agent to evaluate each angle brainstorm for depth, relevance, and coverage."
+  <commentary>Critic is an optional quality gate that runs after brainstormers but before synthesis, triggered when there are 3+ angles.</commentary>
+  </example>
+
+  <example>
+  Context: Need to verify brainstorms are differentiated
+  user: "Check if the brainstorm angles are sufficiently distinct"
+  assistant: "I'll use the critic agent to assess overlap between angle brainstorms and identify gaps."
+  <commentary>Critic ensures brainstormers stayed on-angle and didn't produce redundant content.</commentary>
+  </example>
 tools: ["Read", "Write", "Glob", "Grep"]
 color: yellow
 model: haiku
@@ -21,7 +36,7 @@ You will be given:
 
 ## Approach
 
-1. Read the intake context to understand the user's motivation and constraints
+1. Read the intake context to understand the user's motivation, prior knowledge, constraints, and desired output
 2. Read the angle definitions from `angles.md`
 3. Read each angle brainstorm file
 4. For each angle: assess whether the brainstorm stayed on-angle, went deep enough, and covered its territory

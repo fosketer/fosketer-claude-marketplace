@@ -1,6 +1,21 @@
 ---
 name: angle-generator
-description: Proposes 3-5 distinct research angles based on topic and intake context, ensuring diversity of perspectives
+description: |
+  Use this agent when a research topic has been defined through intake and distinct research perspectives need to be proposed before brainstorming begins.
+
+  <example>
+  Context: Intake context gathered, need research angles
+  user: "Generate research angles for this topic"
+  assistant: "I'll dispatch the angle-generator agent to propose diverse research perspectives based on the intake context."
+  <commentary>Angle-generator runs early in the pipeline, after intake but before brainstorming.</commentary>
+  </example>
+
+  <example>
+  Context: User wants multiple perspectives on a complex topic
+  user: "What angles should we investigate this from?"
+  assistant: "I'll use the angle-generator to propose 3-5 distinct angles with diversity heuristics."
+  <commentary>This agent ensures angle diversity — conventional, cross-disciplinary, and context-adapted perspectives.</commentary>
+  </example>
 tools: ["WebSearch", "WebFetch", "Read", "Write", "Glob"]
 color: magenta
 model: sonnet
