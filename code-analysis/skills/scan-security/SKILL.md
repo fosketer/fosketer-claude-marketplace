@@ -116,6 +116,10 @@ If `MODE=plugin`:
 1. Grep for user input in file path construction:
    - Path concatenation: `os.path.join(` with request parameters, `Path.Combine(` with user input, string concatenation with `/` or `\\` and user input
    - Missing sanitization: absence of `os.path.basename(`, `Path.GetFileName(`, or path traversal character stripping (`..`, `%2e%2e`)
+   - **Python**: `open(request.args`, `pathlib.Path(user_input)`, `shutil.copy(src=user_input`
+   - **TypeScript/JS**: `fs.readFile(req.params`, `path.resolve(req.query`, `fs.createReadStream(userPath`
+   - **C#**: `File.ReadAllText(userInput)`, `Directory.GetFiles(userInput)`, `new StreamReader(path)`
+   - **Go**: `os.Open(r.FormValue(`, `filepath.Join(baseDir, userInput)` without `filepath.Clean`
 2. Check for directory listing exposure: static file serving with directory browsing enabled
 3. Severity: **critical** for path traversal with user input, **high** for directory listing exposure
 
@@ -124,6 +128,10 @@ If `MODE=plugin`:
 1. Grep for user-controlled URLs in outbound HTTP requests:
    - `requests.get(user_input`, `fetch(user_input`, `HttpClient` with user-provided URL
    - URL construction from user input without allowlist validation
+   - **Python**: `urllib.request.urlopen(user_url)`, `httpx.get(user_url)`
+   - **TypeScript/JS**: `axios.get(userUrl)`, `got(userUrl)`, `new URL(userInput)`
+   - **C#**: `new HttpRequestMessage(HttpMethod.Get, userUrl)`, `WebRequest.Create(userUrl)`
+   - **Go**: `http.Get(userURL)`, `http.NewRequest("GET", userURL, nil)`
 2. Check for URL validation: presence of allowlists, blocklists, or URL parsing before requests
 3. Severity: **high** for SSRF vectors without URL validation
 
@@ -133,6 +141,10 @@ If `MODE=plugin`:
    - `log.*(password`, `log.*(token`, `log.*(secret`, `log.*(credit_card`, `log.*(ssn`
    - `console.log(.*password`, `logger.info(.*token`
    - Request/response body logging without field filtering
+   - **Python**: `logging.debug(.*request.data`, `print(.*password`
+   - **TypeScript/JS**: `console.log(.*req.body`, `winston.info(.*credentials`
+   - **C#**: `_logger.LogDebug(.*Password`, `Trace.Write(.*token`
+   - **Go**: `log.Printf(.*password`, `slog.Info(.*token`
 2. Severity: **high** for passwords/tokens in logs, **medium** for PII in logs
 
 ### Step 9 — Check Security Headers

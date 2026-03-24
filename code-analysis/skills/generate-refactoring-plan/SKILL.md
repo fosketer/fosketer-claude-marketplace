@@ -2,10 +2,9 @@
 name: generate-refactoring-plan
 version: 0.8.0
 description: |
-  This skill should be used when generating a focused refactoring plan for a single dimension's findings
-  as part of the analyze-codebase pipeline. Dispatched internally by the orchestrator — not for direct user invocation.
-  Sub-skill of analyze-codebase — executed inline by the orchestrator.
-  Use when the user asks to "generate refactoring plan", "create dimension-specific fix plan", or "produce actionable refactoring steps".
+  This skill should be used when the user asks to "generate refactoring plan", "create dimension-specific fix plan",
+  or "produce actionable refactoring steps". Sub-skill of analyze-codebase — dispatched internally by the orchestrator.
+  Generates a focused refactoring plan for a single dimension's findings as part of the analyze-codebase pipeline.
 allowed-tools: ["Read", "Glob", "Grep"]
 ---
 

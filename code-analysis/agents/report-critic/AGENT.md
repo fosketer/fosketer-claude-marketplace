@@ -19,7 +19,7 @@ description: |
   </example>
 
 model: inherit
-color: cyan
+color: yellow
 tools: ["Read", "Grep", "Glob"]
 ---
 
