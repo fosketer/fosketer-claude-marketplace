@@ -7,14 +7,18 @@ description: |
   Context: Intake context gathered, need research angles
   user: "Generate research angles for this topic"
   assistant: "I'll dispatch the angle-generator agent to propose diverse research perspectives based on the intake context."
-  <commentary>Angle-generator runs early in the pipeline, after intake but before brainstorming.</commentary>
+  <commentary>
+  Angle-generator runs early in the pipeline, after intake but before brainstorming.
+  </commentary>
   </example>
 
   <example>
   Context: User wants multiple perspectives on a complex topic
   user: "What angles should we investigate this from?"
   assistant: "I'll use the angle-generator to propose 3-5 distinct angles with diversity heuristics."
-  <commentary>This agent ensures angle diversity — conventional, cross-disciplinary, and context-adapted perspectives.</commentary>
+  <commentary>
+  This agent ensures angle diversity — conventional, cross-disciplinary, and context-adapted perspectives.
+  </commentary>
   </example>
 tools: ["WebSearch", "WebFetch", "Read", "Write", "Glob"]
 color: magenta

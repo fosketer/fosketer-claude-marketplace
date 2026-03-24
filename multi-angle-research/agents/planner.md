@@ -7,14 +7,18 @@ description: |
   Context: User selected directions from synthesis
   user: "Create the research plan based on the selected directions"
   assistant: "I'll dispatch the planner agent to create a detailed research plan with objectives, methodology, and tasks."
-  <commentary>Planner transforms selected directions into an actionable research plan before execution begins.</commentary>
+  <commentary>
+  Planner transforms selected directions into an actionable research plan before execution begins.
+  </commentary>
   </example>
 
   <example>
   Context: Need concrete research tasks for researcher agents
   user: "Break down the research into executable tasks"
   assistant: "I'll use the planner agent to structure the research into specific, parallelizable tasks."
-  <commentary>Planner ensures tasks are scoped for independent researcher agent execution.</commentary>
+  <commentary>
+  Planner ensures tasks are scoped for independent researcher agent execution.
+  </commentary>
   </example>
 tools: ["Read", "Write", "Glob", "Grep"]
 color: blue

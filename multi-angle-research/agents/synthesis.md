@@ -7,14 +7,18 @@ description: |
   Context: All brainstormer agents have completed their angle-specific outputs
   user: "Synthesize the brainstorm results"
   assistant: "I'll dispatch the synthesis agent to merge all angle brainstorms into a cross-angle synthesis."
-  <commentary>Synthesis runs after all brainstormers (and optionally critic) complete, producing ranked directions for user selection.</commentary>
+  <commentary>
+  Synthesis runs after all brainstormers (and optionally critic) complete, producing ranked directions for user selection.
+  </commentary>
   </example>
 
   <example>
   Context: Need to identify convergence and divergence across angles
   user: "Compare the brainstorm outputs and rank the best directions"
   assistant: "I'll use the synthesis agent to identify convergence, divergence, and produce an evaluation matrix."
-  <commentary>Synthesis is the bridge between brainstorming and planning phases.</commentary>
+  <commentary>
+  Synthesis is the bridge between brainstorming and planning phases.
+  </commentary>
   </example>
 tools: ["Read", "Write", "Glob", "Grep"]
 color: cyan

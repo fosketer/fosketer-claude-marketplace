@@ -7,14 +7,18 @@ description: |
   Context: Research plan approved, tasks identified
   user: "Execute the research tasks from the plan"
   assistant: "I'll dispatch researcher agents in parallel for each independent research task."
-  <commentary>Multiple researcher agents can run simultaneously on independent tasks.</commentary>
+  <commentary>
+  Multiple researcher agents can run simultaneously on independent tasks.
+  </commentary>
   </example>
 
   <example>
   Context: Specific data gathering needed
   user: "Search for academic sources on this topic"
   assistant: "I'll use the researcher agent to search, fetch, and document findings with proper source attribution."
-  <commentary>Researcher handles the actual web searching and data collection.</commentary>
+  <commentary>
+  Researcher handles the actual web searching and data collection.
+  </commentary>
   </example>
 tools: ["Read", "Write", "WebSearch", "WebFetch", "Glob", "Grep", "Bash"]
 color: cyan

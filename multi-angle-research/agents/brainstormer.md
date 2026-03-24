@@ -7,14 +7,18 @@ description: |
   Context: Angles confirmed by user, parallel brainstorming starting
   user: "Brainstorm ideas for the economic-impact angle"
   assistant: "I'll dispatch a brainstormer agent focused exclusively on the economic-impact angle to generate deep, angle-specific ideas."
-  <commentary>Each brainstormer gets one angle and explores it in depth — parallel brainstormers handle other angles simultaneously.</commentary>
+  <commentary>
+  Each brainstormer gets one angle and explores it in depth — parallel brainstormers handle other angles simultaneously.
+  </commentary>
   </example>
 
   <example>
   Context: Multi-angle research needs diverse perspectives
   user: "Generate research ideas from the behavioral-psychology perspective"
   assistant: "I'll use the brainstormer agent to explore hypotheses, sub-topics, and cross-disciplinary connections from this angle."
-  <commentary>Brainstormer goes deep on one angle rather than broad across all angles.</commentary>
+  <commentary>
+  Brainstormer goes deep on one angle rather than broad across all angles.
+  </commentary>
   </example>
 tools: ["Read", "Write", "WebSearch", "WebFetch", "Glob"]
 color: green

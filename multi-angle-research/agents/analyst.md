@@ -7,14 +7,18 @@ description: |
   Context: Researcher agents have completed data gathering
   user: "Analyze the research findings"
   assistant: "I'll dispatch the analyst agent to synthesize findings against research objectives."
-  <commentary>Analyst runs after researchers complete, before the documentation phase.</commentary>
+  <commentary>
+  Analyst runs after researchers complete, before the documentation phase.
+  </commentary>
   </example>
 
   <example>
   Context: Findings from multiple sources need cross-referencing
   user: "Cross-reference all findings and identify patterns"
   assistant: "I'll use the analyst agent to identify patterns, contradictions, and gaps across all gathered evidence."
-  <commentary>Analyst specializes in structured analysis rather than data gathering.</commentary>
+  <commentary>
+  Analyst specializes in structured analysis rather than data gathering.
+  </commentary>
   </example>
 tools: ["Read", "Write", "Glob", "Grep"]
 color: blue

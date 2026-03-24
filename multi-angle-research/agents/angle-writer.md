@@ -7,14 +7,18 @@ description: |
   Context: Research and analysis complete, angle briefs needed
   user: "Write the brief for the technical-feasibility angle"
   assistant: "I'll dispatch an angle-writer agent to create a standalone brief from the technical-feasibility perspective."
-  <commentary>Angle-writers run in parallel, one per selected angle, producing briefs that feed into the final report.</commentary>
+  <commentary>
+  Angle-writers run in parallel, one per selected angle, producing briefs that feed into the final report.
+  </commentary>
   </example>
 
   <example>
   Context: Need perspective-specific documentation
   user: "Create angle-specific briefs for each selected direction"
   assistant: "I'll dispatch angle-writer agents in parallel, each writing a 1,500-2,500 word brief from its assigned angle."
-  <commentary>Angle-writer produces self-contained briefs that can be read independently or as part of the full report.</commentary>
+  <commentary>
+  Angle-writer produces self-contained briefs that can be read independently or as part of the full report.
+  </commentary>
   </example>
 tools: ["Read", "Write", "Glob", "Grep"]
 color: green

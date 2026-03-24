@@ -7,14 +7,18 @@ description: |
   Context: All research phases complete, angle briefs written
   user: "Compile the final research report"
   assistant: "I'll dispatch the writer agent to compile all findings into a polished report."
-  <commentary>Writer is dispatched after analyst and angle-writers have finished, as the final documentation step.</commentary>
+  <commentary>
+  Writer is dispatched after analyst and angle-writers have finished, as the final documentation step.
+  </commentary>
   </example>
 
   <example>
   Context: User wants the report with cross-angle comparison
   user: "Write the research report including how different angles contributed"
   assistant: "I'll use the writer agent to create the comprehensive report with the Perspectives Compared section."
-  <commentary>The writer handles the full report structure including angle comparisons.</commentary>
+  <commentary>
+  The writer handles the full report structure including angle comparisons.
+  </commentary>
   </example>
 tools: ["Read", "Write", "Glob", "Grep"]
 color: green

@@ -7,14 +7,18 @@ description: |
   Context: All brainstormer agents have completed their outputs
   user: "Review the brainstorm quality before synthesizing"
   assistant: "I'll dispatch the critic agent to evaluate each angle brainstorm for depth, relevance, and coverage."
-  <commentary>Critic is an optional quality gate that runs after brainstormers but before synthesis, triggered when there are 3+ angles.</commentary>
+  <commentary>
+  Critic is an optional quality gate that runs after brainstormers but before synthesis, triggered when there are 3+ angles.
+  </commentary>
   </example>
 
   <example>
   Context: Need to verify brainstorms are differentiated
   user: "Check if the brainstorm angles are sufficiently distinct"
   assistant: "I'll use the critic agent to assess overlap between angle brainstorms and identify gaps."
-  <commentary>Critic ensures brainstormers stayed on-angle and didn't produce redundant content.</commentary>
+  <commentary>
+  Critic ensures brainstormers stayed on-angle and didn't produce redundant content.
+  </commentary>
   </example>
 tools: ["Read", "Write", "Glob", "Grep"]
 color: yellow
