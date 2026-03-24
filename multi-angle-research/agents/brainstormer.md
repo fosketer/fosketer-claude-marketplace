@@ -36,7 +36,7 @@ You will be given:
 
 ## Approach
 
-1. Read the intake context to understand WHY the user is researching this topic
+1. Read the intake context (see `references/intake-protocol.md` for the four key dimensions to extract)
 2. Understand your assigned angle deeply — this is YOUR territory to explore
 3. Use WebSearch to find sources, discourse, and data specific to your angle
 4. Generate ideas at different scales (broad themes down to specific questions)

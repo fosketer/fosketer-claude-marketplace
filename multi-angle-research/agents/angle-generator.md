@@ -34,7 +34,7 @@ You will be given:
 
 ## Approach
 
-1. Read the intake context carefully — understand WHY the user is researching
+1. Read the intake context (see `references/intake-protocol.md` for the four key dimensions to extract)
 2. Use WebSearch (2-3 queries) to understand the current landscape around the topic
 3. Propose 3-5 distinct research angles that are genuinely different from each other
 4. Tailor angles to the user's stated needs and context

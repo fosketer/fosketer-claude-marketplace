@@ -28,7 +28,7 @@ You are a research planning specialist. Your role is to transform a chosen resea
 
 ## Approach
 
-1. Read the intake context from `00-intake/context.md` to understand the user's motivation, prior knowledge, constraints, and desired output
+1. Read the intake context (see `references/intake-protocol.md` for the four key dimensions to extract)
 2. Read the brainstorm, critique, and synthesis context to understand the full landscape
 3. Focus on the selected research direction(s)
 4. Tailor the plan to the user's stated needs — a decision-maker needs different research tasks than a learner

@@ -6,7 +6,7 @@ description: |
   "investigate from multiple perspectives", or "structured research workflow".
   It handles structured intake, parallel angle-specific brainstorming, planning, execution,
   and final report generation.
-allowed-tools: ["Agent", "Read", "Write", "Bash", "WebSearch", "WebFetch", "Glob", "Grep", "AskUserQuestion"]
+allowed-tools: ["Agent", "Read", "Write", "Bash", "WebSearch", "WebFetch", "AskUserQuestion"]
 ---
 
 # Research Planning & Execution Skill

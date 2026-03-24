@@ -36,7 +36,7 @@ You will be given:
 
 ## Approach
 
-1. Read the intake context to understand the user's motivation, prior knowledge, constraints, and desired output
+1. Read the intake context (see `references/intake-protocol.md` for the four key dimensions to extract)
 2. Read ALL angle-specific brainstorm files
 3. Read the critique if it exists
 4. Identify what's shared across angles (convergence) and what's unique (divergence)

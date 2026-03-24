@@ -38,7 +38,7 @@ You will be given:
 
 ## Approach
 
-1. Read the intake context — understand the user's motivation, prior knowledge, and desired output
+1. Read the intake context (see `references/intake-protocol.md` for the four key dimensions to extract)
 2. Read the angle-specific brainstorm to understand the perspective
 3. Read the research findings and analysis
 4. Filter and present findings through THIS angle's lens only
