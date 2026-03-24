@@ -117,11 +117,7 @@ If `MODE=plugin`: skip Steps 1–6 (general code quality). Execute Plugin Qualit
    - **>8 parameters**: **high** severity
    - Use Grep with patterns like `def \w+\(` (Python) or `function \w+\(` (JS/TS) then count commas
 
-### Sub-Section: Tech Debt
-
-> Steps 7–10 are grouped under Tech Debt; Steps 11–15 under Performance (see `references/performance-patterns.md`).
-
-#### Step 7 — Grep for TODO Markers
+### Step 7 — Grep for TODO Markers
 
 1. Grep across all source files (excluding `node_modules`, `dist`, `bin`, `obj`, vendor directories) for debt markers:
    - Patterns: `TODO`, `FIXME`, `HACK`, `XXX`, `WORKAROUND`, `TEMPORARY`, `TECH.?DEBT`
@@ -132,7 +128,7 @@ If `MODE=plugin`: skip Steps 1–6 (general code quality). Execute Plugin Qualit
 3. Count totals per category and per module/directory
 4. Flag files with more than 5 markers as high-debt hotspots
 
-#### Step 8 — Scan for Deprecated API Usage
+### Step 8 — Scan for Deprecated API Usage
 
 Scan using language-specific and framework-specific Grep patterns:
 
@@ -148,7 +144,7 @@ Scan using language-specific and framework-specific Grep patterns:
    - `@deprecated`, `@Deprecated(`, `FlatButton` (use `TextButton`), `RaisedButton` (use `ElevatedButton`)
 6. Severity: **high** for deprecated APIs with security implications, **medium** for all others
 
-#### Step 9 — Detect Legacy Patterns
+### Step 9 — Detect Legacy Patterns
 
 Scan for patterns that have modern replacements based on LANGUAGE_PROFILE:
 
@@ -168,7 +164,7 @@ Scan for patterns that have modern replacements based on LANGUAGE_PROFILE:
    - Manual `IDisposable` patterns where `using` declaration suffices
 4. Severity: **low** for style preferences, **medium** for patterns with functional improvements
 
-#### Step 10 — Find Commented-Out Code Blocks
+### Step 10 — Find Commented-Out Code Blocks
 
 1. Grep for multi-line comment blocks that contain code patterns:
    - Blocks of 3+ consecutive commented lines containing code syntax (assignments, function calls, imports, conditionals)
@@ -178,7 +174,7 @@ Scan for patterns that have modern replacements based on LANGUAGE_PROFILE:
 2. Exclude license headers, documentation comments, and intentional examples
 3. Severity: **low** for small blocks (3-10 lines), **medium** for large blocks (>10 lines)
 
-### Sub-Section: Performance (Steps 11–15)
+### Steps 11–15 — Performance
 
 Read `references/performance-patterns.md` for per-language grep patterns covering N+1 queries (Step 11), pagination checks (Step 12), memory growth patterns (Step 13), frontend rendering issues (Step 14), and caching gaps (Step 15). Apply severity guidelines from the section below.
 
@@ -241,15 +237,6 @@ Read and follow the shared scanner protocol at `${CLAUDE_PLUGIN_ROOT}/references
 - Finding ID generation (deterministic fingerprint IDs)
 - Carry-forward protocol (verify previous findings, discover new ones)
 
-## Self-Scoring & Persistence (v0.8.0)
+## Self-Scoring & Persistence
 
-After generating all findings, compute and include the dimension score in the response:
-
-1. Count findings by severity (exclude info): critical, high, medium, low
-2. Compute raw penalty: `raw = 3×critical + 2×high + 1×medium + 0.5×low`
-3. Compute score: `score = max(1.0, 10 - min(raw, 9))`
-4. Include in response header alongside findings:
-   ```json
-   { "dimension": "quality", "score": <score>, "raw_penalty": <raw>, "summary": {...}, "findings": [...] }
-   ```
-5. Persist findings to `SCAN_REPORTS_DIR/YYYY-MM-DD-quality.json` (overwrite if same date exists)
+Follow the protocol in `${CLAUDE_PLUGIN_ROOT}/references/self-scoring-protocol.md` for this dimension.

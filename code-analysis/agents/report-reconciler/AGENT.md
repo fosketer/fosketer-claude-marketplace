@@ -42,7 +42,7 @@ Read:
 2. `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md` — Finding and DimensionReport schemas
 3. `${CLAUDE_PLUGIN_ROOT}/references/schemas/scoring-schema.md` — ScoresReport, IterationTarget, RunDelta, scoring formula
 4. `${CLAUDE_PLUGIN_ROOT}/references/schemas/reconciler-schema.md` — CrossAnalysis, RootCauseCluster, OverrideFile
-5. `${CLAUDE_PLUGIN_ROOT}/templates/analysis-draft.md` — report template
+5. `${CLAUDE_PLUGIN_ROOT}/skills/reconcile-report/references/analysis-draft-template.md` — report template
 
 #### Step 2 — Execute Reconciliation
 
@@ -95,6 +95,13 @@ If dispatched with critic feedback (from report-critic):
 1. Read the feedback issues
 2. Re-execute reconciliation addressing each blocking issue
 3. Return revised report
+
+## Quality Standards
+
+- Every finding must retain all required schema fields (id, dimension, title, severity, location, description, recommendation, effort, tags) through deduplication
+- Severity counts in `by_severity` must sum to `total_findings` — arithmetic mismatch is a blocking error
+- Dedup must never discard the higher-severity variant of overlapping findings
+- Output JSON must validate against the reconciler schema in `references/schemas/reconciler-schema.md`
 
 ## Notes
 

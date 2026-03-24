@@ -203,12 +203,14 @@ loop:
     - stack, project path
     - iteration: attempt + 1
     - prior feedback (from previous iteration, null on first)
-    - model: MODEL_MAP.critique  if critic returns verdict "pass":
+    - model: MODEL_MAP.critique
+  if critic returns verdict "pass":
     break
   dispatch report-reconciler agent with:
     - same findings
     - critic feedback
-    - model: MODEL_MAP.reconciliation  attempt++
+    - model: MODEL_MAP.reconciliation
+  attempt++
 ```
 
 ### Stage 5 — User Checkpoint ← CHECKPOINT
@@ -266,7 +268,9 @@ The orchestrator collects the master plan from the agent's output.
 Run the same critic feedback loop pattern as Stage 4, but with:
 - `plan-critic` agent instead of `report-critic`
 - `refactoring-planner` agent as the producer (re-dispatched with critic feedback)
-- Model for plan-critic: `MODEL_MAP.critique`- Model for refactoring-planner re-dispatch: `MODEL_MAP.planning`- Same max iterations from `--critic-iterations`
+- Model for plan-critic: `MODEL_MAP.critique`
+- Model for refactoring-planner re-dispatch: `MODEL_MAP.planning`
+- Same max iterations from `--critic-iterations`
 
 ### Stage 9 — User Approval Gate ← MANDATORY GATE
 
@@ -282,7 +286,8 @@ Present to user:
 ### Stage 10 — Persist All Final Outputs
 
 Dispatch the `refactoring-planner` agent for persistence (Step 5 in its agent definition):
-- Model: `MODEL_MAP.planning`- It reads templates internally (`refactoring-plan.md`, `orchestrator-plan.md`) — the orchestrator MUST NOT read them
+- Model: `MODEL_MAP.planning`
+- It reads templates internally (`refactoring-plan.md`, `orchestrator-plan.md`) — the orchestrator MUST NOT read them
 - It writes to `.code-analysis/plans/`:
   - `YYYY-MM-DD-{dimension}-plan.md` — per-dimension plans
   - `YYYY-MM-DD-orchestrator-plan.md` — master plan

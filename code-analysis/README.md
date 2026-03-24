@@ -254,7 +254,6 @@ code-analysis/
 │   ├── output-schemas.md         # Finding, DimensionReport, ScoresReport, etc.
 │   ├── language-profiles/        # Python, TypeScript, C#, Dart, Rust, Go
 │   └── framework-profiles/       # React, .NET, Flutter, Tauri, Electron, MAUI
-├── templates/                    # Report and plan markdown templates
 └── docs/superpowers/
     ├── specs/                    # Approved design specs
     └── plans/                    # Implementation plans

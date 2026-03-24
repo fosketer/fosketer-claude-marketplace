@@ -94,7 +94,9 @@ Write all plans to the target project:
 - `.code-analysis/plans/YYYY-MM-DD-{dimension}-plan.md` per dimension
 - `.code-analysis/plans/YYYY-MM-DD-orchestrator-plan.md` for the master plan
 
-Use the templates from `${CLAUDE_PLUGIN_ROOT}/templates/`.
+Use the templates:
+- `${CLAUDE_PLUGIN_ROOT}/skills/generate-refactoring-plan/references/plan-template.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/generate-orchestrator-plan/references/orchestrator-plan-template.md`
 
 ### Step 6: Present Summary
 
@@ -123,6 +125,13 @@ After persisting plans (Step 5), return a structured summary to the orchestrator
   ]
 }
 ```
+
+## Quality Standards
+
+- Every critical/high/medium finding must map to at least one plan step — uncovered findings are a completeness gap
+- Effort estimates must be provided at the step level, not only at the plan level
+- Dependency ordering must be verified: no step may reference files modified by a later step in the same phase
+- All plan output must validate against the RefactoringPlan and OrchestratorPlan schemas in `references/schemas/plan-schema.md`
 
 ## Notes
 
