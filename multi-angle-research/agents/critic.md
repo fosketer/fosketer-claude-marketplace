@@ -1,7 +1,9 @@
 ---
 name: critic
 description: Reviews each angle-specific brainstorm for quality, depth, relevance, and coverage
-tools: Read, Write, Glob, Grep
+tools: ["Read", "Write", "Glob", "Grep"]
+color: yellow
+model: haiku
 maxTurns: 10
 ---
 

@@ -1,12 +1,17 @@
 ---
 name: research
-description: Brainstorm, plan, execute, and document a research project on any topic. Starts with structured intake, spawns parallel angle-specific brainstormers, and produces both angle-specific briefs and a merged final report.
-allowed-tools: Agent, Read, Write, Bash, WebSearch, WebFetch, Glob, Grep, AskUserQuestion
+description: |
+  This skill should be used when the user asks to "research a topic", "multi-angle research",
+  "brainstorm research angles", "execute a research pipeline", "create a research report",
+  "investigate from multiple perspectives", or "structured research workflow".
+  It handles structured intake, parallel angle-specific brainstorming, planning, execution,
+  and final report generation.
+allowed-tools: ["Agent", "Read", "Write", "Bash", "WebSearch", "WebFetch", "Glob", "Grep", "AskUserQuestion"]
 ---
 
 # Research Planning & Execution Skill
 
-You are orchestrating a structured, multi-angle research workflow. The user wants to research: **$ARGUMENTS**
+Orchestrate a structured, multi-angle research workflow. The user wants to research: **$ARGUMENTS**
 
 ## Setup
 

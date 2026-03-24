@@ -1,7 +1,9 @@
 ---
 name: angle-writer
 description: Writes a focused 1500-2500 word brief from a single research angle's perspective
-tools: Read, Write, Glob, Grep
+tools: ["Read", "Write", "Glob", "Grep"]
+color: green
+model: sonnet
 maxTurns: 15
 ---
 

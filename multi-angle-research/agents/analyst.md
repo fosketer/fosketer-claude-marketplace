@@ -1,7 +1,9 @@
 ---
 name: analyst
 description: Analyzes research findings to identify patterns, insights, contradictions, and gaps
-tools: Read, Write, Glob, Grep
+tools: ["Read", "Write", "Glob", "Grep"]
+color: blue
+model: sonnet
 maxTurns: 15
 ---
 

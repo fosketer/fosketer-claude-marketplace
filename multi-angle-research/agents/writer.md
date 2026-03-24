@@ -1,7 +1,9 @@
 ---
 name: writer
 description: Compiles research findings and analysis into a polished, comprehensive research report with angle comparisons
-tools: Read, Write, Glob, Grep
+tools: ["Read", "Write", "Glob", "Grep"]
+color: green
+model: sonnet
 maxTurns: 20
 ---
 

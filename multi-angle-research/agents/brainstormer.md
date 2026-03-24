@@ -1,7 +1,9 @@
 ---
 name: brainstormer
 description: Generates in-depth research ideas, questions, hypotheses, and sub-topics for a specific assigned angle
-tools: Read, Write, WebSearch, WebFetch, Glob
+tools: ["Read", "Write", "WebSearch", "WebFetch", "Glob"]
+color: green
+model: sonnet
 maxTurns: 15
 ---
 

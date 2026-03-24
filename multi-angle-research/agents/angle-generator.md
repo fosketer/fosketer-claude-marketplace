@@ -1,7 +1,9 @@
 ---
 name: angle-generator
 description: Proposes 3-5 distinct research angles based on topic and intake context, ensuring diversity of perspectives
-tools: WebSearch, WebFetch, Read, Write, Glob
+tools: ["WebSearch", "WebFetch", "Read", "Write", "Glob"]
+color: magenta
+model: sonnet
 maxTurns: 10
 ---
 

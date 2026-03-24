@@ -1,7 +1,9 @@
 ---
 name: planner
 description: Creates detailed, structured research plans with objectives, methodology, and task breakdowns
-tools: Read, Write, Glob, Grep
+tools: ["Read", "Write", "Glob", "Grep"]
+color: blue
+model: haiku
 maxTurns: 10
 ---
 

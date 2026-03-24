@@ -1,7 +1,9 @@
 ---
 name: researcher
 description: Executes research tasks by searching the web, gathering data, and documenting findings with source attribution
-tools: Read, Write, WebSearch, WebFetch, Glob, Grep, Bash
+tools: ["Read", "Write", "WebSearch", "WebFetch", "Glob", "Grep", "Bash"]
+color: cyan
+model: sonnet
 maxTurns: 25
 ---
 

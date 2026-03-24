@@ -1,7 +1,9 @@
 ---
 name: synthesis
 description: Merges N angle-specific brainstorms into a coherent cross-angle synthesis with ranked directions
-tools: Read, Write, Glob, Grep
+tools: ["Read", "Write", "Glob", "Grep"]
+color: cyan
+model: sonnet
 maxTurns: 15
 ---
 
