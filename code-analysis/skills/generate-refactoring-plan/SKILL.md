@@ -18,7 +18,7 @@ Read one dimension's findings and produce a focused, actionable refactoring plan
 ## Input
 
 - `DIMENSION`: The dimension name (e.g., `"structure"`, `"quality"`)
-- `FINDINGS`: Array of Finding objects from the corresponding scan skill (see the Finding schema in `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`)
+- `FINDINGS`: Array of Finding objects from the corresponding scan skill (see the Finding schema in `${CLAUDE_PLUGIN_ROOT}/references/schemas/plan-schema.md`)
 - `STACK`: Detected language/framework object with `languages` and `frameworks` arrays
 - `PROJECT_PATH`: Root directory of the project
 
@@ -162,7 +162,7 @@ If `CROSS_ANALYSIS` is provided:
 
 ### Step 6 — Produce Plan
 
-Compile the plan as a `RefactoringPlan` object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`:
+Compile the plan as a `RefactoringPlan` object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/schemas/plan-schema.md`:
 
 ```json
 {

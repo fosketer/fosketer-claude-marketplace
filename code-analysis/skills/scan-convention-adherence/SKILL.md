@@ -153,7 +153,7 @@ Perform cross-file consistency checks across all skills and agents in the plugin
 
 ### Step 8 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`:
+Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
 
 ```json
 {

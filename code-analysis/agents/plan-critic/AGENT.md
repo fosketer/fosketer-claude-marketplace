@@ -6,7 +6,7 @@ description: |
 
   <example>
   Context: Orchestrator has generated the master refactoring plan
-  user: "Analyze this codebase"
+  user: "Check the refactoring plan for feasibility"
   assistant: "Plan generated. Dispatching plan-critic for validation."
   <commentary>Returns pass/fail verdict with structured issues.</commentary>
   </example>

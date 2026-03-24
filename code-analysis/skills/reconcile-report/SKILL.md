@@ -131,7 +131,7 @@ Produce a "Root Cause Analysis" section in the report:
 
 If no hot modules exist, omit this section.
 
-Produce `RootCauseCluster` objects matching the schema in `output-schemas.md`.
+Produce `RootCauseCluster` objects matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/schemas/reconciler-schema.md`.
 
 ### Step 4c — Priority Tiers
 

@@ -6,7 +6,7 @@ description: |
 
   <example>
   Context: Orchestrator dispatches parallel dimension scans
-  user: "Analyze this codebase"
+  user: "Scan this project for code quality and security issues"
   assistant: "I'll dispatch code-analyzer agents for each dimension."
   <commentary>Parallel dispatch, each agent loads its own sub-skill.</commentary>
   </example>
@@ -108,7 +108,7 @@ Return a JSON object with:
 
 Each finding:
 ```json
-{ "id": "DIM-NNN", "dimension": "...", "title": "...", "severity": "critical|high|medium|low|info", "location": "file:line", "description": "...", "recommendation": "..." }
+{ "id": "QUAL-e7b4a1-3f2a", "dimension": "quality", "title": "Duplicated validation logic", "severity": "medium", "file_path": "src/utils.py", "line_start": 42, "description": "...", "recommendation": "...", "effort": "small", "tags": ["duplication"] }
 ```
 
 Use the Write tool to persist the full JSON object to `SCAN_REPORTS_DIR/YYYY-MM-DD-{dimension}.json` per the scan skill (overwrite if the same date file exists).

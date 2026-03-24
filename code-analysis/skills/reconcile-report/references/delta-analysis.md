@@ -41,4 +41,4 @@ If old 8-dimension names appear in `PREVIOUS_SCORES.dimension_scores`, skip delt
 
 Add a "Run Delta" section to the report with new, resolved, unchanged counts and score deltas.
 
-Produce a `RunDelta` object matching the schema in `output-schemas.md`.
+Produce a `RunDelta` object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/schemas/reconciler-schema.md`.

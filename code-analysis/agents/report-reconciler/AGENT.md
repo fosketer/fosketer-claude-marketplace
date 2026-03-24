@@ -6,7 +6,7 @@ description: |
 
   <example>
   Context: Orchestrator has collected all 4 dimension findings
-  user: "Analyze this codebase"
+  user: "Reconcile all dimension findings into a unified report"
   assistant: "All scans complete. Dispatching report-reconciler to deduplicate and score."
   <commentary>Deduplicates, scores, produces unified draft report.</commentary>
   </example>

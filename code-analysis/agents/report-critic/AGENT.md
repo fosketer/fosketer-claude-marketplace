@@ -6,7 +6,7 @@ description: |
 
   <example>
   Context: Orchestrator has a reconciled report ready for validation
-  user: "Analyze this codebase"
+  user: "Validate the analysis report quality"
   assistant: "Report reconciled. Dispatching report-critic for validation."
   <commentary>Returns pass/fail verdict with structured issues.</commentary>
   </example>
@@ -19,7 +19,7 @@ description: |
   </example>
 
 model: inherit
-color: yellow
+color: green
 tools: ["Read", "Grep", "Glob"]
 ---
 

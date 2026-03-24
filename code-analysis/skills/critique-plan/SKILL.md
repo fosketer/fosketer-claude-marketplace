@@ -209,7 +209,7 @@ Accumulate all unresolved issues alongside any new issues found in the current p
 
 ## Output
 
-Produce a `CriticFeedback` JSON object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`:
+Produce a `CriticFeedback` JSON object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/schemas/critic-schema.md`:
 
 ```json
 {

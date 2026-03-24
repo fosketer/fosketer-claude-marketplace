@@ -185,7 +185,7 @@ Total: ~6.5d; with risk buffer (Phase 3 has high-risk steps): `"6-10 developer d
 
 ### Step 6 — Produce Master Plan
 
-Compile the `OrchestratorPlan` object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`:
+Compile the `OrchestratorPlan` object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/schemas/plan-schema.md`:
 
 ```json
 {

@@ -196,7 +196,7 @@ After processing prior feedback, continue with any new issues found during the c
 
 ## Output
 
-Produce a `CriticFeedback` JSON object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/output-schemas.md`:
+Produce a `CriticFeedback` JSON object matching the schema in `${CLAUDE_PLUGIN_ROOT}/references/schemas/critic-schema.md`:
 
 ```json
 {
