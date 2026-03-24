@@ -119,6 +119,8 @@ If `MODE=plugin`: skip Steps 1–6 (general code quality). Execute Plugin Qualit
 
 ### Sub-Section: Tech Debt
 
+> Steps 7–10 are grouped under Tech Debt; Steps 11–15 under Performance (see `references/performance-patterns.md`).
+
 #### Step 7 — Grep for TODO Markers
 
 1. Grep across all source files (excluding `node_modules`, `dist`, `bin`, `obj`, vendor directories) for debt markers:
@@ -182,28 +184,7 @@ Read `references/performance-patterns.md` for per-language grep patterns coverin
 
 ### Step 16 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "QUAL-e7b4a1-3f2a",
-  "dimension": "quality",
-  "title": "Duplicated validation logic across 3 modules",
-  "description": "The email validation block (15 lines) is copy-pasted in user_service.py, auth_handler.py, and registration.py",
-  "severity": "high",
-  "file_path": "src/services/user_service.py",
-  "line_start": 42,
-  "line_end": 57,
-  "snippet": "def validate_email(email):\n    if not re.match(r'...',  email): ...",
-  "recommendation": "Extract to a shared validation utility module",
-  "effort": "low",
-  "tags": ["duplication", "DRY-violation"]
-}
-```
-
-Always populate `snippet` with the relevant code lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `QUAL-` and dimension `"quality"`.
 
 ## Severity Guidelines
 
@@ -231,6 +212,7 @@ Performance findings should always include the execution frequency context in th
 | No database/ORM layer detected | Skip Steps 11-12, note absence in findings |
 | No frontend framework detected | Skip Step 14, note backend-only analysis |
 | ORM not recognized | Fall back to raw SQL pattern detection (`SELECT`, `INSERT`, `UPDATE`) |
+| `references/performance-patterns.md` not found | Skip Steps 11-15, emit info finding noting missing reference |
 
 ## Success Checklist
 

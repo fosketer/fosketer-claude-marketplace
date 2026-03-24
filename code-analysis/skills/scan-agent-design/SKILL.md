@@ -193,28 +193,7 @@ For each agent file that declares a `color` field:
 
 ### Step 8 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "AGT-e7b4a1-3f2a",
-  "dimension": "agent-design",
-  "title": "Agent has fewer than 2 example blocks",
-  "description": "The agent defined in agents/research-agent.md contains only 1 <example> block. At least 2 are required to demonstrate diverse usage patterns.",
-  "severity": "high",
-  "file_path": "agents/research-agent.md",
-  "line_start": 4,
-  "line_end": 18,
-  "snippet": "description: |\n  <example>\n  Context: ...\n  </example>",
-  "recommendation": "Add a second <example> block covering a different usage scenario, including context, user turn, assistant turn, and <commentary>",
-  "effort": "low",
-  "tags": ["agent-design", "examples", "frontmatter"]
-}
-```
-
-Always populate `snippet` with the relevant lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `AGT-` and dimension `"agent-design"`.
 
 ## Error Handling
 

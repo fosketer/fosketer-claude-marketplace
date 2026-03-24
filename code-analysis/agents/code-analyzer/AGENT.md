@@ -120,6 +120,19 @@ If `.code-analysis/scan-reports/` exists:
 2. Compare and highlight new, resolved, or unchanged findings
 3. Include delta in output
 
+## Quality Standards
+
+- Every finding MUST include all required schema fields per `finding-schema.md`: `id`, `dimension`, `title`, `severity`, `description`, `recommendation`, `effort`, `tags`
+- Return an empty findings array `[]` rather than failing silently when no issues are found
+- Finding IDs MUST use the fingerprint format `{DIM}-{file_hash6}-{title_hash4}` — never sequential IDs
+- Severity assignments MUST follow the dimension-specific guidelines in the loaded sub-skill
+
+## Error Handling
+
+- If the sub-skill `SKILL.md` cannot be read: return a single critical finding with title "Scanner sub-skill unavailable" and description explaining which file could not be loaded
+- If `finding-schema.md` or `scoring-schema.md` cannot be read: return findings without self-scoring, note the limitation in the response
+- If `SCAN_REPORTS_DIR` is not writable: return findings in the response without persisting, note the limitation
+
 ## Bash Usage Constraints
 
 Bash is permitted ONLY for the following operations:

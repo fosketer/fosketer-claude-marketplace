@@ -128,28 +128,7 @@ Validate that version strings are consistent across all three potential sources:
 
 ### Step 8 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "MKT-e7b4a1-3f2a",
-  "dimension": "marketplace-consistency",
-  "title": "Plugin description in marketplace.json does not match plugin.json",
-  "description": "The description registered in marketplace.json ('Analyzes codebases') differs from the description in .claude-plugin/plugin.json ('Analyze and improve codebases with multi-dimensional scanning'). The marketplace entry should be kept in sync with the plugin manifest.",
-  "severity": "medium",
-  "file_path": ".claude-plugin/plugin.json",
-  "line_start": 4,
-  "line_end": 4,
-  "snippet": "\"description\": \"Analyze and improve codebases with multi-dimensional scanning\"",
-  "recommendation": "Update marketplace.json to reflect the current description from plugin.json, or vice versa",
-  "effort": "low",
-  "tags": ["marketplace", "metadata", "consistency"]
-}
-```
-
-Always populate `snippet` with the relevant lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `MKT-` and dimension `"marketplace-consistency"`.
 
 ## Common Marketplace Misconfigurations
 

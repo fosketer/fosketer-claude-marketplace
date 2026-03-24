@@ -49,13 +49,15 @@ If `MODE=plugin`:
 
 #### Step P3 — Check .local.md Credential Exposure
 1. Grep for .local.md patterns — verify they're in .gitignore
-2. Check if any .local.md files are tracked in git
-3. Severity: **critical** for tracked credential files
+2. Check if any .local.md files are tracked in git (`git ls-files` with .local.md pattern)
+3. Verify .gitignore contains appropriate exclusions for credential files
+4. Severity: **critical** for tracked credential files, **high** for missing .gitignore entries
 
 #### Step P4 — Check MCP Security
-1. Read MCP server configs for non-HTTPS/WSS URLs
-2. Flag HTTP/WS connections: severity **high**
+1. Read MCP server configs (`.mcp.json`, plugin.json `mcp` field) for non-HTTPS/WSS URLs
+2. Flag HTTP/WS connections: severity **high** (data in transit exposure)
 3. Check for hardcoded auth tokens in MCP configs: severity **critical**
+4. Verify MCP server entry points do not expose internal file paths in error messages
 
 ## Workflow
 
@@ -168,28 +170,7 @@ If `MODE=plugin`:
 
 ### Step 11 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "SEC-e7b4a1-3f2a",
-  "dimension": "security",
-  "title": "Hardcoded API key in configuration",
-  "description": "...",
-  "severity": "critical",
-  "file_path": "src/config/settings.py",
-  "line_start": 15,
-  "line_end": 15,
-  "snippet": "API_KEY = \"sk-abc123...\"",
-  "recommendation": "Move to environment variable or secret manager (Azure Key Vault, 1Password)",
-  "effort": "low",
-  "tags": ["hardcoded-secret", "owasp-a07"]
-}
-```
-
-Always populate `snippet` with the relevant code lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `SEC-` and dimension `"security"`.
 
 ## Error Handling
 

@@ -140,28 +140,7 @@ Analyze the codebase's module structure, dependency graph, layering, circular de
 
 #### Step 11 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "STRC-e7b4a1-3f2a",
-  "dimension": "structure",
-  "title": "Circular dependency between modules X and Y",
-  "description": "...",
-  "severity": "critical",
-  "file_path": "src/module_x/service.py",
-  "line_start": 5,
-  "line_end": 5,
-  "snippet": "from module_y import SomeClass",
-  "recommendation": "Extract shared interface to a common module",
-  "effort": "medium",
-  "tags": ["circular-dependency", "module-boundary"]
-}
-```
-
-Always populate `snippet` with the relevant code lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `STRC-` and dimension `"structure"`.
 
 ## Error Handling
 

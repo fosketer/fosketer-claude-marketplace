@@ -106,28 +106,7 @@ Read `references/structure-examples.md` for acceptable and unacceptable plugin d
 
 ### Step 7 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "MNF-e7b4a1-3f2a",
-  "dimension": "manifest-structure",
-  "title": "Plugin name does not follow kebab-case convention",
-  "description": "The name field in .claude-plugin/plugin.json is 'MyPlugin', which does not match /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/",
-  "severity": "high",
-  "file_path": ".claude-plugin/plugin.json",
-  "line_start": 3,
-  "line_end": 3,
-  "snippet": "\"name\": \"MyPlugin\"",
-  "recommendation": "Rename to 'my-plugin' to follow kebab-case convention",
-  "effort": "low",
-  "tags": ["naming", "manifest", "kebab-case"]
-}
-```
-
-Always populate `snippet` with the relevant lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `MNF-` and dimension `"manifest-structure"`.
 
 ## Edge Cases
 

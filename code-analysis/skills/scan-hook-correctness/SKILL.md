@@ -140,28 +140,7 @@ For each hook script identified in Step 6:
 
 ### Step 10 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "HKC-e7b4a1-3f2a",
-  "dimension": "hook-correctness",
-  "title": "Invalid hook event name: 'OnToolCall'",
-  "description": "hooks.json contains an event key 'OnToolCall' which is not a recognized Claude hook event. Valid events are: PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, UserPromptSubmit, PreCompact, Notification.",
-  "severity": "high",
-  "file_path": "hooks/hooks.json",
-  "line_start": 5,
-  "line_end": 5,
-  "snippet": "\"OnToolCall\": [...]",
-  "recommendation": "Replace 'OnToolCall' with the correct event name, likely 'PreToolUse' or 'PostToolUse'",
-  "effort": "low",
-  "tags": ["hooks", "event-name", "schema"]
-}
-```
-
-Always populate `snippet` with the relevant lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `HKC-` and dimension `"hook-correctness"`.
 
 ## Error Handling
 

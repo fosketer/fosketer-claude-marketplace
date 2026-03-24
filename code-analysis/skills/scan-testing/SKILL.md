@@ -169,28 +169,7 @@ Run the language-appropriate coverage command from the LANGUAGE_PROFILE's "Cover
 
 ### Step 12 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "TST-e7b4a1-3f2a",
-  "dimension": "testing",
-  "title": "Untested public API: UserService.createUser()",
-  "description": "...",
-  "severity": "high",
-  "file_path": "src/services/user_service.py",
-  "line_start": 42,
-  "line_end": 42,
-  "snippet": "def createUser(self, data: UserInput) -> User:",
-  "recommendation": "Add unit tests covering happy path, null input, and duplicate user scenarios",
-  "effort": "medium",
-  "tags": ["missing-test", "public-api"]
-}
-```
-
-Always populate `snippet` with the relevant code lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `TEST-` and dimension `"testing"`.
 
 ## Error Handling
 

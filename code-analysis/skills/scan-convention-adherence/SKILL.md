@@ -153,28 +153,7 @@ Perform cross-file consistency checks across all skills and agents in the plugin
 
 ### Step 8 — Produce Findings
 
-Compile findings array with each finding matching the Finding schema from `${CLAUDE_PLUGIN_ROOT}/references/schemas/finding-schema.md`:
-
-```json
-{
-  "id": "CVN-e7b4a1-3f2a",
-  "dimension": "convention-adherence",
-  "title": "Deprecated commands/ entry: 'search.md' should be migrated to skills/",
-  "description": "commands/search.md uses the deprecated commands/ directory pattern. Claude plugins should define all callable units as skills in the skills/ directory. The commands/ pattern is no longer part of the official plugin convention.",
-  "severity": "medium",
-  "file_path": "commands/search.md",
-  "line_start": null,
-  "line_end": null,
-  "snippet": null,
-  "recommendation": "Move commands/search.md to skills/search/SKILL.md and update the frontmatter to match the SKILL.md format",
-  "effort": "medium",
-  "tags": ["deprecated", "commands", "convention-drift"]
-}
-```
-
-Always populate `snippet` with the relevant lines when `line_start` is provided.
-
-Return the findings array to the orchestrator.
+Follow the produce-findings template at `${CLAUDE_PLUGIN_ROOT}/references/produce-findings-template.md`. Use ID prefix `CVN-` and dimension `"convention-adherence"`.
 
 ## Error Handling
 
